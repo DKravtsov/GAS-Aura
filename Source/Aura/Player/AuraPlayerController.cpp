@@ -4,10 +4,19 @@
 #include "Player/AuraPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Interaction/InteractableInterface.h"
+
 
 AAuraPlayerController::AAuraPlayerController()
 {
     SetReplicates(true);
+}
+
+void AAuraPlayerController::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    TraceUnderCursor();
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -53,5 +62,32 @@ void AAuraPlayerController::Move(const FInputActionValue& InputValue)
     {
         ControlledPawn->AddMovementInput(Forward, InputVector.Y);
         ControlledPawn->AddMovementInput(Right, InputVector.X);
+    }
+}
+
+void AAuraPlayerController::TraceUnderCursor()
+{
+    FHitResult Hit;
+
+    if (!GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        return;
+    }
+    //FString msg = FString::Printf(TEXT("Under cursor: %s"), *GetNameSafe(Hit.GetActor()));
+    //GEngine->AddOnScreenDebugMessage(0x234, 0.1f, FColor::Yellow, msg);
+
+    auto LastActorUnderCursor = CurrentActorUnderCursor;
+    CurrentActorUnderCursor = Hit.GetActor();
+
+    if (LastActorUnderCursor.GetInterface() != CurrentActorUnderCursor.GetInterface())
+    {
+        if (LastActorUnderCursor != nullptr)
+        {
+            LastActorUnderCursor->UnhighlightActor();
+        }
+        if (CurrentActorUnderCursor != nullptr)
+        {
+            CurrentActorUnderCursor->HighlightActor();
+        }
     }
 }

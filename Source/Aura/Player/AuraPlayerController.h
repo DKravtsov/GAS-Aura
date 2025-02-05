@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
+class IInteractableInterface;
+
 /**
  *
  */
@@ -22,9 +24,13 @@ private:
     UPROPERTY(EditAnywhere, Category = "Input")
     TObjectPtr<class UInputAction> MoveAction;
 
+    TScriptInterface<IInteractableInterface> CurrentActorUnderCursor;
+
 public:
 
     AAuraPlayerController();
+
+    void Tick(float DeltaTime) override;
 
 protected:
 
@@ -35,4 +41,6 @@ protected:
 private:
 
     void Move(const struct FInputActionValue& InputValue);
+
+    void TraceUnderCursor();
 };
