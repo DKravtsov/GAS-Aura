@@ -14,4 +14,13 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase
 {
     GENERATED_BODY()
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<class USpringArmComponent> CameraBoom;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<class UCameraComponent> CameraComponent;
+
+public:
+
+    AAuraPlayerCharacter();
 };
