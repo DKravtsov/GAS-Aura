@@ -8,6 +8,7 @@
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "UI/HUD/AuraHUD.h"
 
 AAuraPlayerCharacter::AAuraPlayerCharacter()
 {
@@ -43,18 +44,30 @@ void AAuraPlayerCharacter::PossessedBy(AController* NewController)
 
     // init for the server
     InitAbilitySystemComponent();
+    InitOverlay();
 }
 
 void AAuraPlayerCharacter::InitAbilitySystemComponent()
 {
-    if (auto PS = GetPlayerStateChecked<AAuraPlayerState>())
+    auto PS = GetPlayerStateChecked<AAuraPlayerState>();
+
+    AbilitySystemComponent = PS->GetAbilitySystemComponent();
+    AttributeSet = PS->GetAttributeSet();
+
+    check(AbilitySystemComponent);
+
+    AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+
+}
+
+void AAuraPlayerCharacter::InitOverlay()
+{
+    if (auto PC = Cast<APlayerController>(GetController()))
     {
-        AbilitySystemComponent = PS->GetAbilitySystemComponent();
-        AttributeSet = PS->GetAttributeSet();
-
-        check(AbilitySystemComponent);
-
-        AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+        if (auto HUD = PC->GetHUD<AAuraHUD>())
+        {
+            HUD->InitOverlay();
+        }
     }
 }
 
@@ -64,4 +77,5 @@ void AAuraPlayerCharacter::OnRep_PlayerState()
 
     // init for the client
     InitAbilitySystemComponent();
+    InitOverlay();
 }

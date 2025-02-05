@@ -31,4 +31,5 @@ public:
 
 private:
     void InitAbilitySystemComponent();
+    void InitOverlay();
 };

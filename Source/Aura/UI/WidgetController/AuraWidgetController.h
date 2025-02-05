@@ -32,5 +32,6 @@ public:
 
     UAuraWidgetController();
 
-
+    UFUNCTION(BlueprintCallable)
+    void InitWidgetController(APlayerController* PC);
 };
