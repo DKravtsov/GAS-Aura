@@ -5,6 +5,9 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Player/AuraPlayerState.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 
 AAuraPlayerCharacter::AAuraPlayerCharacter()
 {
@@ -32,4 +35,33 @@ AAuraPlayerCharacter::AAuraPlayerCharacter()
 
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = true;
+}
+
+void AAuraPlayerCharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+
+    // init for the server
+    InitAbilitySystemComponent();
+}
+
+void AAuraPlayerCharacter::InitAbilitySystemComponent()
+{
+    if (auto PS = GetPlayerStateChecked<AAuraPlayerState>())
+    {
+        AbilitySystemComponent = PS->GetAbilitySystemComponent();
+        AttributeSet = PS->GetAttributeSet();
+
+        check(AbilitySystemComponent);
+
+        AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+    }
+}
+
+void AAuraPlayerCharacter::OnRep_PlayerState()
+{
+    Super::OnRep_PlayerState();
+
+    // init for the client
+    InitAbilitySystemComponent();
 }

@@ -23,4 +23,11 @@ public:
     void HighlightActor() override;
     void UnhighlightActor() override;
     //~ End of IInteractableInterface interface
+
+protected:
+
+    //~ Begin APawn Interface
+    void PossessedBy(AController* NewController) override;
+    //~End APawn Interface
+
 };

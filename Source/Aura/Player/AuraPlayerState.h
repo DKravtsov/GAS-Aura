@@ -3,19 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
-#include "AuraCharacterBase.generated.h"
+#include "AuraPlayerState.generated.h"
 
-UCLASS(Abstract)
-class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface
+/**
+ *
+ */
+UCLASS()
+class AURA_API AAuraPlayerState : public APlayerState, public IAbilitySystemInterface
 {
     GENERATED_BODY()
 
 protected:
-
-    UPROPERTY(EditAnywhere, Category = Combat)
-    TObjectPtr<class USkeletalMeshComponent> Weapon;
 
     UPROPERTY()
     TObjectPtr<class UAbilitySystemComponent> AbilitySystemComponent;
@@ -25,16 +25,11 @@ protected:
 
 public:
 
-    AAuraCharacterBase();
+    AAuraPlayerState();
 
     //~ Begin of IAbilitySystemInterface interface
     UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     //~ End of IAbilitySystemInterface interface
 
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
-
-protected:
-
-    virtual void BeginPlay() override;
-
 };

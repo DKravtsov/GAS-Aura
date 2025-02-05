@@ -23,4 +23,12 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase
 public:
 
     AAuraPlayerCharacter();
+
+    //~ Begin APawn Interface
+    void PossessedBy(AController* NewController) override;
+    void OnRep_PlayerState() override;
+    //~End APawn Interface
+
+private:
+    void InitAbilitySystemComponent();
 };
