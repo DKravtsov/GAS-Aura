@@ -34,4 +34,6 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void InitWidgetController(APlayerController* PC);
+
+    virtual void BroadcastInitialValues();
 };

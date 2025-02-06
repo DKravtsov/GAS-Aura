@@ -40,3 +40,7 @@ void UAuraWidgetController::InitWidgetController(APlayerController* PC)
         AttributeSet = const_cast<UAttributeSet*>(AbilitySystemComponent->GetAttributeSet(UAttributeSet::StaticClass()));
     }
 }
+
+void UAuraWidgetController::BroadcastInitialValues()
+{
+}
