@@ -11,29 +11,22 @@ class AURA_API AAuraEffectActor : public AActor
 {
     GENERATED_BODY()
 
-private:
+protected:
 
-    UPROPERTY(VisibleAnywhere)
-    TObjectPtr<class UStaticMeshComponent> Mesh;
+    UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
+    TSubclassOf<UGameplayEffect> InstantGameplayEffectClass;
 
-    UPROPERTY(VisibleAnywhere)
-    TObjectPtr<class USphereComponent> Sphere;
-
-public:
-
-    UPROPERTY(EditAnywhere)
-    bool bAffectsMana;
+    UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
+    float InstantGameplayEffectLevel = 1.f;
 
 public:
 
     AAuraEffectActor();
 
-    UFUNCTION()
-    virtual void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-    UFUNCTION()
-    virtual void EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
     virtual void BeginPlay() override;
+
+    UFUNCTION(BlueprintCallable)
+    bool ApplyEffectToTarget(AActor* TargetActor);
 };

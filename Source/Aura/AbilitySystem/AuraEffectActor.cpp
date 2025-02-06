@@ -2,53 +2,44 @@
 
 
 #include "AbilitySystem/AuraEffectActor.h"
-#include "Components/SphereComponent.h"
-#include "Components/StaticMeshComponent.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
-#include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 AAuraEffectActor::AAuraEffectActor()
 {
     PrimaryActorTick.bCanEverTick = false;
 
-    Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-    SetRootComponent(Mesh);
-
-    Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
-    Sphere->SetupAttachment(GetRootComponent());
-}
-
-void AAuraEffectActor::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-    if (IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(OtherActor))
-    {
-        if (auto AttributeSet = Cast<UAuraAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(UAuraAttributeSet::StaticClass())))
-        {
-            if (!bAffectsMana)
-            {
-                const_cast<UAuraAttributeSet*>(AttributeSet)->SetHealth(AttributeSet->GetHealth() + 25.f);
-            }
-            else
-            {
-                const_cast<UAuraAttributeSet*>(AttributeSet)->SetMana(AttributeSet->GetMana() - 25.f);
-            }
-
-            Destroy();
-        }
-    }
-}
-
-void AAuraEffectActor::EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
+    SetRootComponent(CreateDefaultSubobject<USceneComponent>("Root"));
 }
 
 void AAuraEffectActor::BeginPlay()
 {
     Super::BeginPlay();
 
-    Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraEffectActor::OnOverlap);
-    Sphere->OnComponentEndOverlap.AddDynamic(this, &AAuraEffectActor::EndOverlap);
+    if (InstantGameplayEffectClass == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("%s: InstantGameplayEffectClass is not specified."), *GetNameSafe(this));
+        return;
+    }
+}
+
+bool AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor)
+{
+    if (auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+    {
+        checkf(InstantGameplayEffectClass != nullptr, TEXT("%s: InstantGameplayEffectClass is not specified."), *GetNameSafe(this));
+
+        FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
+        EffectContextHandle.AddSourceObject(this);
+
+        const FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(InstantGameplayEffectClass, InstantGameplayEffectLevel, EffectContextHandle);
+
+        TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+
+        return true;
+    }
+
+    return false;
 }
 
 
