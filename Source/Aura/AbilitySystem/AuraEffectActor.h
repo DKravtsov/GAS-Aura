@@ -21,6 +21,11 @@ private:
 
 public:
 
+    UPROPERTY(EditAnywhere)
+    bool bAffectsMana;
+
+public:
+
     AAuraEffectActor();
 
     UFUNCTION()

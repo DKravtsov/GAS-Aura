@@ -44,3 +44,7 @@ void UAuraWidgetController::InitWidgetController(APlayerController* PC)
 void UAuraWidgetController::BroadcastInitialValues()
 {
 }
+
+void UAuraWidgetController::BindCallbacks()
+{
+}

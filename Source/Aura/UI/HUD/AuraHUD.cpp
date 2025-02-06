@@ -15,6 +15,7 @@ UOverlayWidgetController* AAuraHUD::GetOverlayWidgetController()
     {
         auto WidgetController = NewObject<UOverlayWidgetController>(this, OverlayWidgetControllerClass);
         WidgetController->InitWidgetController(GetOwningPlayerController());
+        WidgetController->BindCallbacks();
         OverlayWidgetController = WidgetController;
     }
     return OverlayWidgetController;

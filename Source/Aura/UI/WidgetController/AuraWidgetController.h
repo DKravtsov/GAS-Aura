@@ -36,4 +36,6 @@ public:
     void InitWidgetController(APlayerController* PC);
 
     virtual void BroadcastInitialValues();
+
+    virtual void BindCallbacks();
 };
