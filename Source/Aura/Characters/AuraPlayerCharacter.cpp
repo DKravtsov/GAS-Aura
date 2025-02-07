@@ -58,6 +58,10 @@ void AAuraPlayerCharacter::InitAbilitySystemComponent()
 
     AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 
+    if (GetLocalRole() == ROLE_Authority)
+    {
+        InitializePrimaryAttributes();
+    }
 }
 
 void AAuraPlayerCharacter::InitOverlay()

@@ -47,4 +47,9 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
     Super::PossessedBy(NewController);
 
     AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+    if (GetLocalRole() == ROLE_Authority)
+    {
+        InitializePrimaryAttributes();
+    }
 }

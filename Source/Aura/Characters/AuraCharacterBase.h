@@ -23,6 +23,9 @@ protected:
     UPROPERTY()
     TObjectPtr<class UAttributeSet> AttributeSet;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    TSubclassOf<class UGameplayEffect> DefaultPrimaryAttributes;
+
 public:
 
     AAuraCharacterBase();
@@ -36,5 +39,7 @@ public:
 protected:
 
     virtual void BeginPlay() override;
+
+    void InitializePrimaryAttributes();
 
 };
