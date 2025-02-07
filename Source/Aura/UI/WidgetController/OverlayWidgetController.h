@@ -4,14 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "UI/WidgetController/AuraWidgetController.h"
+#include "GameplayTagContainer.h"
 #include "OverlayWidgetController.generated.h"
 
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChangedSignature, float, NewHealth);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChangedSignature, float, NewMaxHealth);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature, float, NewMana);
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature, float, NewMaxMana);
+USTRUCT(BlueprintType)
+struct FUIWidgetRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGameplayTag MessageTag;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText Message;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftClassPtr<class UAuraUserWidget> MessageWidget;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UTexture2D> Image;
+};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttributeChangedSignature, struct FGameplayAttribute, Attribute, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveUIMessageSignature, const FUIWidgetRow&, UIWidgetRow);
 
 
 
@@ -25,20 +40,16 @@ class AURA_API UOverlayWidgetController : public UAuraWidgetController
 
 public:
 
-    //UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-    //FOnHealthChangedSignature OnHealthChanged;
-
-    //UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-    //FOnMaxHealthChangedSignature OnMaxHealthChanged;
-
-    //UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-    //FOnManaChangedSignature OnManaChanged;
-
-    //UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-    //FOnMaxManaChangedSignature OnMaxManaChanged;
-
     UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
     FOnAttributeChangedSignature OnAttributeChanged;
+
+    UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+    FOnReceiveUIMessageSignature OnReceiveUIMessage;
+
+protected:
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data", meta = (RequiredAssetDataTags = "RowStructure=/Script/Aura.UIWidgetRow"))
+    TObjectPtr<UDataTable> MessageWidgetDataTable;
 
 public:
 
@@ -48,8 +59,17 @@ public:
 
 protected:
 
-    //void HealthChanged(const FOnAttributeChangeData& Data);
-    //void MaxHealthChanged(const FOnAttributeChangeData& Data);
+    void AttributeChanged(const struct FOnAttributeChangeData& Data);
 
-    void AttributeChanged(const FOnAttributeChangeData& Data);
+    template<class T>
+    static T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
+    {
+        if (DataTable == nullptr)
+            return nullptr;
+        return DataTable->FindRow<T>(Tag.GetTagName(), TEXT("GetDataTableRowByTag"));
+    }
+
+private:
+
+    void BroadcastMessagesByTags(const FGameplayTagContainer& AssetTags);
 };

@@ -1,0 +1,5 @@
+---,MessageTag,Message,MessageWidget,Image
+Message.HealthCrystal,"(TagName=""Message.HealthCrystal"")","NSLOCTEXT(""[99BAEA2681B1A5F46D1F2C58CA8B1633]"", ""AF23E5DB42C0C0470B5256A8D7D040ED"", ""Picked up Health Crystal"")","None","/Game/Assets/UI/Pickups/T_HealthCrystal.T_HealthCrystal"
+Message.HealthPotion,"(TagName=""Message.HealthPotion"")","NSLOCTEXT(""[99BAEA2681B1A5F46D1F2C58CA8B1633]"", ""590E736542638A49E1D9CD83EA24117E"", ""Picked up Health Potion"")","None","/Game/Assets/UI/Pickups/T_Potion_Red.T_Potion_Red"
+Message.ManaCrystal,"(TagName=""Message.ManaCrystal"")","NSLOCTEXT(""[99BAEA2681B1A5F46D1F2C58CA8B1633]"", ""D023F7A94D0FB21B3709AA800E112DD4"", ""Picked up Mana Crystal"")","None","/Game/Assets/UI/Pickups/T_ManaCrystal.T_ManaCrystal"
+Message.ManaPotion,"(TagName=""Message.ManaPotion"")","NSLOCTEXT(""[99BAEA2681B1A5F46D1F2C58CA8B1633]"", ""06D78D7D4CE0201D7D1F348D664D4F07"", ""Picked up Mana Potion"")","None","/Game/Assets/UI/Pickups/T_Potion_Blue.T_Potion_Blue"

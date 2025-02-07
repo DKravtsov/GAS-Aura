@@ -20,5 +20,5 @@ void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* ASC, co
 {
     FGameplayTagContainer AssetTags;
     EffectSpec.GetAllAssetTags(AssetTags);
-
+    OnEffectApplied.Broadcast(AssetTags);
 }

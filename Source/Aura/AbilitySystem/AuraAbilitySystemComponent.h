@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "AuraAbilitySystemComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEffectAppliedSignature, const FGameplayTagContainer& /*AssetTags*/);
+
 /**
  *
  */
@@ -13,6 +15,10 @@ UCLASS()
 class AURA_API UAuraAbilitySystemComponent : public UAbilitySystemComponent
 {
     GENERATED_BODY()
+
+public:
+
+    FOnEffectAppliedSignature OnEffectApplied;
 
 public:
 
