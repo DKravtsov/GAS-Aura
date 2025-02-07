@@ -9,7 +9,7 @@
 
 AAuraPlayerController::AAuraPlayerController()
 {
-    SetReplicates(true);
+    bReplicates = true;
 }
 
 void AAuraPlayerController::Tick(float DeltaTime)
