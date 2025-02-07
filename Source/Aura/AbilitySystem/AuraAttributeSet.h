@@ -41,6 +41,11 @@ public:
     FGameplayAttributeData MaxMana;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet, MaxMana);
 
+public:
+
+    void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+    void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+
     UFUNCTION()
     void OnRep_Health(const FGameplayAttributeData& OldValue) const;
 
