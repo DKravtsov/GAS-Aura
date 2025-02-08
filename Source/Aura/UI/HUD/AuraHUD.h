@@ -7,6 +7,8 @@
 #include "AuraHUD.generated.h"
 
 class UOverlayWidgetController;
+class UAttributeMenuWidgetController;
+class UAuraUserWidget;
 
 /**
  *
@@ -16,12 +18,8 @@ class AURA_API AAuraHUD : public AHUD
 {
     GENERATED_BODY()
 
-public:
-
     UPROPERTY()
-    TObjectPtr<class UAuraUserWidget> OverlayWidget;
-
-private:
+    TObjectPtr<UAuraUserWidget> OverlayWidget;
 
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UAuraUserWidget> OverlayWidgetClass;
@@ -29,13 +27,24 @@ private:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
 
-    mutable TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
+    UPROPERTY()
+    TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UAttributeMenuWidgetController> AttributeMenuWidgetControllerClass;
+
+    UPROPERTY()
+    TObjectPtr<UAttributeMenuWidgetController> AttributeMenuWidgetController;
 
 public:
 
     AAuraHUD();
 
+    // returns OverlayWidgetController, creates and initializes it if needed
     UOverlayWidgetController* GetOverlayWidgetController();
+
+    // returns AttributeMenuWidgetController, creates and initializes it if needed
+    UAttributeMenuWidgetController* GetAttributeMenuWidgetController();
 
     void InitOverlay();
 };
