@@ -7,6 +7,7 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
 
+#pragma region FEffectProperties
 
 class FEffectProperties
 {
@@ -184,27 +185,17 @@ public:
     T* GetTargetController() { return Cast<T>(GetTargetController()); }
 
 };
+// FEffectProperties
+#pragma endregion 
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
-    InitHealth(10.f);
-    InitMaxHealth(100.f);
-    InitMana(50.f);
-    InitMaxMana(50);
 }
 
 void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
     Super::PreAttributeChange(Attribute, NewValue);
 
-    //if (Attribute == GetHealthAttribute())
-    //{
-    //    NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
-    //}
-    //else if (Attribute == GetManaAttribute())
-    //{
-    //    NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
-    //}
 }
 
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -265,6 +256,46 @@ void UAuraAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldValue) co
     GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, MaxMana, OldValue);
 }
 
+void UAuraAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, Armor, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_ArmorPenetration(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ArmorPenetration, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_BlockChance(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, BlockChance, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_CritHitChance(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, CritHitChance, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_CritHitDamage(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, CritHitDamage, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_CritHitResistance(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, CritHitResistance, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_HealthRegen(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, HealthRegen, OldValue);
+}
+
+void UAuraAttributeSet::OnRep_ManaRegen(const FGameplayAttributeData& OldValue) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ManaRegen, OldValue);
+}
+
 void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -277,4 +308,12 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Mana, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Armor, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ArmorPenetration, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CritHitChance, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CritHitDamage, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CritHitResistance, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ManaRegen, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, HealthRegen, COND_None, REPNOTIFY_Always);
 }

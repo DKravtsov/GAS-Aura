@@ -21,10 +21,8 @@ void AAuraCharacterBase::BeginPlay()
 
 }
 
-void AAuraCharacterBase::InitializePrimaryAttributes()
+void AAuraCharacterBase::InitializeDefaultAttributes()
 {
-    check(IsValid(GetAbilitySystemComponent()));
-    
     if (!IsValid(DefaultPrimaryAttributes))
     {
         FString Msg = FString::Printf(TEXT("ERROR: DefaultPrimaryAttributes is not specified for %s"), *GetNameSafe(this));
@@ -33,9 +31,27 @@ void AAuraCharacterBase::InitializePrimaryAttributes()
         return;
     }
 
-    auto EffectContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
     const float EffectLevel = 1.f;
-    auto SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(DefaultPrimaryAttributes, EffectLevel, EffectContextHandle);
+    ApplyGameplayEffectToSelf(DefaultPrimaryAttributes, EffectLevel);
+
+    if (IsValid(DefaultSecondaryAttributes))
+    {
+        ApplyGameplayEffectToSelf(DefaultSecondaryAttributes, EffectLevel);
+        return;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ERROR: DefaultSecondaryAttributes is not specified for %s"), *GetNameSafe(this));
+    }
+}
+
+void AAuraCharacterBase::ApplyGameplayEffectToSelf(TSubclassOf<class UGameplayEffect> Effect, float EffectLevel)
+{
+    check(Effect != nullptr);
+    check(GetAbilitySystemComponent() != nullptr);
+
+    auto EffectContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+    auto SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(Effect, EffectLevel, EffectContextHandle);
     GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 }
 

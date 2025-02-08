@@ -60,7 +60,7 @@ void AAuraPlayerCharacter::InitAbilitySystemComponent()
 
     if (GetLocalRole() == ROLE_Authority)
     {
-        InitializePrimaryAttributes();
+        InitializeDefaultAttributes();
     }
 }
 

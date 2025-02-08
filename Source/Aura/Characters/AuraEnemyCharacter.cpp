@@ -50,6 +50,6 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
 
     if (GetLocalRole() == ROLE_Authority)
     {
-        InitializePrimaryAttributes();
+        InitializeDefaultAttributes();
     }
 }

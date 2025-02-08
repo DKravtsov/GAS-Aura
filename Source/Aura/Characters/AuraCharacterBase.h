@@ -26,6 +26,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
     TSubclassOf<class UGameplayEffect> DefaultPrimaryAttributes;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    TSubclassOf<class UGameplayEffect> DefaultSecondaryAttributes;
+
 public:
 
     AAuraCharacterBase();
@@ -36,10 +39,13 @@ public:
 
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+    UFUNCTION(BlueprintCallable)
+    void ApplyGameplayEffectToSelf(TSubclassOf<class UGameplayEffect> Effect, float EffectLevel = 1.f);
+
 protected:
 
     virtual void BeginPlay() override;
 
-    void InitializePrimaryAttributes();
+    void InitializeDefaultAttributes();
 
 };
