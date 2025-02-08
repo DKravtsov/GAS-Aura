@@ -30,6 +30,12 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
     TSubclassOf<class UGameplayEffect> DefaultSecondaryAttributes;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    TSubclassOf<class UGameplayEffect> DefaultVitalAttributes;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    TArray<TSubclassOf<class UGameplayEffect>> StartupGameplayEffects;
+
 public:
 
     AAuraCharacterBase();
