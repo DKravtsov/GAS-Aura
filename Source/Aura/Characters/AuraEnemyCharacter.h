@@ -15,6 +15,11 @@ class AURA_API AAuraEnemyCharacter : public AAuraCharacterBase, public IInteract
 {
     GENERATED_BODY()
 
+protected:
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+    int32 Level = 1;
+
 public:
 
     AAuraEnemyCharacter();
@@ -23,6 +28,10 @@ public:
     void HighlightActor() override;
     void UnhighlightActor() override;
     //~ End of IInteractableInterface interface
+
+    //~ Begin of ICombatInterface interface
+    int32 GetCharacterLevel() const override { return Level; }
+    //~ End of ICombatInterface interface
 
 protected:
 

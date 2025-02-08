@@ -83,3 +83,9 @@ void AAuraPlayerCharacter::OnRep_PlayerState()
     InitAbilitySystemComponent();
     InitOverlay();
 }
+
+int32 AAuraPlayerCharacter::GetCharacterLevel() const
+{
+    auto PS = GetPlayerStateChecked<AAuraPlayerState>();
+    return PS->GetPlayerLevel();
+}

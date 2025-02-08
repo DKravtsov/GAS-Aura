@@ -29,6 +29,10 @@ public:
     void OnRep_PlayerState() override;
     //~End APawn Interface
 
+    //~ Begin of ICombatInterface interface
+    int32 GetCharacterLevel() const override;
+    //~ End of ICombatInterface interface
+
 private:
     void InitAbilitySystemComponent();
     void InitOverlay();
