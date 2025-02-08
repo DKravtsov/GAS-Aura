@@ -1,0 +1,51 @@
+// Copyright 4sandwiches
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DataAsset.h"
+#include "GameplayTagContainer.h"
+#include "AttributeInfo.generated.h"
+
+USTRUCT(BlueprintType)
+struct FAuraAttributeInfo
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Attributes"))
+    FGameplayTag AttributeTag;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FText AttributeName;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FText Description;
+
+    UPROPERTY(BlueprintReadOnly)
+    float Value;
+
+public:
+
+    FORCEINLINE bool operator==(const FGameplayTag& Tag) const
+    {
+        return AttributeTag.MatchesTagExact(Tag);
+    }
+};
+
+
+/**
+ *
+ */
+UCLASS()
+class AURA_API UAttributeInfo : public UDataAsset
+{
+    GENERATED_BODY()
+public:
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (TitleProperty = "AttributeName"))
+    TArray<FAuraAttributeInfo> AttributeInfo;
+
+public:
+
+    FAuraAttributeInfo FindAttributeInfoByTag(const FGameplayTag& AttributeTag, bool bLogNotFound = false) const;
+};
