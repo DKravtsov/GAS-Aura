@@ -28,7 +28,9 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<class UAuraInputConfig> InputConfig;
 
+    UPROPERTY()
     TScriptInterface<IInteractableInterface> CurrentActorUnderCursor;
+    FHitResult CursorHit;
 
     UPROPERTY()
     mutable TObjectPtr<class UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
@@ -45,6 +47,7 @@ private:
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<class USplineComponent> PathSpline;
+
 
 public:
 
@@ -70,6 +73,7 @@ private:
 
     void AbilityInputTagPressed(FGameplayTag InputTag);
     void AbilityInputTagReleased(FGameplayTag InputTag);
+    void SetPathToDestination();
     void AbilityInputTagHeld(FGameplayTag InputTag);
 
     void MakePathSpline(const TArray<FVector>& PathPoints);

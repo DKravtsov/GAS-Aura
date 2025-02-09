@@ -109,17 +109,13 @@ void AAuraPlayerController::Move(const FInputActionValue& InputValue)
 
 void AAuraPlayerController::TraceUnderCursor()
 {
-    FHitResult Hit;
-
-    if (!GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    if (!GetHitResultUnderCursor(ECC_Visibility, false, CursorHit))
     {
         return;
     }
-    //FString msg = FString::Printf(TEXT("Under cursor: %s"), *GetNameSafe(Hit.GetActor()));
-    //GEngine->AddOnScreenDebugMessage(0x234, 0.1f, FColor::Yellow, msg);
 
     auto LastActorUnderCursor = CurrentActorUnderCursor;
-    CurrentActorUnderCursor = Hit.GetActor();
+    CurrentActorUnderCursor = CursorHit.GetActor();
 
     if (LastActorUnderCursor.GetInterface() != CurrentActorUnderCursor.GetInterface())
     {
@@ -152,33 +148,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 
             if (FollowTime <= ShortPressThreshold)
             {
-                if (auto ControlledPawn = GetPawn())
-                {
-                    UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
-                    FNavLocation NavLocation;
-                    if (NavSystem->ProjectPointToNavigation(CachedDestination, NavLocation, FVector(0.f)))
-                    {
-                        UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(GetWorld(), ControlledPawn->GetActorLocation(), NavLocation.Location);
-
-                        if (NavPath && !NavPath->PathPoints.IsEmpty())
-                        {
-                            // #todo: send the path finding request to the server and it should return this array of points
-
-                            MakePathSpline(NavPath->PathPoints);
-                            CachedDestination = NavPath->PathPoints.Last();
-                            bAutoRuning = true;
-                        }
-                    }
-                    else
-                    {
-                        bAutoRuning = false;
-                    }
-                }
-
+                SetPathToDestination();
             }
 
             FollowTime = 0.f;
-
             return;
         }
         FollowTime = 0.f;
@@ -187,6 +160,32 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
     if (auto ASC = GetAuraAbilitySystemComponent())
     {
         ASC->AbilityInputReleased(InputTag);
+    }
+}
+
+void AAuraPlayerController::SetPathToDestination()
+{
+    if (const APawn* ControlledPawn = GetPawn())
+    {
+        UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+        FNavLocation NavLocation;
+        if (NavSystem->ProjectPointToNavigation(CachedDestination, NavLocation, FVector(0.f)))
+        {
+            UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(GetWorld(), ControlledPawn->GetActorLocation(), NavLocation.Location);
+
+            if (NavPath && !NavPath->PathPoints.IsEmpty())
+            {
+                // #todo: send the path finding request to the server and it should return this array of points
+
+                MakePathSpline(NavPath->PathPoints);
+                CachedDestination = NavPath->PathPoints.Last();
+                bAutoRuning = true;
+            }
+        }
+        else
+        {
+            bAutoRuning = false;
+        }
     }
 }
 
@@ -201,11 +200,9 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 
             FollowTime += GetWorld()->GetDeltaSeconds();
 
-            FHitResult Hit;
-
-            if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+            if (CursorHit.bBlockingHit)
             {
-                CachedDestination = Hit.ImpactPoint;
+                CachedDestination = CursorHit.ImpactPoint;
             }
 
             if (auto ControlledPawn = GetPawn())
@@ -235,7 +232,6 @@ void AAuraPlayerController::MakePathSpline(const TArray<FVector>& PathPoints)
     for (const FVector& P : PathPoints)
     {
         PathSpline->AddSplinePoint(P, ESplineCoordinateSpace::World, false);
-        DrawDebugSphere(GetWorld(), P, 8.f, 8, FColor::Green, false, 5.f);
     }
     PathSpline->UpdateSpline();
 }
