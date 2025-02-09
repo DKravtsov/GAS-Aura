@@ -33,11 +33,26 @@ private:
     UPROPERTY()
     mutable TObjectPtr<class UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
 
+    FVector CachedDestination = {};
+    float FollowTime = 0.f;
+    bool bAutoRuning = false;
+
+    UPROPERTY(EditDefaultsOnly)
+    float ShortPressThreshold = 0.15f;
+
+    UPROPERTY(EditDefaultsOnly)
+    float AutoRunAcceptanceRadius = 50.f;
+
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class USplineComponent> PathSpline;
+
 public:
 
     AAuraPlayerController();
 
     void Tick(float DeltaTime) override;
+
+    void AutoRun();
 
     UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
 
@@ -56,4 +71,6 @@ private:
     void AbilityInputTagPressed(FGameplayTag InputTag);
     void AbilityInputTagReleased(FGameplayTag InputTag);
     void AbilityInputTagHeld(FGameplayTag InputTag);
+
+    void MakePathSpline(const TArray<FVector>& PathPoints);
 };
