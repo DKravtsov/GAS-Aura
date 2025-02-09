@@ -13,7 +13,7 @@ void UAuraAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AAc
     if (!DelegateHandle_GameplayEffectAppliedToSelf.IsValid())
     {
         DelegateHandle_GameplayEffectAppliedToSelf = 
-            OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::EffectApplied);
+            OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::ClientEffectApplied);
     }
 }
 
@@ -64,7 +64,7 @@ void UAuraAbilitySystemComponent::AbilityInputReleased(const FGameplayTag& Input
     }
 }
 
-void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
+void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
 {
     FGameplayTagContainer AssetTags;
     EffectSpec.GetAllAssetTags(AssetTags);

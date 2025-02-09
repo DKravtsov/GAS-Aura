@@ -31,8 +31,8 @@ public:
 
 protected:
 
-    /** Called on server whenever a GE is applied to self. This includes instant and duration based GEs. */
-    void EffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle);
+    UFUNCTION(Client, Reliable)
+    void ClientEffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle);
 
 private:
     FDelegateHandle DelegateHandle_GameplayEffectAppliedToSelf;
