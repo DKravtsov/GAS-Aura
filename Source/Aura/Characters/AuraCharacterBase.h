@@ -15,8 +15,11 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
 
 protected:
 
-    UPROPERTY(EditAnywhere, Category = Combat)
+    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
     TObjectPtr<class USkeletalMeshComponent> Weapon;
+
+    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
+    FName WeaponTipSocketName;
 
     UPROPERTY()
     TObjectPtr<class UAbilitySystemComponent> AbilitySystemComponent;
@@ -55,6 +58,10 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void ApplyGameplayEffectToSelf(TSubclassOf<class UGameplayEffect> Effect, float EffectLevel = 1.f);
+
+    //~ Begin of ICombatInterface interface
+    FVector GetCombatSocketLocation() const override;
+    //~ End of ICombatInterface interface
 
 protected:
 

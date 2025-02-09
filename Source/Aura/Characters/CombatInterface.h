@@ -10,17 +10,19 @@
 UINTERFACE(MinimalAPI)
 class UCombatInterface : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 /**
- * 
+ *
  */
 class AURA_API ICombatInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	virtual int32 GetCharacterLevel() const { return 0; }
+    virtual int32 GetCharacterLevel() const { return 0; }
+
+    virtual FVector GetCombatSocketLocation() const { return {}; }
 };

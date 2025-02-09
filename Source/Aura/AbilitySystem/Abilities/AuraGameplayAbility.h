@@ -16,6 +16,6 @@ class AURA_API UAuraGameplayAbility : public UGameplayAbility
 
 public:
 
-    UPROPERTY(EditDefaultsOnly, Category = Input)
+    UPROPERTY(EditDefaultsOnly, Category = Input, meta = (Categories = "InputTag"))
     FGameplayTag StartupInputTag;
 };
