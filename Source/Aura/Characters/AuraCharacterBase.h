@@ -49,6 +49,8 @@ public:
     UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     //~ End of IAbilitySystemInterface interface
 
+    class UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
+
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
     UFUNCTION(BlueprintCallable)

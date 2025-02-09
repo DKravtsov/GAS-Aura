@@ -3,8 +3,10 @@
 
 #include "Player/AuraPlayerController.h"
 #include "EnhancedInputSubsystems.h"
-#include "EnhancedInputComponent.h"
 #include "Interaction/InteractableInterface.h"
+#include "Player/Input/AuraInputComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 
 
 AAuraPlayerController::AAuraPlayerController()
@@ -17,6 +19,15 @@ void AAuraPlayerController::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     TraceUnderCursor();
+}
+
+UAuraAbilitySystemComponent* AAuraPlayerController::GetAuraAbilitySystemComponent() const
+{
+    if (AuraAbilitySystemComponent == nullptr)
+    {
+        AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn()));
+    }
+    return AuraAbilitySystemComponent;
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -43,9 +54,12 @@ void AAuraPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
-    auto EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-
-    EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+    auto AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
+    AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+    AuraInputComponent->BindAbilityInputAction(InputConfig, this, 
+        &AAuraPlayerController::AbilityInputTagPressed, 
+        &AAuraPlayerController::AbilityInputTagReleased,
+        &AAuraPlayerController::AbilityInputTagHeld);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputValue)
@@ -89,5 +103,25 @@ void AAuraPlayerController::TraceUnderCursor()
         {
             CurrentActorUnderCursor->HighlightActor();
         }
+    }
+}
+
+void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+}
+
+void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+    if (auto ASC = GetAuraAbilitySystemComponent())
+    {
+        ASC->AbilityInputReleased(InputTag);
+    }
+}
+
+void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
+{
+    if (auto ASC = GetAuraAbilitySystemComponent())
+    {
+        ASC->AbilityInputPressed(InputTag);
     }
 }

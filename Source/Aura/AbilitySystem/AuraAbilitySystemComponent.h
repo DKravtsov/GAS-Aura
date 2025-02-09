@@ -24,6 +24,11 @@ public:
 
     void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
 
+    void GrantStartupAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& StartupAbilities, int32 AbilityLevel);
+
+    void AbilityInputPressed(const FGameplayTag& InputTag);
+    void AbilityInputReleased(const FGameplayTag& InputTag);
+
 protected:
 
     /** Called on server whenever a GE is applied to self. This includes instant and duration based GEs. */

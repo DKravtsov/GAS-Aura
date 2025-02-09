@@ -3,7 +3,7 @@
 
 #include "Characters/AuraCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -75,16 +75,16 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
+UAuraAbilitySystemComponent* AAuraCharacterBase::GetAuraAbilitySystemComponent() const
+{
+    return Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponent());
+}
+
 void AAuraCharacterBase::GrantStartupAbilities()
 {
     if (!HasAuthority())
         return;
-
-    for (const auto& AbilityClass : StartupAbilities)
-    {
-        auto Spec = FGameplayAbilitySpec(AbilityClass, GetCharacterLevel());
-        Spec.SourceObject = this;
-        GetAbilitySystemComponent()->GiveAbilityAndActivateOnce(Spec);
-    }
+    const int32 AbilityLevel = 1;
+    GetAuraAbilitySystemComponent()->GrantStartupAbilities(StartupAbilities, AbilityLevel);
 }
 
