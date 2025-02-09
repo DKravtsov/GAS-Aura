@@ -24,4 +24,13 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Secondary_ManaRegen, "Attributes.Secondary.ManaRegen", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Secondary_MaxHealth, "Attributes.Secondary.MaxHealth", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Secondary_MaxMana, "Attributes.Secondary.MaxMana", "");
+
+    /**  Secondary Attribute Tags **/
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_PrimaryAction, "InputTag.PrimaryAction", "LMB");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_SecondaryAction, "InputTag.SecondaryAction", "RMB");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action1, "InputTag.Action1", "1");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action2, "InputTag.Action2", "2");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action3, "InputTag.Action3", "3");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action4, "InputTag.Action4", "4");
 }

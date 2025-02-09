@@ -36,6 +36,11 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
     TArray<TSubclassOf<class UGameplayEffect>> StartupGameplayEffects;
 
+private:
+
+    UPROPERTY(EditAnywhere, Category = "Abilities")
+    TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
+
 public:
 
     AAuraCharacterBase();
@@ -54,5 +59,7 @@ protected:
     virtual void BeginPlay() override;
 
     void InitializeDefaultAttributes();
+
+    void GrantStartupAbilities();
 
 };

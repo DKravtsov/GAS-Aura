@@ -44,6 +44,7 @@ void AAuraPlayerCharacter::PossessedBy(AController* NewController)
 
     // init for the server
     InitAbilitySystemComponent();
+    GrantStartupAbilities();
     InitOverlay();
 }
 

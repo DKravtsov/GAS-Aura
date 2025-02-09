@@ -26,4 +26,13 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Secondary_ManaRegen);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Secondary_MaxHealth);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Secondary_MaxMana);
+
+    /**  Secondary Attribute Tags **/
+
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_PrimaryAction);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_SecondaryAction);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action1);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action2);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action3);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action4);
 }

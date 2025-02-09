@@ -48,8 +48,10 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
 
     AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
-    if (GetLocalRole() == ROLE_Authority)
+    if (HasAuthority())
     {
         InitializeDefaultAttributes();
+
+        GrantStartupAbilities();
     }
 }

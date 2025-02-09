@@ -75,3 +75,16 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
+void AAuraCharacterBase::GrantStartupAbilities()
+{
+    if (!HasAuthority())
+        return;
+
+    for (const auto& AbilityClass : StartupAbilities)
+    {
+        auto Spec = FGameplayAbilitySpec(AbilityClass, GetCharacterLevel());
+        Spec.SourceObject = this;
+        GetAbilitySystemComponent()->GiveAbilityAndActivateOnce(Spec);
+    }
+}
+
