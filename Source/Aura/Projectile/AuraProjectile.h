@@ -17,6 +17,14 @@ class AURA_API AAuraProjectile : public AActor
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UProjectileMovementComponent> ProjectileMovement; 
 
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<class UNiagaraSystem> ImpactFX;
+
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<class USoundBase> ImpactSound;
+
+    bool bHit = false;
+
 public:
     AAuraProjectile();
 
@@ -25,11 +33,14 @@ public:
     UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
 
     //~ Begin of AActor interface
+
+    void Destroyed() override;
+
     void NotifyActorBeginOverlap(AActor* OtherActor) override;
-    void NotifyActorEndOverlap(AActor* OtherActor) override;
+    //void NotifyActorEndOverlap(AActor* OtherActor) override;
 protected:
     void BeginPlay() override;
     //~ End of AActor interface
 
-
+    void PlayEffects();
 };

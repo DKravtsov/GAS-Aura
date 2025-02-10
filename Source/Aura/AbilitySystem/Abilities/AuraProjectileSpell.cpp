@@ -58,7 +58,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
         checkf(ProjectileClass, TEXT("ProjectileClass is not specified for %s"), *GetName());
 
         AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(ProjectileClass, SpawnTransform, 
-            GetOwningActorFromActorInfo(), Cast<APawn>(GetOwningActorFromActorInfo()), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+            GetOwningActorFromActorInfo(), Cast<APawn>(GetAvatarActorFromActorInfo()), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
         // #todo: gameplay effect for causing damage
 

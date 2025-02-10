@@ -5,6 +5,9 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Aura.h"
+#include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Logs.h"
 
 AAuraProjectile::AAuraProjectile()
 {
@@ -26,19 +29,56 @@ AAuraProjectile::AAuraProjectile()
 
 void AAuraProjectile::BeginPlay()
 {
+    LOG_NETFUNCTIONCALL_MSG(TEXT("time=%s"), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+
     Super::BeginPlay();
 
+    SphereComponent->IgnoreActorWhenMoving(GetInstigator(), true);
+}
+
+void AAuraProjectile::Destroyed()
+{
+    LOG_NETFUNCTIONCALL_MSG(TEXT("bHit=%s, time=%s"), (bHit ? TEXT("true") : TEXT("false")), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+
+    if (!bHit)
+    {
+        PlayEffects();
+    }
+    Super::Destroyed();
 }
 
 void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 {
     Super::NotifyActorBeginOverlap(OtherActor);
+
+    if (OtherActor == GetInstigator()) 
+    {
+        return;
+    }
+
+    LOG_NETFUNCTIONCALL;
+
+    bHit = true;
+    PlayEffects();
+    if (HasAuthority())
+    {
+        Destroy();
+    }
+
 }
 
-void AAuraProjectile::NotifyActorEndOverlap(AActor* OtherActor)
+void AAuraProjectile::PlayEffects()
 {
-    Super::NotifyActorEndOverlap(OtherActor);
+    LOG_NETFUNCTIONCALL;
+
+    UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation());
 }
+
+//void AAuraProjectile::NotifyActorEndOverlap(AActor* OtherActor)
+//{
+//    Super::NotifyActorEndOverlap(OtherActor);
+//}
 
 
 
