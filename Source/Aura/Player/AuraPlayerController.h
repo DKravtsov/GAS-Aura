@@ -59,6 +59,12 @@ public:
 
     UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
 
+    bool GetCursorHitLocation(FVector& HitLocation) const
+    {
+        HitLocation = CursorHit.ImpactPoint;
+        return CursorHit.bBlockingHit;
+    }
+
 protected:
 
     void BeginPlay() override;

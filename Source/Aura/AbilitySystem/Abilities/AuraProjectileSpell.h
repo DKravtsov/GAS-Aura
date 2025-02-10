@@ -19,6 +19,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSubclassOf<class AAuraProjectile> ProjectileClass;
 
+public:
+
+    UFUNCTION(BlueprintCallable)
+    void SpawnProjectile();
+
 protected:
 
     //~ Begin of UGameplayAbility interface

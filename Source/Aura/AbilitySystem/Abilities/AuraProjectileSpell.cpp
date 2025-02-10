@@ -31,7 +31,11 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
     }
 #endif //WITH_EDITOR
 
-    const bool bIsServer = HasAuthority(&ActivationInfo);
+}
+
+void UAuraProjectileSpell::SpawnProjectile()
+{
+    const bool bIsServer = HasAuthority(&GetCurrentActivationInfoRef());
 
     if (bIsServer)
     {
