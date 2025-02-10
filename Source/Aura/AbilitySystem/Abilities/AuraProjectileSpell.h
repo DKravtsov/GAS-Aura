@@ -22,7 +22,7 @@ public:
 public:
 
     UFUNCTION(BlueprintCallable)
-    void SpawnProjectile();
+    void SpawnProjectile(const FVector& TargetLocation);
 
 protected:
 

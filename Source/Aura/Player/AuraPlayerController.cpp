@@ -83,7 +83,11 @@ void AAuraPlayerController::SetupInputComponent()
     Super::SetupInputComponent();
 
     auto AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
+    
     AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+    AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPressed);
+    AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
+
     AuraInputComponent->BindAbilityInputAction(InputConfig, this, 
         &AAuraPlayerController::AbilityInputTagPressed, 
         &AAuraPlayerController::AbilityInputTagReleased,
@@ -142,7 +146,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
-        if (CurrentActorUnderCursor == nullptr)
+        if (CurrentActorUnderCursor == nullptr && bMovementStarted)
         {
             // we are going to run, won't try to activate any ability
 
@@ -151,10 +155,9 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
                 SetPathToDestination();
             }
 
-            FollowTime = 0.f;
-            return;
         }
         FollowTime = 0.f;
+        bMovementStarted = false;
     }
 
     if (auto ASC = GetAuraAbilitySystemComponent())
@@ -194,7 +197,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
-        if (CurrentActorUnderCursor == nullptr)
+        if (CurrentActorUnderCursor == nullptr && !bShiftKeyPressed)
         {
             // we are going to run, won't try to activate any ability
 
@@ -211,11 +214,9 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
                 ControlledPawn->AddMovementInput(WorldDir, 1.f);
             }
 
+            bMovementStarted = true;
+
             return;
-        }
-        else
-        {
-            bAutoRuning = false;
         }
     }
 

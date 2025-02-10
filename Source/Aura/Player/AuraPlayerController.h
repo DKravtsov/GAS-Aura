@@ -25,6 +25,9 @@ private:
     UPROPERTY(EditAnywhere, Category = "Input")
     TObjectPtr<class UInputAction> MoveAction;
 
+    UPROPERTY(EditAnywhere, Category = "Input")
+    TObjectPtr<class UInputAction> ShiftAction;
+
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<class UAuraInputConfig> InputConfig;
 
@@ -38,6 +41,8 @@ private:
     FVector CachedDestination = {};
     float FollowTime = 0.f;
     bool bAutoRuning = false;
+    bool bMovementStarted = false;
+    bool bShiftKeyPressed = false;
 
     UPROPERTY(EditDefaultsOnly)
     float ShortPressThreshold = 0.15f;
@@ -83,4 +88,7 @@ private:
     void AbilityInputTagHeld(FGameplayTag InputTag);
 
     void MakePathSpline(const TArray<FVector>& PathPoints);
+
+    void ShiftPressed() { bShiftKeyPressed = true; }
+    void ShiftReleased() { bShiftKeyPressed = false; }
 };

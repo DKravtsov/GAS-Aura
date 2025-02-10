@@ -33,23 +33,27 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 }
 
-void UAuraProjectileSpell::SpawnProjectile()
+void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
 {
     const bool bIsServer = HasAuthority(&GetCurrentActivationInfoRef());
 
     if (bIsServer)
     {
-        FTransform SpawnTransform;
+        FVector SpawnLocation;
         if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo()))
         {
-            SpawnTransform.SetLocation(CombatInterface->GetCombatSocketLocation());
+            SpawnLocation = CombatInterface->GetCombatSocketLocation();
         }
         else
         {
-            SpawnTransform.SetLocation(GetAvatarActorFromActorInfo()->GetActorLocation());
+            SpawnLocation = GetAvatarActorFromActorInfo()->GetActorLocation();
         }
-        SpawnTransform.SetRotation(GetAvatarActorFromActorInfo()->GetActorRotation().Quaternion());
-        // #todo: rotation
+        FRotator Rotation = (TargetLocation - SpawnLocation).Rotation();
+        Rotation.Pitch = 0.f;
+
+        FTransform SpawnTransform;
+        SpawnTransform.SetLocation(SpawnLocation);
+        SpawnTransform.SetRotation(Rotation.Quaternion());
 
         checkf(ProjectileClass, TEXT("ProjectileClass is not specified for %s"), *GetName());
 
