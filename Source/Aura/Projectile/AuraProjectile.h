@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayEffectTypes.h"
 #include "AuraProjectile.generated.h"
 
 UCLASS()
@@ -22,6 +23,13 @@ class AURA_API AAuraProjectile : public AActor
 
     UPROPERTY(EditAnywhere)
     TObjectPtr<class USoundBase> ImpactSound;
+
+public:
+
+    UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = "true"))
+    FGameplayEffectSpecHandle DamageEffectSpecHandle;
+
+private:
 
     bool bHit = false;
 

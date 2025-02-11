@@ -7,6 +7,8 @@
 #include "Aura.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Logs.h"
 
 AAuraProjectile::AAuraProjectile()
@@ -62,6 +64,11 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
     PlayEffects();
     if (HasAuthority())
     {
+        if (auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+        {
+            TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
+        }
+
         Destroy();
     }
 
