@@ -29,4 +29,7 @@ public:
     // Set Target Location for anim montages with MotionWarping or similar
     UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
     void UpdateFacingTarget(const FVector& TargetLocation);
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    class UAnimMontage* GetHitReactAnimMontage() const;
 };

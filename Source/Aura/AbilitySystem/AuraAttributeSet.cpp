@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
+#include "AuraGameplayTags.h"
 
 #pragma region FEffectProperties
 
@@ -224,6 +225,11 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
             const float NewHealth = GetHealth() - Damage;
             SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
             const bool bFatal = (NewHealth <= 0.f);
+
+            if (!bFatal)
+            {
+                EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Effects_HitReact));
+            }
         }
     }
 }

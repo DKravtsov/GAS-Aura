@@ -42,6 +42,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Startup")
     TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+    TObjectPtr<class UAnimMontage> HitReactMontage;
+
 public:
 
     AAuraCharacterBase();
@@ -59,6 +62,7 @@ public:
 
     //~ Begin of ICombatInterface interface
     FVector GetCombatSocketLocation() const override;
+    UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
     //~ End of ICombatInterface interface
 
 protected:
@@ -67,6 +71,6 @@ protected:
 
     virtual void InitializeDefaultAttributes();
 
-    void GrantStartupAbilities();
+    virtual void GrantStartupAbilities();
 
 };

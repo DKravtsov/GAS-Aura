@@ -25,7 +25,10 @@ void UAuraAbilitySystemComponent::GrantStartupAbilities(const TArray<TSubclassOf
         Spec.SourceObject = GetAvatarActor();
         if (const auto AuraAbility = Cast<UAuraGameplayAbility>(Spec.Ability))
         {
-            Spec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
+            if (AuraAbility->StartupInputTag.IsValid())
+            {
+                Spec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
+            }
         }
         GiveAbility(Spec);
     }

@@ -8,6 +8,8 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "UI/Widgets/AuraUserWidget.h"
 #include "Game/AuraGameModeBase.h"
+#include "AuraGameplayTags.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AAuraEnemyCharacter::AAuraEnemyCharacter()
 {
@@ -50,7 +52,11 @@ void AAuraEnemyCharacter::BeginPlay()
 
     if (UAuraUserWidget* Widget = GetHealthOverlayWidget())
     {
-        UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
+        Widget->SetWidgetController(this);
+    }
+
+    if (UAuraAttributeSet* AuraAttributeSet = Cast<UAuraAttributeSet>(AttributeSet))
+    {
 
         GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(UAuraAttributeSet::GetHealthAttribute()).AddLambda(
             [this](const FOnAttributeChangeData& Data)
@@ -63,11 +69,20 @@ void AAuraEnemyCharacter::BeginPlay()
                 OnHealthAttributesChanged.Broadcast(Data.Attribute, Data.NewValue);
             });
 
-        Widget->SetWidgetController(this);
-
         OnHealthAttributesChanged.Broadcast(AuraAttributeSet->GetHealthAttribute(), AuraAttributeSet->GetHealth());
         OnHealthAttributesChanged.Broadcast(AuraAttributeSet->GetMaxHealthAttribute(), AuraAttributeSet->GetMaxHealth());
+
+        AbilitySystemComponent->RegisterGameplayTagEvent(AuraGameplayTags::Effects_HitReact, EGameplayTagEventType::NewOrRemoved)
+            .AddUObject(this, &AAuraEnemyCharacter::HitReactTagChanged);
     }
+}
+
+void AAuraEnemyCharacter::HitReactTagChanged(const FGameplayTag Tag, int32 Count)
+{
+    bHitReacting = Count > 0;
+
+    GetCharacterMovement()->StopMovementImmediately();
+
 }
 
 void AAuraEnemyCharacter::PossessedBy(AController* NewController)
@@ -106,4 +121,20 @@ void AAuraEnemyCharacter::InitializeDefaultAttributes()
 
     // apply all effects
     Super::InitializeDefaultAttributes();
+}
+
+void AAuraEnemyCharacter::GrantStartupAbilities()
+{
+    UWorld* World = GetWorld();
+    auto GM = World ? World->GetAuthGameMode<AAuraGameModeBase>() : nullptr;
+
+    if (GM != nullptr && GM->CharacterClassInfo != nullptr)
+    {
+        // Append class abilities to the character startup abilities array
+        // (this works only on the server)
+
+        StartupAbilities.Append(GM->CharacterClassInfo->Abilities);
+    }
+
+    Super::GrantStartupAbilities();
 }

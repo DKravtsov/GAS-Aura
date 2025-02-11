@@ -31,6 +31,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
     int32 CharacterLevel = 1;
 
+    UPROPERTY(BlueprintReadOnly, Category = Combat)
+    bool bHitReacting = false;
+
 public:
 
     AAuraEnemyCharacter();
@@ -43,6 +46,8 @@ public:
     //~ Begin of ICombatInterface interface
     int32 GetCharacterLevel() const override { return CharacterLevel; }
     //~ End of ICombatInterface interface
+
+    void HitReactTagChanged(const FGameplayTag Tag, int32 Count);
 
 protected:
 
@@ -57,4 +62,5 @@ protected:
     class UAuraUserWidget* GetHealthOverlayWidget() const;
 
     void InitializeDefaultAttributes() override;
+    void GrantStartupAbilities() override;
 };

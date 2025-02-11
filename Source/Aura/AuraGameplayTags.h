@@ -40,5 +40,7 @@ namespace AuraGameplayTags
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_BaseDamage);
 
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effects_HitReact);
+
 
 }
