@@ -27,21 +27,19 @@ protected:
     UPROPERTY()
     TObjectPtr<class UAttributeSet> AttributeSet;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    UPROPERTY(EditAnywhere, Category = "DefaultAttributes")
     TSubclassOf<class UGameplayEffect> DefaultPrimaryAttributes;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    UPROPERTY(EditAnywhere, Category = "DefaultAttributes")
     TSubclassOf<class UGameplayEffect> DefaultSecondaryAttributes;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    UPROPERTY(EditAnywhere, Category = "DefaultAttributes")
     TSubclassOf<class UGameplayEffect> DefaultVitalAttributes;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attributes")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Startup")
     TArray<TSubclassOf<class UGameplayEffect>> StartupGameplayEffects;
 
-private:
-
-    UPROPERTY(EditAnywhere, Category = "Abilities")
+    UPROPERTY(EditAnywhere, Category = "Startup")
     TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 
 public:

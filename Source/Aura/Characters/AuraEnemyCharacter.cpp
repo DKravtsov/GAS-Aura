@@ -89,15 +89,21 @@ void AAuraEnemyCharacter::InitializeDefaultAttributes()
     UWorld* World = GetWorld();
     auto GM = World ? World->GetAuthGameMode<AAuraGameModeBase>() : nullptr;
 
-    if (GM == nullptr || GM->CharacterClassInfo == nullptr)
+    if (GM != nullptr && GM->CharacterClassInfo != nullptr)
+    {
+        // set default attributes if empty
+
+        const FCharacterClassDefaultInfo DefaultInfo = GM->CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
+
+        DefaultPrimaryAttributes = DefaultPrimaryAttributes? DefaultPrimaryAttributes : DefaultInfo.PrimaryAttributes;
+        DefaultSecondaryAttributes = DefaultSecondaryAttributes ? DefaultSecondaryAttributes : GM->CharacterClassInfo->SecondaryAttributes;
+        DefaultVitalAttributes = DefaultVitalAttributes ? DefaultVitalAttributes : GM->CharacterClassInfo->VitalAttributes;
+    }
+    else
     {
         UE_LOG(LogTemp, Error, TEXT("Cannot initialize default attributes"))
-        return;
     }
 
-    const FCharacterClassDefaultInfo DefaultInfo = GM->CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
-
-    ApplyGameplayEffectToSelf(DefaultInfo.PrimaryAttributes, CharacterLevel);
-    ApplyGameplayEffectToSelf(GM->CharacterClassInfo->SecondaryAttributes, CharacterLevel);
-    ApplyGameplayEffectToSelf(GM->CharacterClassInfo->VitalAttributes, CharacterLevel);
+    // apply all effects
+    Super::InitializeDefaultAttributes();
 }
