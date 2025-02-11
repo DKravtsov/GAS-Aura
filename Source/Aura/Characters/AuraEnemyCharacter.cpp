@@ -6,6 +6,7 @@
 #include "Aura.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "UI/Widgets/AuraUserWidget.h"
 
 AAuraEnemyCharacter::AAuraEnemyCharacter()
 {
@@ -39,6 +40,32 @@ void AAuraEnemyCharacter::UnhighlightActor()
     if (Weapon)
     {
         Weapon->SetRenderCustomDepth(false);
+    }
+}
+
+void AAuraEnemyCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (UAuraUserWidget* Widget = GetHealthOverlayWidget())
+    {
+        UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
+
+        GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(UAuraAttributeSet::GetHealthAttribute()).AddLambda(
+            [this](const FOnAttributeChangeData& Data)
+            {
+                OnHealthAttributesChanged.Broadcast(Data.Attribute, Data.NewValue);
+            });
+        GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(UAuraAttributeSet::GetMaxHealthAttribute()).AddLambda(
+            [this](const FOnAttributeChangeData& Data)
+            {
+                OnHealthAttributesChanged.Broadcast(Data.Attribute, Data.NewValue);
+            });
+
+        Widget->SetWidgetController(this);
+
+        OnHealthAttributesChanged.Broadcast(AuraAttributeSet->GetHealthAttribute(), AuraAttributeSet->GetHealth());
+        OnHealthAttributesChanged.Broadcast(AuraAttributeSet->GetMaxHealthAttribute(), AuraAttributeSet->GetMaxHealth());
     }
 }
 
