@@ -7,6 +7,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "UI/Widgets/AuraUserWidget.h"
+#include "Game/AuraGameModeBase.h"
 
 AAuraEnemyCharacter::AAuraEnemyCharacter()
 {
@@ -81,4 +82,22 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
 
         GrantStartupAbilities();
     }
+}
+
+void AAuraEnemyCharacter::InitializeDefaultAttributes()
+{
+    UWorld* World = GetWorld();
+    auto GM = World ? World->GetAuthGameMode<AAuraGameModeBase>() : nullptr;
+
+    if (GM == nullptr || GM->CharacterClassInfo == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Cannot initialize default attributes"))
+        return;
+    }
+
+    const FCharacterClassDefaultInfo DefaultInfo = GM->CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
+
+    ApplyGameplayEffectToSelf(DefaultInfo.PrimaryAttributes, CharacterLevel);
+    ApplyGameplayEffectToSelf(GM->CharacterClassInfo->SecondaryAttributes, CharacterLevel);
+    ApplyGameplayEffectToSelf(GM->CharacterClassInfo->VitalAttributes, CharacterLevel);
 }

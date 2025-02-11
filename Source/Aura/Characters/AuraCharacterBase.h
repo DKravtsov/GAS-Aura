@@ -67,7 +67,7 @@ protected:
 
     virtual void BeginPlay() override;
 
-    void InitializeDefaultAttributes();
+    virtual void InitializeDefaultAttributes();
 
     void GrantStartupAbilities();
 

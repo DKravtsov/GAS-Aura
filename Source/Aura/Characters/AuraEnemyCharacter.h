@@ -6,6 +6,7 @@
 #include "Characters/AuraCharacterBase.h"
 #include "Interaction/InteractableInterface.h"
 #include "UI/WidgetController/AuraWidgetController.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "AuraEnemyCharacter.generated.h"
 
 /**
@@ -25,7 +26,10 @@ public:
 protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
-    int32 Level = 1;
+    EAuraCharacterClass CharacterClass = EAuraCharacterClass::Warrior;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+    int32 CharacterLevel = 1;
 
 public:
 
@@ -37,7 +41,7 @@ public:
     //~ End of IInteractableInterface interface
 
     //~ Begin of ICombatInterface interface
-    int32 GetCharacterLevel() const override { return Level; }
+    int32 GetCharacterLevel() const override { return CharacterLevel; }
     //~ End of ICombatInterface interface
 
 protected:
@@ -51,4 +55,6 @@ protected:
     // Must be implemented if enemy wants to display his health on the screen. This will be called during BeginPlay()
     UFUNCTION(BlueprintImplementableEvent)
     class UAuraUserWidget* GetHealthOverlayWidget() const;
+
+    void InitializeDefaultAttributes() override;
 };
