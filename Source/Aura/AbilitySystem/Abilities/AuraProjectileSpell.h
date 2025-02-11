@@ -19,9 +19,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSubclassOf<class AAuraProjectile> ProjectileClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<class UGameplayEffect> DamageEffectClass;
-
 public:
 
     UFUNCTION(BlueprintCallable)

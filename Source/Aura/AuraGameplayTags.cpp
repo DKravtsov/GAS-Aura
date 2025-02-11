@@ -33,4 +33,8 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action2, "InputTag.Action2", "2");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action3, "InputTag.Action3", "3");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action4, "InputTag.Action4", "4");
+
+    /**  Shared Tags **/
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_BaseDamage, "SetByCaller.BaseDamage", "");
 }

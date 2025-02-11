@@ -35,4 +35,10 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action2);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action3);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action4);
+
+    /**  Shared Tags **/
+
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_BaseDamage);
+
+
 }

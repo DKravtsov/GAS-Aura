@@ -18,4 +18,10 @@ public:
 
     UPROPERTY(EditDefaultsOnly, Category = Input, meta = (Categories = "InputTag"))
     FGameplayTag StartupInputTag;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
+    TSubclassOf<class UGameplayEffect> DamageEffectClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
+    FScalableFloat BaseDamage = 0.f;
 };
