@@ -34,6 +34,9 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = Combat)
     bool bHitReacting = false;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+    float DeadBodyLifeSpan = 8.f;
+
 public:
 
     AAuraEnemyCharacter();
@@ -45,6 +48,7 @@ public:
 
     //~ Begin of ICombatInterface interface
     int32 GetCharacterLevel() const override { return CharacterLevel; }
+    void Die() override;
     //~ End of ICombatInterface interface
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);

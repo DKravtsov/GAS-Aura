@@ -7,6 +7,7 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
 #include "AuraGameplayTags.h"
+#include "Characters/CombatInterface.h"
 
 #pragma region FEffectProperties
 
@@ -226,13 +227,22 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
             SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
             const bool bFatal = (NewHealth <= 0.f);
 
-            if (!bFatal)
+            if (bFatal)
+            {
+                if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
+                {
+                    Interface->Die();
+                }
+            }
+            else
             {
                 EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Effects_HitReact));
             }
         }
     }
 }
+
+#pragma region Replication
 
 void UAuraAttributeSet::OnRep_Strength(const FGameplayAttributeData& OldValue) const
 {
@@ -335,3 +345,5 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ManaRegen, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, HealthRegen, COND_None, REPNOTIFY_Always);
 }
+
+#pragma endregion

@@ -77,6 +77,12 @@ void AAuraEnemyCharacter::BeginPlay()
     }
 }
 
+void AAuraEnemyCharacter::Die()
+{
+    SetLifeSpan(DeadBodyLifeSpan);
+    Super::Die();
+}
+
 void AAuraEnemyCharacter::HitReactTagChanged(const FGameplayTag Tag, int32 Count)
 {
     bHitReacting = Count > 0;

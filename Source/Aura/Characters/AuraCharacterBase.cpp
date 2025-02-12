@@ -3,6 +3,7 @@
 
 #include "Characters/AuraCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura.h"
 
@@ -92,5 +93,31 @@ FVector AAuraCharacterBase::GetCombatSocketLocation() const
 {
     check(Weapon);
     return Weapon->GetSocketLocation(WeaponTipSocketName);
+}
+
+void AAuraCharacterBase::Die()
+{
+    if (HasAuthority())
+    {
+        Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+        MulticastHandleDeath();
+    }
+}
+
+void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+{
+    Weapon->SetSimulatePhysics(true);
+    Weapon->SetEnableGravity(true);
+    Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+    GetMesh()->SetSimulatePhysics(true);
+    GetMesh()->SetEnableGravity(true);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+    GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECollisionResponse::ECR_Block);
+
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    DissolveDeadBody();
 }
 

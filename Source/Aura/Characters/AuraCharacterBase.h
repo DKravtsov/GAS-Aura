@@ -63,6 +63,7 @@ public:
     //~ Begin of ICombatInterface interface
     FVector GetCombatSocketLocation() const override;
     UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
+    void Die() override;
     //~ End of ICombatInterface interface
 
 protected:
@@ -73,4 +74,9 @@ protected:
 
     virtual void GrantStartupAbilities();
 
+    UFUNCTION(NetMulticast, Reliable)
+    virtual void MulticastHandleDeath();
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void DissolveDeadBody();
 };
