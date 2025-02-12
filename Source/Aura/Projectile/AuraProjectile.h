@@ -45,7 +45,7 @@ public:
     void Destroyed() override;
 
     void NotifyActorBeginOverlap(AActor* OtherActor) override;
-    //void NotifyActorEndOverlap(AActor* OtherActor) override;
+    void NotifyActorEndOverlap(AActor* OtherActor) override;
 protected:
     void BeginPlay() override;
     //~ End of AActor interface

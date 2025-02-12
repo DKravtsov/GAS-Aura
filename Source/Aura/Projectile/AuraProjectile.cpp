@@ -31,7 +31,7 @@ AAuraProjectile::AAuraProjectile()
 
 void AAuraProjectile::BeginPlay()
 {
-    LOG_NETFUNCTIONCALL_MSG(TEXT("time=%s"), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+    //LOG_NETFUNCTIONCALL_MSG(TEXT("time=%s"), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
 
     Super::BeginPlay();
 
@@ -40,7 +40,7 @@ void AAuraProjectile::BeginPlay()
 
 void AAuraProjectile::Destroyed()
 {
-    LOG_NETFUNCTIONCALL_MSG(TEXT("bHit=%s, time=%s"), (bHit ? TEXT("true") : TEXT("false")), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+    //LOG_NETFUNCTIONCALL_MSG(TEXT("bHit=%s, time=%s"), (bHit ? TEXT("true") : TEXT("false")), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
 
     if (!bHit)
     {
@@ -58,7 +58,7 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
         return;
     }
 
-    LOG_NETFUNCTIONCALL;
+    //LOG_NETFUNCTIONCALL;
 
     bHit = true;
     PlayEffects();
@@ -76,16 +76,16 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 void AAuraProjectile::PlayEffects()
 {
-    LOG_NETFUNCTIONCALL;
+    //LOG_NETFUNCTIONCALL;
 
     UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
     UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation());
 }
 
-//void AAuraProjectile::NotifyActorEndOverlap(AActor* OtherActor)
-//{
-//    Super::NotifyActorEndOverlap(OtherActor);
-//}
+void AAuraProjectile::NotifyActorEndOverlap(AActor* OtherActor)
+{
+    Super::NotifyActorEndOverlap(OtherActor);
+}
 
 
 
