@@ -6,6 +6,10 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AuraGameplayTags.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "Engine/CurveTable.h"
+#include "Characters/CombatInterface.h"
 
 #include "DebugHelper.h"
 #define PRINT_DEBUG1(V, T) Debug::Print(FString::Printf(TEXT("%s: %s"), TEXT(T), *FString::SanitizeFloat(V)))
@@ -18,6 +22,9 @@ struct FAuraDamageStatics
     DECLARE_ATTRIBUTE_CAPTUREDEF(ArmorPenetration);
     DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
     DECLARE_ATTRIBUTE_CAPTUREDEF(BlockChance);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitChance);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitDamage);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitResistance);
 
     FAuraDamageStatics()
     {
@@ -25,6 +32,9 @@ struct FAuraDamageStatics
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArmorPenetration, Source, true);
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false);
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, IncomingDamage, Target, false);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitChance, Source, true);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitDamage, Source, true);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitResistance, Target, false);
     }
 
 };
@@ -42,6 +52,9 @@ UExecCalcDamage::UExecCalcDamage()
     RelevantAttributesToCapture.Add(DamageStatics().ArmorPenetrationDef);
     RelevantAttributesToCapture.Add(DamageStatics().BlockChanceDef);
     RelevantAttributesToCapture.Add(DamageStatics().IncomingDamageDef);
+    RelevantAttributesToCapture.Add(DamageStatics().CritHitChanceDef);
+    RelevantAttributesToCapture.Add(DamageStatics().CritHitDamageDef);
+    RelevantAttributesToCapture.Add(DamageStatics().CritHitResistanceDef);
 }
 
 void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -62,14 +75,50 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     const AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
     const AActor* TargetAvatar = TargetASC ? TargetASC->GetAvatarActor() : nullptr;
 
+    const int32 SourceCharacterLevel = UAuraBlueprintFunctionLibrary::GetCharacterLevel(SourceAvatar);
+    const int32 TargetCharacterLevel = UAuraBlueprintFunctionLibrary::GetCharacterLevel(TargetAvatar);
+
+    UCharacterClassInfo* CharacterClassInfo = UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(TargetASC);
+
     float BaseDamage = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::SetByCaller_BaseDamage, true);
     PRINT_DEBUG(BaseDamage);
+
+    float CritChance = 0.f;
+    ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CritHitChanceDef, Params, CritChance);
+    //CritChance = FMath::Clamp(CritChance, 0.f, 1.f);
+    PRINT_DEBUG(CritChance);
+
+    float CritResistance = 0.f;
+    ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CritHitResistanceDef, Params, CritResistance);
+    //CritResistance = FMath::Clamp(CritResistance, 0.f, 1.f);
+    PRINT_DEBUG(CritResistance);
+
+    const float CritResistanceCoef = CharacterClassInfo->GetDamageCalculationCoef("CritHitResistance", TargetCharacterLevel);
+    PRINT_DEBUG(CritResistanceCoef);
+
+    const float EffectiveCritChance = FMath::Clamp(CritChance - CritResistance * CritResistanceCoef, 0.f, 1.f);
+    PRINT_DEBUG(EffectiveCritChance);
+    const bool bCritHit = UKismetMathLibrary::RandomBoolWithWeight(EffectiveCritChance);
+    PRINT_DEBUG1((bCritHit ? 1 : 0), "CritHit");
+
+    if (bCritHit)
+    {
+        float CritDamage = 0.f;
+        ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CritHitDamageDef, Params, CritDamage);
+        CritDamage = FMath::Max(CritDamage, 0.f);
+        PRINT_DEBUG(CritDamage);
+
+        const float CritDamageCoef = CharacterClassInfo->GetDamageCalculationCoef("CritHitDamage", SourceCharacterLevel);
+        
+        
+        BaseDamage = 2 * BaseDamage + CritDamage * CritDamageCoef;
+    }
 
     float BlockChance = 0.f;
     ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BlockChanceDef, Params, BlockChance);
     BlockChance = FMath::Max(0.f, BlockChance);
     PRINT_DEBUG(BlockChance);
-    const bool bSuccessfulBlock = UKismetMathLibrary::RandomBoolWithWeight(BlockChance);
+    const bool bSuccessfulBlock = !bCritHit && UKismetMathLibrary::RandomBoolWithWeight(BlockChance);
     PRINT_DEBUG1((bSuccessfulBlock ? 1 : 0), "SuccessfulBlock");
 
     // if successful block, cut the damage in half
@@ -85,10 +134,13 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     SourceArmorPenetration = FMath::Max(0.f, SourceArmorPenetration);
     PRINT_DEBUG(SourceArmorPenetration);
 
-    const float EffectiveArmor = FMath::Clamp(TargetArmor - SourceArmorPenetration, 0.f, 100.f);
+    const float ArmorPenetrationCoef = CharacterClassInfo->GetDamageCalculationCoef("ArmorPenetration", SourceCharacterLevel);
+
+    const float EffectiveArmor = FMath::Clamp(TargetArmor - SourceArmorPenetration * ArmorPenetrationCoef, 0.f, 100.f);
     PRINT_DEBUG(EffectiveArmor);
 
-    float FinalDamage = BaseDamage * (100.f - EffectiveArmor) / 100.f;
+    const float EffectiveArmorCoef = CharacterClassInfo->GetDamageCalculationCoef("EffectiveArmor", TargetCharacterLevel);
+    float FinalDamage = BaseDamage * (100.f - EffectiveArmor * EffectiveArmorCoef) / 100.f;
     PRINT_DEBUG(FinalDamage);
     OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(DamageStatics().IncomingDamageProperty, EGameplayModOp::Override, FinalDamage));
 }

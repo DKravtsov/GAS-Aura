@@ -44,10 +44,15 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
     TSubclassOf<class UGameplayEffect> VitalAttributes;
 
-    UPROPERTY(EditDefaultsOnly, Category = "Common Class Abilities")
+    UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
     TArray<TSubclassOf<class UGameplayAbility>> Abilities;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults|Damage")
+    TObjectPtr<class UCurveTable> DamageCalculationCoefs;
 
 public:
 
     FCharacterClassDefaultInfo GetClassDefaultInfo(EAuraCharacterClass CharacterClass);
+
+    float GetDamageCalculationCoef(FName CurveName, int32 ApplyLevel) const;
 };

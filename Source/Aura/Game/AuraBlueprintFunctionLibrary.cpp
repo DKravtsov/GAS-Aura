@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/HUD/AuraHUD.h"
+#include "Game/AuraGameModeBase.h"
+#include "Characters/CombatInterface.h"
 
 UOverlayWidgetController* UAuraBlueprintFunctionLibrary::GetOverlayWidgetController(const UObject* WorldContextObject)
 {
@@ -35,3 +37,22 @@ UAttributeMenuWidgetController* UAuraBlueprintFunctionLibrary::GetAttributeMenuW
 
     return nullptr;
 }
+
+UCharacterClassInfo* UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
+{
+    if (auto GM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+    {
+        return GM->CharacterClassInfo;
+    }
+    return nullptr;
+}
+
+int32 UAuraBlueprintFunctionLibrary::GetCharacterLevel(const AActor* Actor)
+{
+    if (const ICombatInterface* Interface = Cast<ICombatInterface>(Actor))
+    {
+        return Interface->GetCharacterLevel();
+    }
+    return 1;
+}
+
