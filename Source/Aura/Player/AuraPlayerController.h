@@ -53,6 +53,8 @@ private:
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<class USplineComponent> PathSpline;
 
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<class UDamageTextComponent> DamageTextComponentClass;
 
 public:
 
@@ -69,6 +71,9 @@ public:
         HitLocation = CursorHit.ImpactPoint;
         return CursorHit.bBlockingHit;
     }
+
+    UFUNCTION(Client, Reliable)
+    void ClientShowDamageFloatingNumber(class APawn* TargetPawn, float Amount);
 
 protected:
 

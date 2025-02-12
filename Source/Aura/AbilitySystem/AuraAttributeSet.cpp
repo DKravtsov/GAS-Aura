@@ -8,24 +8,23 @@
 #include "GameplayEffectExtension.h"
 #include "AuraGameplayTags.h"
 #include "Characters/CombatInterface.h"
+#include "Characters/AuraCharacterBase.h"
+#include "Player/AuraPlayerController.h"
 
 #pragma region FEffectProperties
 
 class FEffectProperties
 {
-    UAbilitySystemComponent* SourceASC = nullptr;
-    //UAbilitySystemComponent* TargetASC = nullptr;
+    mutable UAbilitySystemComponent* SourceASC = nullptr;
 
-    AActor* SourceAvatarActor = nullptr;
-    AActor* TargetAvatarActor = nullptr;
+    mutable AActor* SourceAvatarActor = nullptr;
+    mutable AActor* TargetAvatarActor = nullptr;
 
-    AController* SourceController = nullptr;
-    AController* TargetController = nullptr;
+    mutable AController* SourceController = nullptr;
+    mutable AController* TargetController = nullptr;
 
-    ACharacter* SourceCharacter = nullptr;
-    ACharacter* TargetCharacter = nullptr;
-
-    FGameplayEffectContextHandle EffectContextHandle;
+    mutable ACharacter* SourceCharacter = nullptr;
+    mutable ACharacter* TargetCharacter = nullptr;
 
     const FGameplayEffectModCallbackData& Data;
 
@@ -36,16 +35,17 @@ public:
     {
     }
 
-    FGameplayEffectContextHandle GetEffectContextHandle()
+    UWorld* GetWorld() const
     {
-        if (!EffectContextHandle.IsValid())
-        {
-            EffectContextHandle = Data.EffectSpec.GetContext();
-        }
-        return EffectContextHandle;
+        return Data.Target.GetWorld();
     }
 
-    UAbilitySystemComponent* GetSourceAbilitySystemComponent()
+    FGameplayEffectContextHandle GetEffectContextHandle() const
+    {
+        return Data.EffectSpec.GetContext();
+    }
+
+    UAbilitySystemComponent* GetSourceAbilitySystemComponent() const
     {
         if (SourceASC == nullptr)
         {
@@ -54,7 +54,7 @@ public:
         return SourceASC;
     }
 
-    AActor* GetSourceAvatarActor()
+    AActor* GetSourceAvatarActor() const
     {
         if (SourceAvatarActor == nullptr)
         {
@@ -67,7 +67,7 @@ public:
         return SourceAvatarActor;
     }
 
-    ACharacter* GetSourceCharacter()
+    ACharacter* GetSourceCharacter() const
     {
         if (SourceCharacter == nullptr)
         {
@@ -77,14 +77,14 @@ public:
     }
 
     template<class T>
-    T* GetSourceCharacter() { return Cast<T>(GetSourceCharacter()); }
+    T* GetSourceCharacter() const { return Cast<T>(GetSourceCharacter()); }
 
-    bool IsTargetLocallyControlledPlayer()
+    bool IsTargetLocallyControlledPlayer() const
     {
         return GetEffectContextHandle().IsLocallyControlledPlayer();
     }
 
-    AController* GetSourceController()
+    AController* GetSourceController() const
     {
         if (SourceController == nullptr)
         {
@@ -121,14 +121,14 @@ public:
     }
 
     template<class T>
-    T* GetSourceController() { return Cast<T>(GetSourceController()); }
+    T* GetSourceController() const { return Cast<T>(GetSourceController()); }
 
-    UAbilitySystemComponent* GetTargetAbilitySystemComponent()
+    UAbilitySystemComponent* GetTargetAbilitySystemComponent() const
     {
         return &Data.Target;
     }
 
-    AActor* GetTargetAvatarActor()
+    AActor* GetTargetAvatarActor() const
     {
         if (TargetAvatarActor == nullptr)
         {
@@ -137,7 +137,7 @@ public:
         return TargetAvatarActor;
     }
 
-    ACharacter* GetTargetCharacter()
+    ACharacter* GetTargetCharacter() const
     {
         if (TargetCharacter == nullptr)
         {
@@ -147,9 +147,9 @@ public:
     }
 
     template<class T>
-    T* GetTargetCharacter() { return Cast<T>(GetTargetCharacter()); }
+    T* GetTargetCharacter() const { return Cast<T>(GetTargetCharacter()); }
 
-    AController* GetTargetController()
+    AController* GetTargetController() const
     {
         if (TargetController == nullptr)
         {
@@ -184,7 +184,7 @@ public:
     }
 
     template<class T>
-    T* GetTargetController() { return Cast<T>(GetTargetController()); }
+    T* GetTargetController() const { return Cast<T>(GetTargetController()); }
 
 };
 // FEffectProperties
@@ -238,6 +238,19 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
             {
                 EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Effects_HitReact));
             }
+
+            ShowFloatingText(EffectProps, Damage);
+        }
+    }
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& EffectProps, const float Damage) const
+{
+    if (EffectProps.GetSourceCharacter() != EffectProps.GetTargetCharacter())
+    {
+        if (auto PC = EffectProps.GetSourceController<AAuraPlayerController>())
+        {
+            PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage);
         }
     }
 }

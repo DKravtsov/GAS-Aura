@@ -164,4 +164,10 @@ public:
     void OnRep_ManaRegen(const FGameplayAttributeData& OldValue) const;
 
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+private:
+
+    void ShowFloatingText(const class FEffectProperties& EffectProps, const float Damage) const;
+
+
 };

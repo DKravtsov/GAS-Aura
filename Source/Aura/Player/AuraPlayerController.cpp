@@ -11,6 +11,8 @@
 #include "AuraGameplayTags.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
+#include "UI/Components/DamageTextComponent.h"
+#include "GameFramework/Pawn.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -56,6 +58,18 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetAuraAbilitySystemComponen
         AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn()));
     }
     return AuraAbilitySystemComponent;
+}
+
+void AAuraPlayerController::ClientShowDamageFloatingNumber_Implementation(APawn* TargetPawn, float Amount)
+{
+    if (IsValid(TargetPawn) && DamageTextComponentClass)
+    {
+        auto DamageTextComp = NewObject<UDamageTextComponent>(TargetPawn, DamageTextComponentClass);
+        DamageTextComp->RegisterComponent();
+        //DamageTextComp->AttachToComponent(TargetPawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+        DamageTextComp->SetWorldLocationAndRotation(TargetPawn->GetActorLocation(), TargetPawn->GetActorRotation());
+        DamageTextComp->SetDamageText(Amount);
+    }
 }
 
 void AAuraPlayerController::BeginPlay()
