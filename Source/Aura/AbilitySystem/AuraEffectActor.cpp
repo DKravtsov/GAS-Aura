@@ -28,14 +28,18 @@ void AAuraEffectActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
     Super::NotifyActorBeginOverlap(OtherActor);
 
+    if (bIgnoreEnemies && OtherActor->ActorHasTag("Enemy"))
+    {
+        return;
+    }
+    if (bIgnorePlayers && OtherActor->ActorHasTag("Player"))
+    {
+        return;
+    }
+
     if (EffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
     {
-        const bool bApplied = ApplyEffectToTarget(OtherActor);
-
-        if (bApplied && bDestroyAfterApplying)
-        {
-            SetLifeSpan(0.01f);
-        }
+        ApplyEffectToTarget(OtherActor);
     }
 }
 
@@ -43,13 +47,18 @@ void AAuraEffectActor::NotifyActorEndOverlap(AActor* OtherActor)
 {
     Super::NotifyActorEndOverlap(OtherActor);
 
+    if (bIgnoreEnemies && OtherActor->ActorHasTag("Enemy"))
+    {
+        return;
+    }
+    if (bIgnorePlayers && OtherActor->ActorHasTag("Player"))
+    {
+        return;
+    }
+
     if (EffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
     {
-        const bool bApplied = ApplyEffectToTarget(OtherActor);
-        if (bApplied && bDestroyAfterApplying)
-        {
-            SetLifeSpan(0.01f);
-        }
+        ApplyEffectToTarget(OtherActor);
     }
     if (EffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
     {
@@ -75,13 +84,19 @@ bool AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor)
         EffectContextHandle.AddSourceObject(this);
 
         const FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, GameplayEffectLevel, EffectContextHandle);
-        const bool bInifinite = SpecHandle.Data->Def->DurationPolicy == EGameplayEffectDurationType::Infinite;
-
+        const bool bInfinite = SpecHandle.Data->Def->DurationPolicy == EGameplayEffectDurationType::Infinite;
+ 
         FActiveGameplayEffectHandle ActiveEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 
-        if (bInifinite && EffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
+        if (bInfinite && EffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
         {
             ActiveEffectsMap.Add(TargetActor, ActiveEffectHandle);
+        }
+
+        if (bDestroyAfterApplying && !bInfinite)
+        {
+            SetActorEnableCollision(false);
+            SetLifeSpan(0.01f);
         }
 
         return true;

@@ -32,7 +32,7 @@ class AURA_API AAuraEffectActor : public AActor
 protected:
 
     UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
-    TSubclassOf<UGameplayEffect> GameplayEffectClass;
+    TSubclassOf<class UGameplayEffect> GameplayEffectClass;
 
     UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
     EEffectApplicationPolicy EffectApplicationPolicy = EEffectApplicationPolicy::ApplyOnOverlap;
@@ -46,19 +46,26 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
     bool bDestroyAfterApplying = false;
 
+    UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
+    bool bIgnoreEnemies = true;
+
+    UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
+    bool bIgnorePlayers = false;
+
+    UPROPERTY()
     TMap<AActor*, FActiveGameplayEffectHandle> ActiveEffectsMap;
 
 public:
 
     AAuraEffectActor();
 
-    void NotifyActorBeginOverlap(AActor* OtherActor) override;
+    virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
-    void NotifyActorEndOverlap(AActor* OtherActor) override;
+    virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 
 protected:
 
-    void BeginPlay() override;
+    virtual void BeginPlay() override;
 
     UFUNCTION(BlueprintCallable)
     bool ApplyEffectToTarget(AActor* TargetActor);
