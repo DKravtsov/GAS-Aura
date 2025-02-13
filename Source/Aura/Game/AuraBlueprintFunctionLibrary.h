@@ -29,4 +29,17 @@ public:
 
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterInfo")
     static int32 GetCharacterLevel(const AActor* Actor);
+
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static bool IsBlockedHit(const struct FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static bool IsCriticalHit(const FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
+    static void SetIsBlockedHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bBlockedHit);
+
+    UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
+    static void SetIsCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bCriticalHit);
 };

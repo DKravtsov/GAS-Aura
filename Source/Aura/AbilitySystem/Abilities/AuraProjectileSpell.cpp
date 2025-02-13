@@ -64,7 +64,12 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
             GetOwningActorFromActorInfo(), Cast<APawn>(GetAvatarActorFromActorInfo()), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
         const UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
-        Projectile->DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+
+        FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+        EffectContextHandle.SetAbility(this);//optional
+        EffectContextHandle.AddSourceObject(Projectile);//optional
+
+        Projectile->DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
         const float Damage = BaseDamage.GetValueAtLevel(GetAbilityLevel());
         UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Projectile->DamageEffectSpecHandle, AuraGameplayTags::SetByCaller_BaseDamage, Damage);
 

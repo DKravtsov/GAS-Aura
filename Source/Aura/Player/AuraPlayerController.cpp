@@ -60,7 +60,7 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetAuraAbilitySystemComponen
     return AuraAbilitySystemComponent;
 }
 
-void AAuraPlayerController::ClientShowDamageFloatingNumber_Implementation(APawn* TargetPawn, float Amount)
+void AAuraPlayerController::ClientShowDamageFloatingNumber_Implementation(APawn* TargetPawn, float Amount, bool bBlockedHit, bool bCriticalHit)
 {
     if (IsValid(TargetPawn) && DamageTextComponentClass)
     {
@@ -68,7 +68,7 @@ void AAuraPlayerController::ClientShowDamageFloatingNumber_Implementation(APawn*
         DamageTextComp->RegisterComponent();
         //DamageTextComp->AttachToComponent(TargetPawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
         DamageTextComp->SetWorldLocationAndRotation(TargetPawn->GetActorLocation(), TargetPawn->GetActorRotation());
-        DamageTextComp->SetDamageText(Amount);
+        DamageTextComp->SetDamageText(Amount, bBlockedHit, bCriticalHit);
     }
 }
 

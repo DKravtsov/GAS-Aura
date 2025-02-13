@@ -167,7 +167,7 @@ public:
 
 private:
 
-    void ShowFloatingText(const class FEffectProperties& EffectProps, const float Damage) const;
+    void ShowFloatingText(const class FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit) const;
 
 
 };

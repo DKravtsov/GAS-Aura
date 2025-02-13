@@ -9,6 +9,7 @@
 #include "AuraGameplayTags.h"
 #include "Characters/CombatInterface.h"
 #include "Characters/AuraCharacterBase.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 #include "Player/AuraPlayerController.h"
 
 #pragma region FEffectProperties
@@ -239,18 +240,20 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
                 EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Effects_HitReact));
             }
 
-            ShowFloatingText(EffectProps, Damage);
+            const bool bBlocked = UAuraBlueprintFunctionLibrary::IsBlockedHit(EffectProps.GetEffectContextHandle());
+            const bool bCriticalHit = UAuraBlueprintFunctionLibrary::IsCriticalHit(EffectProps.GetEffectContextHandle());
+            ShowFloatingText(EffectProps, Damage, bBlocked, bCriticalHit);
         }
     }
 }
 
-void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& EffectProps, const float Damage) const
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit) const
 {
     if (EffectProps.GetSourceCharacter() != EffectProps.GetTargetCharacter())
     {
         if (auto PC = EffectProps.GetSourceController<AAuraPlayerController>())
         {
-            PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage);
+            PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage, bBlockedHit, bCriticalHit);
         }
     }
 }

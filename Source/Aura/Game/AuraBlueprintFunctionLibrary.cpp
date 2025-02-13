@@ -2,6 +2,8 @@
 
 
 #include "Game/AuraBlueprintFunctionLibrary.h"
+
+#include "AbilitySystem/AuraAbilitySystemTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/HUD/AuraHUD.h"
@@ -56,3 +58,40 @@ int32 UAuraBlueprintFunctionLibrary::GetCharacterLevel(const AActor* Actor)
     return 1;
 }
 
+bool UAuraBlueprintFunctionLibrary::IsBlockedHit(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->IsBlockedHit();
+    }
+    return false;
+}
+
+bool UAuraBlueprintFunctionLibrary::IsCriticalHit(const struct FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->IsCriticalHit();
+    }
+    return false;
+}
+
+void UAuraBlueprintFunctionLibrary::SetIsBlockedHit(FGameplayEffectContextHandle& EffectContextHandle, bool bBlockedHit)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        EffectContext->SetIsBlockedHit(bBlockedHit);
+    }
+}
+
+void UAuraBlueprintFunctionLibrary::SetIsCriticalHit(FGameplayEffectContextHandle& EffectContextHandle, bool bCriticalHit)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        EffectContext->SetIsCriticalHit(bCriticalHit);
+    }
+}

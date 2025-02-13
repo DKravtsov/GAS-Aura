@@ -73,7 +73,7 @@ public:
     }
 
     UFUNCTION(Client, Reliable)
-    void ClientShowDamageFloatingNumber(class APawn* TargetPawn, float Amount);
+    void ClientShowDamageFloatingNumber(class APawn* TargetPawn, float Amount, bool bBlockedHit, bool bCriticalHit);
 
 protected:
 

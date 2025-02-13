@@ -12,6 +12,7 @@
 #include "Characters/CombatInterface.h"
 
 #include "DebugHelper.h"
+#include "AbilitySystem/AuraAbilitySystemTypes.h"
 #define PRINT_DEBUG1(V, T) Debug::Print(FString::Printf(TEXT("%s: %s"), TEXT(T), *FString::SanitizeFloat(V)))
 #define PRINT_DEBUG(V) PRINT_DEBUG1(V, #V)
 
@@ -69,6 +70,8 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     Params.SourceTags = EffectSpec.CapturedSourceTags.GetAggregatedTags();
     Params.TargetTags = EffectSpec.CapturedTargetTags.GetAggregatedTags();
 
+    FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
+
     const UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
     const UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 
@@ -78,7 +81,7 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     const int32 SourceCharacterLevel = UAuraBlueprintFunctionLibrary::GetCharacterLevel(SourceAvatar);
     const int32 TargetCharacterLevel = UAuraBlueprintFunctionLibrary::GetCharacterLevel(TargetAvatar);
 
-    UCharacterClassInfo* CharacterClassInfo = UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(TargetASC);
+    const UCharacterClassInfo* CharacterClassInfo = UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(TargetASC);
 
     float BaseDamage = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::SetByCaller_BaseDamage, true);
     PRINT_DEBUG(BaseDamage);
@@ -110,8 +113,9 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
 
         const float CritDamageCoef = CharacterClassInfo->GetDamageCalculationCoef("CritHitDamage", SourceCharacterLevel);
         
-        
         BaseDamage = 2 * BaseDamage + CritDamage * CritDamageCoef;
+
+        UAuraBlueprintFunctionLibrary::SetIsCriticalHit(EffectContextHandle, true);
     }
 
     float BlockChance = 0.f;
@@ -119,6 +123,7 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     BlockChance = FMath::Max(0.f, BlockChance);
     PRINT_DEBUG(BlockChance);
     const bool bSuccessfulBlock = !bCritHit && UKismetMathLibrary::RandomBoolWithWeight(BlockChance);
+    UAuraBlueprintFunctionLibrary::SetIsBlockedHit(EffectContextHandle, bSuccessfulBlock);
     PRINT_DEBUG1((bSuccessfulBlock ? 1 : 0), "SuccessfulBlock");
 
     // if successful block, cut the damage in half
