@@ -9,6 +9,9 @@
 #include "UI/Widgets/AuraUserWidget.h"
 #include "Game/AuraGameModeBase.h"
 #include "AuraGameplayTags.h"
+#include "AI/AuraAIController.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AAuraEnemyCharacter::AAuraEnemyCharacter()
@@ -102,7 +105,14 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
         InitializeDefaultAttributes();
 
         GrantStartupAbilities();
+
+        
+        AuraAIController = Cast<AAuraAIController>(NewController);
+
+        AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
+        AuraAIController->RunBehaviorTree(BehaviorTree);
     }
+
 }
 
 void AAuraEnemyCharacter::InitializeDefaultAttributes()

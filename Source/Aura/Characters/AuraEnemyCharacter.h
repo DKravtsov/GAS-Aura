@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Characters/AuraCharacterBase.h"
 #include "Interaction/InteractableInterface.h"
 #include "UI/WidgetController/AuraWidgetController.h"
@@ -37,6 +38,12 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     float DeadBodyLifeSpan = 8.f;
 
+    UPROPERTY(EditDefaultsOnly, Category = "AI")
+    TObjectPtr<class UBehaviorTree> BehaviorTree;
+
+    UPROPERTY()
+    TObjectPtr<class AAuraAIController> AuraAIController;
+    
 public:
 
     AAuraEnemyCharacter();
