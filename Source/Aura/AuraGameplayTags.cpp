@@ -37,6 +37,9 @@ namespace AuraGameplayTags
     /**  Shared Tags **/
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_BaseDamage, "SetByCaller.BaseDamage", "");
-    
+
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Effects_HitReact, "Effects.HitReact", "");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage, "Damage", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Fire, "Damage.Fire", "Fire damage type");
 }

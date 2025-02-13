@@ -27,6 +27,10 @@ struct FAuraDamageStatics
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitDamage);
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitResistance);
 
+    TArray<FGameplayTag> DamageTypes = {
+            AuraGameplayTags::Damage_Fire,
+        };
+    
     FAuraDamageStatics()
     {
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false);
@@ -83,7 +87,12 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
 
     const UCharacterClassInfo* CharacterClassInfo = UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(TargetASC);
 
-    float BaseDamage = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::SetByCaller_BaseDamage, true);
+    float BaseDamage = 0.f;
+    for (const auto& DamageType : DamageStatics().DamageTypes)
+    {
+        const float Damage = EffectSpec.GetSetByCallerMagnitude(DamageType, false, 0.f);
+        BaseDamage += Damage;
+    }
     PRINT_DEBUG(BaseDamage);
 
     float CritChance = 0.f;
@@ -145,7 +154,7 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     PRINT_DEBUG(EffectiveArmor);
 
     const float EffectiveArmorCoef = CharacterClassInfo->GetDamageCalculationCoef("EffectiveArmor", TargetCharacterLevel);
-    float FinalDamage = BaseDamage * (100.f - EffectiveArmor * EffectiveArmorCoef) / 100.f;
+    const float FinalDamage = BaseDamage * (100.f - EffectiveArmor * EffectiveArmorCoef) / 100.f;
     PRINT_DEBUG(FinalDamage);
     OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(DamageStatics().IncomingDamageProperty, EGameplayModOp::Override, FinalDamage));
 }

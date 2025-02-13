@@ -29,4 +29,6 @@ protected:
     //~ Begin of UGameplayAbility interface
     void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
     //~ End of UGameplayAbility interface
+    
+    void SetupDamageTypes(FGameplayEffectSpecHandle DamageEffectSpecHandle);
 };

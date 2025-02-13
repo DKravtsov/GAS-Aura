@@ -36,6 +36,15 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 }
 
+void UAuraProjectileSpell::SetupDamageTypes(FGameplayEffectSpecHandle DamageEffectSpecHandle)
+{
+    for (const auto& [DamageType, BaseDamage] : DamageTypes)
+    {
+        const float Damage = BaseDamage.GetValueAtLevel(GetAbilityLevel());
+        UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, DamageType, Damage);
+    }
+}
+
 void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
 {
     const bool bIsServer = HasAuthority(&GetCurrentActivationInfoRef());
@@ -70,8 +79,8 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
         EffectContextHandle.AddSourceObject(Projectile);//optional
 
         Projectile->DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
-        const float Damage = BaseDamage.GetValueAtLevel(GetAbilityLevel());
-        UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Projectile->DamageEffectSpecHandle, AuraGameplayTags::SetByCaller_BaseDamage, Damage);
+
+        SetupDamageTypes(Projectile->DamageEffectSpecHandle);
 
         Projectile->FinishSpawning(SpawnTransform);
     }

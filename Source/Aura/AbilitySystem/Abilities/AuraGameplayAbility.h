@@ -6,6 +6,13 @@
 #include "Abilities/GameplayAbility.h"
 #include "AuraGameplayAbility.generated.h"
 
+UENUM()
+enum class EAbilityDamagePolicy : uint8
+{
+    NoDamage,
+    CausesDamage,
+};
+
 /**
  *
  */
@@ -19,9 +26,12 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = Input, meta = (Categories = "InputTag"))
     FGameplayTag StartupInputTag;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
+    UPROPERTY(EditDefaultsOnly, Category = Damage)
+    EAbilityDamagePolicy DamagePolicy = EAbilityDamagePolicy::NoDamage;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
     TSubclassOf<class UGameplayEffect> DamageEffectClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
-    FScalableFloat BaseDamage = 0.f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, Categories="Damage", ForceInlineRow))
+    TMap<FGameplayTag, FScalableFloat> DamageTypes;
 };
