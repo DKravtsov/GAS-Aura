@@ -26,6 +26,11 @@ struct FAuraDamageStatics
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitChance);
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitDamage);
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitResistance);
+    
+    DECLARE_ATTRIBUTE_CAPTUREDEF(PhysicalResistance);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(FireResistance);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(LightningResistance);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(ArcaneResistance);
 
     TArray<FGameplayTag> DamageTypes;
     
@@ -38,10 +43,26 @@ struct FAuraDamageStatics
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitChance, Source, true);
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitDamage, Source, true);
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitResistance, Target, false);
+        
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, PhysicalResistance, Target, false);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, FireResistance, Target, false);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, LightningResistance, Target, false);
+        DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArcaneResistance, Target, false);
 
         DamageTypes = FGameplayTagHelper::RequestAllDamageTypeGameplayTags().GetGameplayTagArray();
     }
 
+    const FGameplayEffectAttributeCaptureDefinition& GetResistanceDefByDamageType(const FGameplayTag& DamageType) const
+    {
+        if (DamageType.MatchesTagExact(AuraGameplayTags::Damage_Arcane)) return ArcaneResistanceDef;
+        if (DamageType.MatchesTagExact(AuraGameplayTags::Damage_Physical)) return PhysicalResistanceDef;
+        if (DamageType.MatchesTagExact(AuraGameplayTags::Damage_Fire)) return FireResistanceDef;
+        if (DamageType.MatchesTagExact(AuraGameplayTags::Damage_Lightning)) return LightningResistanceDef;
+
+        checkNoEntry();
+        static FGameplayEffectAttributeCaptureDefinition NeverReturned;
+        return NeverReturned;
+    }
 };
 
 static const FAuraDamageStatics& DamageStatics()
@@ -60,6 +81,11 @@ UExecCalcDamage::UExecCalcDamage()
     RelevantAttributesToCapture.Add(DamageStatics().CritHitChanceDef);
     RelevantAttributesToCapture.Add(DamageStatics().CritHitDamageDef);
     RelevantAttributesToCapture.Add(DamageStatics().CritHitResistanceDef);
+    
+    RelevantAttributesToCapture.Add(DamageStatics().PhysicalResistanceDef);
+    RelevantAttributesToCapture.Add(DamageStatics().FireResistanceDef);
+    RelevantAttributesToCapture.Add(DamageStatics().LightningResistanceDef);
+    RelevantAttributesToCapture.Add(DamageStatics().ArcaneResistanceDef);
 }
 
 void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -90,8 +116,17 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
     float BaseDamage = 0.f;
     for (const auto& DamageType : DamageStatics().DamageTypes)
     {
-        const float Damage = EffectSpec.GetSetByCallerMagnitude(DamageType, false, 0.f);
-        BaseDamage += Damage;
+        float Damage = EffectSpec.GetSetByCallerMagnitude(DamageType, false, 0.f);
+        if (Damage > 0.f)
+        {
+            const auto& ResistanceDef = DamageStatics().GetResistanceDefByDamageType(DamageType);
+
+            float Resistance = 0.f;
+            ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ResistanceDef, Params, Resistance);
+            // do not clamp resist value: it can be negative or more than 1
+            Damage *= (1.f - Resistance);
+            BaseDamage += FMath::Max(Damage, 0.f);
+        }
     }
     PRINT_DEBUG(BaseDamage);
 
