@@ -27,7 +27,13 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Secondary_MaxHealth);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Secondary_MaxMana);
 
-    /**  Secondary Attribute Tags **/
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance_Physical);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance_Fire);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance_Lightning);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance_Arcane);
+
+    /**  Input Tags **/
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_PrimaryAction);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_SecondaryAction);
@@ -36,7 +42,7 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action3);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action4);
 
-    /**  Shared Tags **/
+    /**  Combat Tags **/
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_BaseDamage);
 
@@ -46,6 +52,25 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Combat_Event_Block);
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Physical);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Fire);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Lightning);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Arcane);
+
  
 }
+
+struct FGameplayTagHelper
+{
+    static FGameplayTagContainer RequestAllDamageTypeGameplayTags();
+    static FGameplayTagContainer RequestAllResistanceGameplayTags();
+
+    static FGameplayTag GetResistanceTagByDamageType(FGameplayTag DamageTypeTag);
+    
+private:
+    static FGameplayTagHelper& Get();
+
+    FGameplayTagHelper();
+
+    TMap<FGameplayTag, FGameplayTag> ResistanceTagMap;
+};

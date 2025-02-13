@@ -25,7 +25,13 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Secondary_MaxHealth, "Attributes.Secondary.MaxHealth", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Secondary_MaxMana, "Attributes.Secondary.MaxMana", "");
 
-    /**  Secondary Attribute Tags **/
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance, "Attributes.Resistance", "Parent Tag for all resistances");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance_Physical, "Attributes.Resistance.Physical", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance_Fire, "Attributes.Resistance.Fire", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance_Lightning, "Attributes.Resistance.Lightning", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance_Arcane, "Attributes.Resistance.Arcane", "");
+
+    /**  Input Tags **/
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_PrimaryAction, "InputTag.PrimaryAction", "LMB");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_SecondaryAction, "InputTag.SecondaryAction", "RMB");
@@ -34,12 +40,46 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action3, "InputTag.Action3", "3");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action4, "InputTag.Action4", "4");
 
-    /**  Shared Tags **/
+    /**  Combat Tags **/
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_BaseDamage, "SetByCaller.BaseDamage", "");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Effects_HitReact, "Effects.HitReact", "");
 
-    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage, "Damage", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage, "Damage", "Parent tag for all damage types");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Physical, "Damage.Physical", "Physical damage type");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Fire, "Damage.Fire", "Fire damage type");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Lightning, "Damage.Lightning", "Lightning damage type");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Arcane, "Damage.Arcane", "Arcane damage type");
+}
+
+FGameplayTagContainer FGameplayTagHelper::RequestAllDamageTypeGameplayTags()
+{
+    return UGameplayTagsManager::Get().RequestGameplayTagChildren(AuraGameplayTags::Damage);
+}
+
+FGameplayTagContainer FGameplayTagHelper::RequestAllResistanceGameplayTags()
+{
+    return UGameplayTagsManager::Get().RequestGameplayTagChildren(AuraGameplayTags::Attributes_Resistance);
+}
+
+FGameplayTag FGameplayTagHelper::GetResistanceTagByDamageType(FGameplayTag DamageTypeTag)
+{
+    return Get().ResistanceTagMap.FindChecked(DamageTypeTag);
+}
+
+FGameplayTagHelper& FGameplayTagHelper::Get()
+{
+    static FGameplayTagHelper Helper;
+    return Helper;
+}
+
+FGameplayTagHelper::FGameplayTagHelper()
+{
+    /*  Damage type resistances map */
+    
+    ResistanceTagMap.Add(AuraGameplayTags::Damage_Physical, AuraGameplayTags::Attributes_Resistance_Physical);
+    ResistanceTagMap.Add(AuraGameplayTags::Damage_Fire, AuraGameplayTags::Attributes_Resistance_Fire);
+    ResistanceTagMap.Add(AuraGameplayTags::Damage_Lightning, AuraGameplayTags::Attributes_Resistance_Lightning);
+    ResistanceTagMap.Add(AuraGameplayTags::Damage_Arcane, AuraGameplayTags::Attributes_Resistance_Arcane);
 }

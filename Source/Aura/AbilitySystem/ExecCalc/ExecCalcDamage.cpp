@@ -27,9 +27,7 @@ struct FAuraDamageStatics
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitDamage);
     DECLARE_ATTRIBUTE_CAPTUREDEF(CritHitResistance);
 
-    TArray<FGameplayTag> DamageTypes = {
-            AuraGameplayTags::Damage_Fire,
-        };
+    TArray<FGameplayTag> DamageTypes;
     
     FAuraDamageStatics()
     {
@@ -40,6 +38,8 @@ struct FAuraDamageStatics
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitChance, Source, true);
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitDamage, Source, true);
         DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CritHitResistance, Target, false);
+
+        DamageTypes = FGameplayTagHelper::RequestAllDamageTypeGameplayTags().GetGameplayTagArray();
     }
 
 };

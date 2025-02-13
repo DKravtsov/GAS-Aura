@@ -94,13 +94,31 @@ public:
     FGameplayAttributeData ManaRegen;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet, ManaRegen);
 
-    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Vital Attributes")
+    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Secondary Attributes")
     FGameplayAttributeData MaxHealth;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet, MaxHealth);
 
-    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxMana, Category = "Vital Attributes")
+    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxMana, Category = "Secondary Attributes")
     FGameplayAttributeData MaxMana;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet, MaxMana);
+
+
+    
+    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_PhysicalResistance, Category = "Secondary Attributes")
+    FGameplayAttributeData PhysicalResistance;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, PhysicalResistance);
+
+    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_FireResistance, Category = "Secondary Attributes")
+    FGameplayAttributeData FireResistance;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, FireResistance);
+
+    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_LightningResistance, Category = "Secondary Attributes")
+    FGameplayAttributeData LightningResistance;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, LightningResistance);
+
+    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_ArcaneResistance, Category = "Secondary Attributes")
+    FGameplayAttributeData ArcaneResistance;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, ArcaneResistance);
 
     /*
     *  Meta Attributes
@@ -162,6 +180,18 @@ public:
 
     UFUNCTION()
     void OnRep_ManaRegen(const FGameplayAttributeData& OldValue) const;
+
+    UFUNCTION()
+    void OnRep_PhysicalResistance(const FGameplayAttributeData& OldValue) const;
+
+    UFUNCTION()
+    void OnRep_FireResistance(const FGameplayAttributeData& OldValue) const;
+
+    UFUNCTION()
+    void OnRep_LightningResistance(const FGameplayAttributeData& OldValue) const;
+
+    UFUNCTION()
+    void OnRep_ArcaneResistance(const FGameplayAttributeData& OldValue) const;
 
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

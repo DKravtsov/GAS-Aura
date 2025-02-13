@@ -44,7 +44,7 @@ class AURA_API UAttributeInfo : public UDataAsset
 public:
 
     //UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (TitleProperty = "AttributeName"))
-    TArray<FAuraAttributeInfo> AttributeInfo;
+    //TArray<FAuraAttributeInfo> AttributeInfo;
 
     //UPROPERTY(EditDefaultsOnly, meta = (TitleProperty = "AttributeName", ForceInlineRow))
     TMap<struct FGameplayAttribute, FGameplayTag> AttributeMap;

@@ -2,7 +2,6 @@
 
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
-#include "Aura.h"
 #include "GameplayTagContainer.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 
