@@ -13,7 +13,7 @@
 
 #include "DebugHelper.h"
 #include "AbilitySystem/AuraAbilitySystemTypes.h"
-#define PRINT_DEBUG1(V, T) Debug::Print(FString::Printf(TEXT("%s: %s"), TEXT(T), *FString::SanitizeFloat(V)))
+#define PRINT_DEBUG1(V, T) //Debug::Print(FString::Printf(TEXT("%s: %s"), TEXT(T), *FString::SanitizeFloat(V)))
 #define PRINT_DEBUG(V) PRINT_DEBUG1(V, #V)
 
 
