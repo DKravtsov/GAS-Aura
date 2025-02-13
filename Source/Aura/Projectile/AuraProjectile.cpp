@@ -9,7 +9,12 @@
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+
+#define DEBUG_PROJECTILE 0
+
+#if DEBUG_PROJECTILE
 #include "Logs.h"
+#endif
 
 AAuraProjectile::AAuraProjectile()
 {
@@ -31,7 +36,10 @@ AAuraProjectile::AAuraProjectile()
 
 void AAuraProjectile::BeginPlay()
 {
-    //LOG_NETFUNCTIONCALL_MSG(TEXT("time=%s"), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+#if DEBUG_PROJECTILE
+      LOG_NETFUNCTIONCALL_MSG(TEXT("time=%s"), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+#endif
+
 
     Super::BeginPlay();
 
@@ -40,7 +48,10 @@ void AAuraProjectile::BeginPlay()
 
 void AAuraProjectile::Destroyed()
 {
-    //LOG_NETFUNCTIONCALL_MSG(TEXT("bHit=%s, time=%s"), (bHit ? TEXT("true") : TEXT("false")), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+#if DEBUG_PROJECTILE
+      LOG_NETFUNCTIONCALL_MSG(TEXT("bHit=%s, time=%s"), (bHit ? TEXT("true") : TEXT("false")), *FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+#endif
+
 
     if (!bHit)
     {
@@ -58,7 +69,10 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
         return;
     }
 
-    //LOG_NETFUNCTIONCALL;
+#if DEBUG_PROJECTILE
+      LOG_NETFUNCTIONCALL;
+#endif
+
 
     bHit = true;
     PlayEffects();
@@ -76,7 +90,10 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 void AAuraProjectile::PlayEffects()
 {
-    //LOG_NETFUNCTIONCALL;
+#if DEBUG_PROJECTILE
+      LOG_NETFUNCTIONCALL;
+#endif
+
 
     UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
     UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation());
