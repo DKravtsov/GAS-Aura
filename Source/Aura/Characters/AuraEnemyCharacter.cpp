@@ -21,6 +21,12 @@ AAuraEnemyCharacter::AAuraEnemyCharacter()
     AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
     AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
+
+    bUseControllerRotationPitch = false;
+    bUseControllerRotationYaw = false;
+    bUseControllerRotationRoll = false;
+
+    GetCharacterMovement()->bUseControllerDesiredRotation = true;
 }
 
 void AAuraEnemyCharacter::HighlightActor()
