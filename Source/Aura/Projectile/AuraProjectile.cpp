@@ -31,7 +31,7 @@ AAuraProjectile::AAuraProjectile()
     ProjectileMovement->ProjectileGravityScale = 0.f;
     ProjectileMovement->bRotationFollowsVelocity = true;
     
-    SetLifeSpan(5.f);
+    InitialLifeSpan = 5.f;
 }
 
 void AAuraProjectile::BeginPlay()
@@ -75,6 +75,7 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 
     bHit = true;
+    SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     PlayEffects();
     if (HasAuthority())
     {
@@ -83,7 +84,7 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
             TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
         }
 
-        Destroy();
+        SetLifeSpan(0.01);
     }
 
 }
