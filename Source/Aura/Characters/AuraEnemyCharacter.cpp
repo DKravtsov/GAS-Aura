@@ -98,6 +98,7 @@ void AAuraEnemyCharacter::HitReactTagChanged(const FGameplayTag Tag, int32 Count
 
     GetCharacterMovement()->StopMovementImmediately();
 
+    AuraAIController->GetBlackboardComponent()->SetValueAsBool("bHitReacting", bHitReacting);
 }
 
 void AAuraEnemyCharacter::PossessedBy(AController* NewController)
@@ -117,6 +118,8 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
 
         AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
         AuraAIController->RunBehaviorTree(BehaviorTree);
+        AuraAIController->GetBlackboardComponent()->SetValueAsBool("bHitReacting", false);
+        AuraAIController->GetBlackboardComponent()->SetValueAsBool("bRangeAttacker", CharacterClass != EAuraCharacterClass::Warrior);
     }
 
 }
