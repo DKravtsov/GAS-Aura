@@ -88,7 +88,7 @@ void AAuraCharacterBase::GrantStartupAbilities()
     GetAuraAbilitySystemComponent()->GrantStartupAbilities(StartupAbilities, GetCharacterLevel());
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation() const
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation() const
 {
     check(Weapon);
     return Weapon->GetSocketLocation(WeaponTipSocketName);

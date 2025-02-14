@@ -50,7 +50,7 @@ public:
     AAuraCharacterBase();
 
     //~ Begin of IAbilitySystemInterface interface
-    UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     //~ End of IAbilitySystemInterface interface
 
     class UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
@@ -61,7 +61,7 @@ public:
     void ApplyGameplayEffectToSelf(TSubclassOf<class UGameplayEffect> Effect, float EffectLevel = 1.f);
 
     //~ Begin of ICombatInterface interface
-    FVector GetCombatSocketLocation() const override;
+    virtual FVector GetCombatSocketLocation_Implementation() const override;
     UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
     void Die() override;
     //~ End of ICombatInterface interface
