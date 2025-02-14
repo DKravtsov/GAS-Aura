@@ -38,7 +38,10 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     float DeadBodyLifeSpan = 8.f;
 
-    UPROPERTY(BlueprintReadWrite, Category = Combat)
+    UPROPERTY(EditDefaultsOnly, Category = Combat, meta = (TitleProperty = "Tag"))
+    TArray<FTaggedMontage> AttackMontages;
+
+    UPROPERTY(BlueprintReadWrite, Category = Combat, Transient)
     TObjectPtr<AActor> CombatTarget;
 
     UPROPERTY(EditDefaultsOnly, Category = "AI")
@@ -61,6 +64,7 @@ public:
     virtual void SetCombatTarget_Implementation(AActor* TargetActor) override { CombatTarget = TargetActor; }
     virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
     virtual void Die() override;
+    virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() const override { return AttackMontages;}
     //~ End of ICombatInterface interface
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);
