@@ -95,10 +95,11 @@ void AAuraEnemyCharacter::Die()
 void AAuraEnemyCharacter::HitReactTagChanged(const FGameplayTag Tag, int32 Count)
 {
     bHitReacting = Count > 0;
-
     GetCharacterMovement()->StopMovementImmediately();
-
-    AuraAIController->GetBlackboardComponent()->SetValueAsBool("bHitReacting", bHitReacting);
+    if (AuraAIController && AuraAIController->GetBlackboardComponent())
+    {
+        AuraAIController->GetBlackboardComponent()->SetValueAsBool("bHitReacting", bHitReacting);
+    }
 }
 
 void AAuraEnemyCharacter::PossessedBy(AController* NewController)
