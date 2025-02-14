@@ -39,7 +39,7 @@ public:
     virtual int32 GetCharacterLevel() const { return 0; }
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    FVector GetCombatSocketLocation() const;
+    FVector GetCombatSocketLocation(const FGameplayTag& MontageTag) const;
 
     // Set Target Location for anim montages with MotionWarping or similar
     UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)

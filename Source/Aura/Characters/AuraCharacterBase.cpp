@@ -88,10 +88,9 @@ void AAuraCharacterBase::GrantStartupAbilities()
     GetAuraAbilitySystemComponent()->GrantStartupAbilities(StartupAbilities, GetCharacterLevel());
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation() const
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) const
 {
-    check(Weapon);
-    return Weapon->GetSocketLocation(WeaponTipSocketName);
+    return Weapon ? Weapon->GetSocketLocation(WeaponTipSocketName) : FVector::ZeroVector;
 }
 
 void AAuraCharacterBase::Die()

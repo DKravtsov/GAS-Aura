@@ -25,12 +25,12 @@ public:
     AAuraPlayerCharacter();
 
     //~ Begin APawn Interface
-    void PossessedBy(AController* NewController) override;
-    void OnRep_PlayerState() override;
+    virtual void PossessedBy(AController* NewController) override;
+    virtual void OnRep_PlayerState() override;
     //~End APawn Interface
 
     //~ Begin of ICombatInterface interface
-    int32 GetCharacterLevel() const override;
+    virtual int32 GetCharacterLevel() const override;
     //~ End of ICombatInterface interface
 
 private:

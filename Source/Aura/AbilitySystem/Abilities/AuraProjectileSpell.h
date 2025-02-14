@@ -19,6 +19,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSubclassOf<class AAuraProjectile> ProjectileClass;
 
+    // The gameplay tag to extract correct socket from the character where the projectile will be spawned
+    // Note: It must bu the same tag that is used in AttackMontage array in EnemyCharacter
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag MontageTag;
+
 public:
 
     UFUNCTION(BlueprintCallable)

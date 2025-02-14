@@ -64,7 +64,7 @@ public:
     void ApplyGameplayEffectToSelf(TSubclassOf<class UGameplayEffect> Effect, float EffectLevel = 1.f);
 
     //~ Begin of ICombatInterface interface
-    virtual FVector GetCombatSocketLocation_Implementation() const override;
+    virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) const override;
     virtual UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
     virtual void Die() override;
     virtual bool IsDead_Implementation() const override;
@@ -84,4 +84,5 @@ protected:
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
     void DissolveDeadBody();
+    
 };
