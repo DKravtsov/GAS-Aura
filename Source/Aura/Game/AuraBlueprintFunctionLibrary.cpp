@@ -95,3 +95,33 @@ void UAuraBlueprintFunctionLibrary::SetIsCriticalHit(FGameplayEffectContextHandl
         EffectContext->SetIsCriticalHit(bCriticalHit);
     }
 }
+
+void UAuraBlueprintFunctionLibrary::GetAllLivePlayersInRadius(const UObject* WorldContextObject,
+      TArray<AActor*>& LivePlayers, const float Radius, const FVector& Origin, const TArray<AActor*>& IgnoreActors)
+{
+    FCollisionQueryParams SphereParams;
+
+    SphereParams.AddIgnoredActors(IgnoreActors);
+
+    // query scene to see what we hit
+    TArray<FOverlapResult> Overlaps;
+    if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+    {
+        World->OverlapMultiByObjectType(Overlaps, Origin, FQuat::Identity,
+            FCollisionObjectQueryParams(FCollisionObjectQueryParams::InitType::AllDynamicObjects),
+            FCollisionShape::MakeSphere(Radius), SphereParams);
+
+        LivePlayers.Reset(Overlaps.Num());
+        for (const FOverlapResult& Overlap : Overlaps)
+        {
+            AActor* Actor = Overlap.GetActor();
+            if (IsValid(Actor) && Actor->Implements<UCombatInterface>())
+            {
+                if (false == ICombatInterface::Execute_IsDead(Actor))
+                {
+                    LivePlayers.AddUnique(Actor);
+                }
+            }
+        }
+    }
+}

@@ -99,13 +99,25 @@ void AAuraCharacterBase::Die()
     if (HasAuthority())
     {
         Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-
+        
         MulticastHandleDeath();
     }
 }
 
+bool AAuraCharacterBase::IsDead_Implementation() const
+{
+    return bDead;
+}
+
+AActor* AAuraCharacterBase::GetAvatar_Implementation()
+{
+    return this;
+}
+
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
+    bDead = true;
+    
     Weapon->SetSimulatePhysics(true);
     Weapon->SetEnableGravity(true);
     Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);

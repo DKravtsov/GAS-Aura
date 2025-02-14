@@ -255,6 +255,10 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& EffectProps, c
         {
             PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage, bBlockedHit, bCriticalHit);
         }
+        if (auto PC = EffectProps.GetTargetController<AAuraPlayerController>())
+        {
+            PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage, bBlockedHit, bCriticalHit);
+        }
     }
 }
 

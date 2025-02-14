@@ -45,6 +45,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     TObjectPtr<class UAnimMontage> HitReactMontage;
 
+    UPROPERTY(BlueprintReadOnly, Category = Combat)
+    bool bDead = false;
+
 public:
 
     AAuraCharacterBase();
@@ -62,8 +65,10 @@ public:
 
     //~ Begin of ICombatInterface interface
     virtual FVector GetCombatSocketLocation_Implementation() const override;
-    UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
-    void Die() override;
+    virtual UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
+    virtual void Die() override;
+    virtual bool IsDead_Implementation() const override;
+    virtual AActor* GetAvatar_Implementation() override;
     //~ End of ICombatInterface interface
 
 protected:

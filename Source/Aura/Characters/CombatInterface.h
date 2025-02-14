@@ -41,4 +41,10 @@ public:
     AActor* GetCombatTarget() const;
     
     virtual void Die() = 0;
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    bool IsDead() const;
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    AActor* GetAvatar();
 };
