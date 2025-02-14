@@ -125,3 +125,8 @@ void UAuraBlueprintFunctionLibrary::GetAllLivePlayersInRadius(const UObject* Wor
         }
     }
 }
+
+bool UAuraBlueprintFunctionLibrary::AreFriendly(const AActor* A, const AActor* B)
+{
+    return A->ActorHasTag("Player") == B->ActorHasTag("Player"); 
+}

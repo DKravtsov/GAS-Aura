@@ -46,4 +46,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta = (WorldContext = "WorldContextObject"))
     static void GetAllLivePlayersInRadius(const UObject* WorldContextObject, TArray<AActor*>& LivePlayers, const float Radius, const FVector& Origin, const TArray<AActor*>& IgnoreActors);
+
+    UFUNCTION(BlueprintPure, Category = "Aura|Combat")
+    static bool AreFriendly(const AActor* A, const AActor* B);
 };

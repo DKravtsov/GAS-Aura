@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 
 void UAuraGameplayAbility::CauseDamageToActor(AActor* TargetActor)
 {
@@ -19,9 +20,13 @@ void UAuraGameplayAbility::CauseDamageToActor(AActor* TargetActor)
 
 void UAuraGameplayAbility::CauseDamageToActors(const TArray<AActor*>& TargetActors)
 {
+	const AActor* Avatar = GetAvatarActorFromActorInfo();
 	for (AActor* TargetActor : TargetActors)
 	{
-		CauseDamageToActor(TargetActor);
+		if (!UAuraBlueprintFunctionLibrary::AreFriendly(Avatar, TargetActor))
+		{
+			CauseDamageToActor(TargetActor);
+		}
 	}
 }
 
