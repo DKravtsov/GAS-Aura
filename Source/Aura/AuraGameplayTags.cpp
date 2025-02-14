@@ -51,6 +51,12 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Fire, "Damage.Fire", "Fire damage type");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Lightning, "Damage.Lightning", "Lightning damage type");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Arcane, "Damage.Arcane", "Arcane damage type");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack, "Abilities.Attack", "Parent tag for all attacking abilities");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Melee, "Abilities.Attack.Melee", "Melee attack");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Ranged, "Abilities.Attack.Ranged", "Ranged attack");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Spell, "Abilities.Attack.Spell", "Magic spell cast");
+    
 }
 
 FGameplayTagContainer FGameplayTagHelper::RequestAllDamageTypeGameplayTags()

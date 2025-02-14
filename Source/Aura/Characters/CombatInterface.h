@@ -33,5 +33,11 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     class UAnimMontage* GetHitReactAnimMontage() const;
 
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void SetCombatTarget(AActor* TargetActor);
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    AActor* GetCombatTarget() const;
+    
     virtual void Die() = 0;
 };

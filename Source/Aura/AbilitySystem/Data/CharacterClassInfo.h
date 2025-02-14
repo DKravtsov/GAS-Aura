@@ -23,6 +23,9 @@ struct FCharacterClassDefaultInfo
 
     UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
     TSubclassOf<class UGameplayEffect> PrimaryAttributes;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
+    TArray<TSubclassOf<class UGameplayAbility>> Abilities;
 };
 
 /**
@@ -52,7 +55,7 @@ public:
 
 public:
 
-    FCharacterClassDefaultInfo GetClassDefaultInfo(EAuraCharacterClass CharacterClass);
+    const FCharacterClassDefaultInfo& GetClassDefaultInfo(EAuraCharacterClass CharacterClass);
 
     float GetDamageCalculationCoef(FName CurveName, int32 ApplyLevel) const;
 };

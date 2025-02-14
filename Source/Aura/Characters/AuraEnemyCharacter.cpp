@@ -159,6 +159,8 @@ void AAuraEnemyCharacter::GrantStartupAbilities()
         // (this works only on the server)
 
         StartupAbilities.Append(GM->CharacterClassInfo->Abilities);
+        const FCharacterClassDefaultInfo& Info = GM->CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
+        StartupAbilities.Append(Info.Abilities);
     }
 
     Super::GrantStartupAbilities();

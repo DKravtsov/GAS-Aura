@@ -32,11 +32,14 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
     int32 CharacterLevel = 1;
 
-    UPROPERTY(BlueprintReadOnly, Category = Combat)
+    UPROPERTY(BlueprintReadOnly, Category = Combat, Transient)
     bool bHitReacting = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     float DeadBodyLifeSpan = 8.f;
+
+    UPROPERTY(BlueprintReadWrite, Category = Combat)
+    TObjectPtr<AActor> CombatTarget;
 
     UPROPERTY(EditDefaultsOnly, Category = "AI")
     TObjectPtr<class UBehaviorTree> BehaviorTree;
@@ -54,8 +57,10 @@ public:
     //~ End of IInteractableInterface interface
 
     //~ Begin of ICombatInterface interface
-    int32 GetCharacterLevel() const override { return CharacterLevel; }
-    void Die() override;
+    virtual int32 GetCharacterLevel() const override { return CharacterLevel; }
+    virtual void SetCombatTarget_Implementation(AActor* TargetActor) override { CombatTarget = TargetActor; }
+    virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
+    virtual void Die() override;
     //~ End of ICombatInterface interface
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);
