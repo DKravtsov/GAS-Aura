@@ -9,6 +9,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 
 #define DEBUG_PROJECTILE 0
 
@@ -64,7 +65,7 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 {
     Super::NotifyActorBeginOverlap(OtherActor);
 
-    if (OtherActor == GetInstigator()) 
+    if (OtherActor == GetInstigator() || UAuraBlueprintFunctionLibrary::AreFriendly(OtherActor, GetInstigator())) 
     {
         return;
     }
