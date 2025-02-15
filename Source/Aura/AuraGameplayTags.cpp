@@ -56,6 +56,10 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Melee, "Abilities.Attack.Melee", "Melee attack");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Ranged, "Abilities.Attack.Ranged", "Ranged attack");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Spell, "Abilities.Attack.Spell", "Magic spell cast");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_Weapon, "CombatSocket.Weapon", "Get socket location from the equipped weapon");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_LeftHand, "CombatSocket.LeftHand", "get socket location from the character's mesh left hand");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_RightHand, "CombatSocket.RightHand", "get socket location from the character's mesh right hand");
     
 }
 

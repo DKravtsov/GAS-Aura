@@ -20,11 +20,12 @@ public:
     TSubclassOf<class AAuraProjectile> ProjectileClass;
 
     // The gameplay tag to extract correct socket from the character where the projectile will be spawned
-    // Note: It must bu the same tag that is used in AttackMontage array in EnemyCharacter
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    FGameplayTag MontageTag;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
+    FGameplayTag CombatSocketTag;
 
 public:
+
+    UAuraProjectileSpell();
 
     UFUNCTION(BlueprintCallable)
     void SpawnProjectile(const FVector& TargetLocation);

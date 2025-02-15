@@ -12,11 +12,14 @@ struct FTaggedMontage
 {
     GENERATED_BODY()
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Montage"))
+    FGameplayTag MontageTag;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
+    FGameplayTag SocketTag;
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<class UAnimMontage> Montage = nullptr;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Montage"))
-    FGameplayTag Tag;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<USoundBase> ImpactSound = nullptr;
@@ -41,8 +44,8 @@ public:
 
     virtual int32 GetCharacterLevel() const { return 0; }
 
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    FVector GetCombatSocketLocation(const FGameplayTag& MontageTag) const;
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, meta = (Categories = "CombatSocket"))
+    FVector GetCombatSocketLocation(FGameplayTag CombatSocketTag) const;
 
     // Set Target Location for anim montages with MotionWarping or similar
     UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
@@ -70,4 +73,7 @@ public:
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     class UNiagaraSystem* GetBloodEffect() const;
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    FTaggedMontage GetTaggedMontageByTag(FGameplayTag MontageTag);
 };

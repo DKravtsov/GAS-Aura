@@ -5,6 +5,7 @@
 #include "Characters/CombatInterface.h"
 #include "Projectile/AuraProjectile.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 
 void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -34,13 +35,18 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 }
 
+UAuraProjectileSpell::UAuraProjectileSpell()
+{
+    CombatSocketTag = AuraGameplayTags::CombatSocket_Weapon;
+}
+
 void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
 {
     const bool bIsServer = HasAuthority(&GetCurrentActivationInfoRef());
 
     if (bIsServer)
     {
-        FVector SpawnLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), MontageTag);
+        FVector SpawnLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), CombatSocketTag);
         FRotator Rotation = (TargetLocation - SpawnLocation).Rotation();
         Rotation.Pitch = 0.f;
 

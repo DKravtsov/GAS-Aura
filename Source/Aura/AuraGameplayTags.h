@@ -62,6 +62,10 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Ranged);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Spell);
 
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_Weapon);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_LeftHand);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_RightHand);
+
  
 }
 

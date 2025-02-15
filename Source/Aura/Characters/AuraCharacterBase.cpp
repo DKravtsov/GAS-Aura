@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura.h"
+#include "AuraGameplayTags.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -88,9 +89,21 @@ void AAuraCharacterBase::GrantStartupAbilities()
     GetAuraAbilitySystemComponent()->GrantStartupAbilities(StartupAbilities, GetCharacterLevel());
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) const
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(FGameplayTag CombatSocketTag) const
 {
-    return Weapon ? Weapon->GetSocketLocation(WeaponTipSocketName) : FVector::ZeroVector;
+    if (CombatSocketTag == AuraGameplayTags::CombatSocket_Weapon)
+    {
+        return Weapon ? Weapon->GetSocketLocation(WeaponTipSocketName) : FVector::ZeroVector;
+    }
+    if (CombatSocketTag == AuraGameplayTags::CombatSocket_LeftHand)
+    {
+        return GetMesh()->GetSocketLocation(LeftHandSocketName);
+    }
+    if (CombatSocketTag == AuraGameplayTags::CombatSocket_RightHand)
+    {
+        return GetMesh()->GetSocketLocation(RightHandSocketName);
+    }
+    return FVector::ZeroVector;
 }
 
 void AAuraCharacterBase::Die()

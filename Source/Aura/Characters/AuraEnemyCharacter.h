@@ -26,10 +26,10 @@ public:
 
 protected:
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     EAuraCharacterClass CharacterClass = EAuraCharacterClass::Warrior;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     int32 CharacterLevel = 1;
 
     UPROPERTY(BlueprintReadOnly, Category = Combat, Transient)
@@ -65,6 +65,7 @@ public:
     virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
     virtual void Die() override;
     virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() const override { return AttackMontages;}
+    virtual FTaggedMontage GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag) override;
     //~ End of ICombatInterface interface
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);

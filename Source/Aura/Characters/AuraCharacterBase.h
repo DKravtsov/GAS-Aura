@@ -14,42 +14,49 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
     GENERATED_BODY()
 
 protected:
-
-    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
-    TObjectPtr<class USkeletalMeshComponent> Weapon;
-
-    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
-    FName WeaponTipSocketName;
-
+    
     UPROPERTY()
     TObjectPtr<class UAbilitySystemComponent> AbilitySystemComponent;
 
     UPROPERTY()
     TObjectPtr<class UAttributeSet> AttributeSet;
 
-    UPROPERTY(EditAnywhere, Category = "DefaultAttributes")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class USkeletalMeshComponent> Weapon;
+
+    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
+    FName WeaponTipSocketName;
+
+    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
+    FName LeftHandSocketName;
+
+    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
+    FName RightHandSocketName;
+
+    UPROPERTY(EditAnywhere, Category = "Attributes")
     TSubclassOf<class UGameplayEffect> DefaultPrimaryAttributes;
 
-    UPROPERTY(EditAnywhere, Category = "DefaultAttributes")
+    UPROPERTY(EditAnywhere, Category = "Attributes")
     TSubclassOf<class UGameplayEffect> DefaultSecondaryAttributes;
 
-    UPROPERTY(EditAnywhere, Category = "DefaultAttributes")
+    UPROPERTY(EditAnywhere, Category = "Attributes")
     TSubclassOf<class UGameplayEffect> DefaultVitalAttributes;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Startup")
+    UPROPERTY(EditAnywhere, Category = "Attributes")
     TArray<TSubclassOf<class UGameplayEffect>> StartupGameplayEffects;
 
-    UPROPERTY(EditAnywhere, Category = "Startup")
+    UPROPERTY(EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     TObjectPtr<class UAnimMontage> HitReactMontage;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+    class UNiagaraSystem* BloodEffect;
+
     UPROPERTY(BlueprintReadOnly, Category = Combat)
     bool bDead = false;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
-    class UNiagaraSystem* BloodEffect;
 
 public:
 
@@ -67,7 +74,7 @@ public:
     void ApplyGameplayEffectToSelf(TSubclassOf<class UGameplayEffect> Effect, float EffectLevel = 1.f);
 
     //~ Begin of ICombatInterface interface
-    virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) const override;
+    virtual FVector GetCombatSocketLocation_Implementation(FGameplayTag CombatSocketTag) const override;
     virtual UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
     virtual void Die() override;
     virtual bool IsDead_Implementation() const override;
