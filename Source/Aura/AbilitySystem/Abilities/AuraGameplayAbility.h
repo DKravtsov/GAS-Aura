@@ -40,8 +40,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = Caombat)
     void CauseDamageToActor(AActor* TargetActor);
 
+    // Causes damage to the array of the actors, checking if they are not friendly.
+    // Returns true if at least one damage was applied
     UFUNCTION(BlueprintCallable, Category = Caombat)
-    void CauseDamageToActors(const TArray<AActor*>& TargetActors);
+    bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
 
 protected:
 

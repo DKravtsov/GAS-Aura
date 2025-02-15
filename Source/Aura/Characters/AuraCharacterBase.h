@@ -48,6 +48,9 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = Combat)
     bool bDead = false;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+    class UNiagaraSystem* BloodEffect;
+
 public:
 
     AAuraCharacterBase();
@@ -69,6 +72,7 @@ public:
     virtual void Die() override;
     virtual bool IsDead_Implementation() const override;
     virtual AActor* GetAvatar_Implementation() override;
+    virtual UNiagaraSystem* GetBloodEffect_Implementation() const override { return BloodEffect; }
     //~ End of ICombatInterface interface
 
 protected:
