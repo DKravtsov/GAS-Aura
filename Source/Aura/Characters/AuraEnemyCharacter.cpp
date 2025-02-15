@@ -89,6 +89,10 @@ void AAuraEnemyCharacter::BeginPlay()
 void AAuraEnemyCharacter::Die()
 {
     SetLifeSpan(DeadBodyLifeSpan);
+    if (IsValid(AuraAIController))
+    {
+        AuraAIController->GetBlackboardComponent()->SetValueAsBool("bDead", true);
+    }
     Super::Die();
 }
 
