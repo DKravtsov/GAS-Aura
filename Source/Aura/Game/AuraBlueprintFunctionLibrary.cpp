@@ -128,5 +128,8 @@ void UAuraBlueprintFunctionLibrary::GetAllLivePlayersInRadius(const UObject* Wor
 
 bool UAuraBlueprintFunctionLibrary::AreFriendly(const AActor* A, const AActor* B)
 {
-    return A->ActorHasTag("Player") == B->ActorHasTag("Player"); 
+    const FName PlayerTag = FName("Player");
+    const FName EnemyTag = FName("Enemy");
+    return (A->ActorHasTag(PlayerTag) && B->ActorHasTag(PlayerTag)) ||
+        (A->ActorHasTag(EnemyTag) && B->ActorHasTag(EnemyTag)); 
 }
