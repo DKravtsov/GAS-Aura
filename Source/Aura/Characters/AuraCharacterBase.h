@@ -60,6 +60,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     TObjectPtr<USoundBase> DeathSound;
 
+    int32 MinionCount = 0;
+    
 public:
 
     AAuraCharacterBase();
@@ -82,6 +84,8 @@ public:
     virtual bool IsDead_Implementation() const override;
     virtual AActor* GetAvatar_Implementation() override;
     virtual UNiagaraSystem* GetBloodEffect_Implementation() const override { return BloodEffect; }
+    virtual int32 GetMinionCount_Implementation() const override { return MinionCount; }
+    virtual APawn* SummonMinion_Implementation(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation) override;
     //~ End of ICombatInterface interface
 
 protected:
@@ -97,6 +101,9 @@ protected:
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
     void DissolveDeadBody();
+
+    virtual void AddedMinion(APawn* NewMinion) {}
+    virtual void RemovedMinion(APawn* Minion) {}
 
     // plays on both server and client
     UFUNCTION(BlueprintImplementableEvent)

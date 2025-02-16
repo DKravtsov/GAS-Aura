@@ -80,4 +80,10 @@ public:
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     FAttackInfo GetTaggedMontageByTag(FGameplayTag MontageTag);
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    int32 GetMinionCount() const;
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    APawn* SummonMinion(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation);
 };

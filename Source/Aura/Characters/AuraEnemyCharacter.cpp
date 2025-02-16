@@ -130,7 +130,16 @@ void AAuraEnemyCharacter::PossessedBy(AController* NewController)
 
         GrantStartupAbilities();
 
-        
+        if (BehaviorTree == nullptr)
+        {
+            UWorld* World = GetWorld();
+            AAuraGameModeBase* GM = World ? World->GetAuthGameMode<AAuraGameModeBase>() : nullptr;
+            if (GM != nullptr && GM->CharacterClassInfo != nullptr)
+            {
+                BehaviorTree = GM->CharacterClassInfo->GetClassDefaultInfo(CharacterClass).ClassBehaviorTree;
+            }
+        }
+       
         AuraAIController = Cast<AAuraAIController>(NewController);
 
         AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
@@ -181,4 +190,23 @@ void AAuraEnemyCharacter::GrantStartupAbilities()
     }
 
     Super::GrantStartupAbilities();
+}
+
+void AAuraEnemyCharacter::UpdateBlackboardMinionCount() const
+{
+    if (HasAuthority() && IsValid(AuraAIController))
+    {
+        check(AuraAIController == Controller);
+        AuraAIController->GetBlackboardComponent()->SetValueAsInt("MinionCount", MinionCount);
+    }
+}
+
+void AAuraEnemyCharacter::AddedMinion(APawn* NewMinion)
+{
+    UpdateBlackboardMinionCount();
+}
+
+void AAuraEnemyCharacter::RemovedMinion(APawn* Minion)
+{
+    UpdateBlackboardMinionCount();
 }

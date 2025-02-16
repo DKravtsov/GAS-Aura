@@ -56,17 +56,18 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Fire);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Lightning);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Arcane);
-
+    
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Melee);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Ranged);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Spell);
 
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Summon);
+
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_Weapon);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_LeftHand);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_RightHand);
 
- 
 }
 
 struct FGameplayTagHelper

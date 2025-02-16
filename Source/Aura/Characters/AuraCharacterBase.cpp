@@ -7,6 +7,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura.h"
 #include "AuraGameplayTags.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -146,6 +147,30 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 
     DissolveDeadBody();
 
+    if (HasAuthority())
+    {
+        if (const auto AuraCharacter = GetInstigator<AAuraCharacterBase>(); IsValid(AuraCharacter) && !AuraCharacter->bDead)
+        {
+            --AuraCharacter->MinionCount;
+            AuraCharacter->RemovedMinion(this);
+        }
+    }
+
     OnDeath();
+
+    DetachFromControllerPendingDestroy();
 }
 
+APawn* AAuraCharacterBase::SummonMinion_Implementation(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation)
+{
+    check(HasAuthority());
+    
+    if (APawn* NewMinion = UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(), MinionClass, nullptr, Location, Rotation, true))
+    {
+        NewMinion->SetInstigator(this);
+        ++MinionCount;
+        AddedMinion(NewMinion);
+        return NewMinion;
+    }
+    return nullptr;
+}

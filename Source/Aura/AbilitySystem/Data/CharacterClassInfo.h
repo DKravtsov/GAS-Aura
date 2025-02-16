@@ -26,6 +26,9 @@ struct FCharacterClassDefaultInfo
 
     UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
     TArray<TSubclassOf<class UGameplayAbility>> Abilities;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
+    TObjectPtr<class UBehaviorTree> ClassBehaviorTree;
 };
 
 /**

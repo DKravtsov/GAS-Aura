@@ -55,8 +55,8 @@ public:
     AAuraEnemyCharacter();
 
     //~ Begin of IInteractableInterface interface
-    void HighlightActor() override;
-    void UnhighlightActor() override;
+    virtual void HighlightActor() override;
+    virtual void UnhighlightActor() override;
     //~ End of IInteractableInterface interface
 
     //~ Begin of ICombatInterface interface
@@ -72,16 +72,21 @@ public:
 
 protected:
 
-    void BeginPlay() override;
+    virtual void BeginPlay() override;
 
     //~ Begin APawn Interface
-    void PossessedBy(AController* NewController) override;
+    virtual void PossessedBy(AController* NewController) override;
     //~End APawn Interface
 
     // Must be implemented if enemy wants to display his health on the screen. This will be called during BeginPlay()
     UFUNCTION(BlueprintImplementableEvent)
     class UAuraUserWidget* GetHealthOverlayWidget() const;
 
-    void InitializeDefaultAttributes() override;
-    void GrantStartupAbilities() override;
+    virtual void InitializeDefaultAttributes() override;
+    virtual void GrantStartupAbilities() override;
+
+    void UpdateBlackboardMinionCount() const;
+
+    virtual void AddedMinion(APawn* NewMinion) override;
+    virtual void RemovedMinion(APawn* Minion) override;
 };
