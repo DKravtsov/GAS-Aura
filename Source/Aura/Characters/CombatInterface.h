@@ -8,7 +8,7 @@
 #include "CombatInterface.generated.h"
 
 USTRUCT(BlueprintType)
-struct FTaggedMontage
+struct FAttackInfo
 {
     GENERATED_BODY()
 
@@ -17,6 +17,10 @@ struct FTaggedMontage
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<class UAnimMontage> Montage = nullptr;
+
+    // used mostly for melee attacks
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    float AttackRadius = 50.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
     FGameplayTag SocketTag;
@@ -69,11 +73,11 @@ public:
     AActor* GetAvatar();
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    TArray<FTaggedMontage> GetAttackMontages() const;
+    TArray<FAttackInfo> GetAttackMontages() const;
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     class UNiagaraSystem* GetBloodEffect() const;
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    FTaggedMontage GetTaggedMontageByTag(FGameplayTag MontageTag);
+    FAttackInfo GetTaggedMontageByTag(FGameplayTag MontageTag);
 };

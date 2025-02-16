@@ -39,7 +39,7 @@ protected:
     float DeadBodyLifeSpan = 8.f;
 
     UPROPERTY(EditDefaultsOnly, Category = Combat, meta = (TitleProperty = "MontageTag"))
-    TArray<FTaggedMontage> AttackMontages;
+    TArray<FAttackInfo> AttackMontages;
 
     UPROPERTY(BlueprintReadWrite, Category = Combat, Transient)
     TObjectPtr<AActor> CombatTarget;
@@ -64,8 +64,8 @@ public:
     virtual void SetCombatTarget_Implementation(AActor* TargetActor) override { CombatTarget = TargetActor; }
     virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
     virtual void Die() override;
-    virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() const override { return AttackMontages;}
-    virtual FTaggedMontage GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag) override;
+    virtual TArray<FAttackInfo> GetAttackMontages_Implementation() const override { return AttackMontages;}
+    virtual FAttackInfo GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag) override;
     //~ End of ICombatInterface interface
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);

@@ -96,7 +96,7 @@ void AAuraEnemyCharacter::Die()
     Super::Die();
 }
 
-FTaggedMontage AAuraEnemyCharacter::GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag)
+FAttackInfo AAuraEnemyCharacter::GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag)
 {
     for (const auto& TaggedMontage : AttackMontages)
     {
@@ -105,7 +105,7 @@ FTaggedMontage AAuraEnemyCharacter::GetTaggedMontageByTag_Implementation(FGamepl
             return TaggedMontage;
         }
     }
-    return FTaggedMontage();
+    return FAttackInfo();
 }
 
 void AAuraEnemyCharacter::HitReactTagChanged(const FGameplayTag Tag, int32 Count)

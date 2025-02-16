@@ -94,7 +94,7 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(FGameplayTag 
 {
     if (CombatSocketTag == AuraGameplayTags::CombatSocket_Weapon)
     {
-        return Weapon ? Weapon->GetSocketLocation(WeaponTipSocketName) : FVector::ZeroVector;
+        return Weapon ? Weapon->GetSocketLocation(WeaponTipSocketName) : GetMesh()->GetSocketLocation(WeaponTipSocketName);
     }
     if (CombatSocketTag == AuraGameplayTags::CombatSocket_LeftHand)
     {
@@ -104,7 +104,7 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(FGameplayTag 
     {
         return GetMesh()->GetSocketLocation(RightHandSocketName);
     }
-    return FVector::ZeroVector;
+    return GetActorLocation();
 }
 
 void AAuraCharacterBase::Die()
