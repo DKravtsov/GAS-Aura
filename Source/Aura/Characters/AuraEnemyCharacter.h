@@ -38,7 +38,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     float DeadBodyLifeSpan = 8.f;
 
-    UPROPERTY(EditDefaultsOnly, Category = Combat, meta = (TitleProperty = "Tag"))
+    UPROPERTY(EditDefaultsOnly, Category = Combat, meta = (TitleProperty = "MontageTag"))
     TArray<FTaggedMontage> AttackMontages;
 
     UPROPERTY(BlueprintReadWrite, Category = Combat, Transient)

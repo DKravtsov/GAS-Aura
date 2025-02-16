@@ -15,14 +15,14 @@ struct FTaggedMontage
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Montage"))
     FGameplayTag MontageTag;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
-    FGameplayTag SocketTag;
-
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<class UAnimMontage> Montage = nullptr;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TObjectPtr<USoundBase> ImpactSound = nullptr;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
+    FGameplayTag SocketTag;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "GameplayCue"))
+    FGameplayTag ImpactGameplayCueTag;
 };
 
 
