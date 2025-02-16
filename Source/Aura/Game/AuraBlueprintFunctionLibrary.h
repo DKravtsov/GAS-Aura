@@ -43,7 +43,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
     static void SetIsCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bCriticalHit);
 
-
+    UFUNCTION(BlueprintPure, Category = "Actor")
+    static APawn* FindNearestAlivePawn(FVector Origin, const TArray<APawn*>& ActorsToCheck, float& Distance);
+    
     UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta = (WorldContext = "WorldContextObject"))
     static void GetAllLivePlayersInRadius(const UObject* WorldContextObject, TArray<AActor*>& LivePlayers, const float Radius, const FVector& Origin, const TArray<AActor*>& IgnoreActors);
 

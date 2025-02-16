@@ -98,8 +98,37 @@ void UAuraBlueprintFunctionLibrary::SetIsCriticalHit(FGameplayEffectContextHandl
     }
 }
 
+APawn* UAuraBlueprintFunctionLibrary::FindNearestAlivePawn(FVector Origin, const TArray<APawn*>& ActorsToCheck, float& Distance)
+{
+    APawn* NearestActor = nullptr;
+    float DistanceFromNearestActor = Distance = TNumericLimits<float>::Max();
+
+    for (APawn* ActorToCheck : ActorsToCheck)
+    {
+        if (ActorToCheck)
+        {
+            const float DistanceFromActorToCheck = (Origin - ActorToCheck->GetActorLocation()).SizeSquared();
+            if (DistanceFromActorToCheck < DistanceFromNearestActor)
+            {
+                if (ActorToCheck->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsDead(ActorToCheck))
+                {
+                    NearestActor = ActorToCheck;
+                    DistanceFromNearestActor = DistanceFromActorToCheck;
+                }
+            }
+        }
+    }
+
+    if (NearestActor)
+    {
+        Distance = FMath::Sqrt(DistanceFromNearestActor);
+    }
+
+    return NearestActor;
+}
+
 void UAuraBlueprintFunctionLibrary::GetAllLivePlayersInRadius(const UObject* WorldContextObject,
-      TArray<AActor*>& LivePlayers, const float Radius, const FVector& Origin, const TArray<AActor*>& IgnoreActors)
+                                                              TArray<AActor*>& LivePlayers, const float Radius, const FVector& Origin, const TArray<AActor*>& IgnoreActors)
 {
     FCollisionQueryParams SphereParams;
 
