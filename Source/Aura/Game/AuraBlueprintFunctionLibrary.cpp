@@ -4,6 +4,8 @@
 #include "Game/AuraBlueprintFunctionLibrary.h"
 
 #include "AbilitySystem/AuraAbilitySystemTypes.h"
+#include "Algo/Accumulate.h"
+#include "Algo/ForEach.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/HUD/AuraHUD.h"
@@ -132,4 +134,33 @@ bool UAuraBlueprintFunctionLibrary::AreFriendly(const AActor* A, const AActor* B
     const FName EnemyTag = FName("Enemy");
     return (A->ActorHasTag(PlayerTag) && B->ActorHasTag(PlayerTag)) ||
         (A->ActorHasTag(EnemyTag) && B->ActorHasTag(EnemyTag)); 
+}
+
+int32 UAuraBlueprintFunctionLibrary::RandomIntWithWeights(TArray<float> Weights)
+{
+    int32 const NumElements = Weights.Num();
+    if (NumElements <= 0)
+    {
+        return INDEX_NONE;
+    }
+    if (NumElements == 1)
+    {
+        return 0;/*first index*/
+    }
+    const float Sum = Algo::Accumulate(Weights, 0.f);
+    if (Sum <= 0.f)
+    {
+        return 0;/*first index*/
+    }
+    Algo::ForEach(Weights, [Sum](float& X) { X /= Sum; });
+
+    float R = FMath::FRand();
+    int32 Index = 0;
+    while (R > Weights[Index])
+    {
+        R -= Weights[Index];
+        ++Index;
+    }
+    check(Index < NumElements);
+    return Index;
 }
