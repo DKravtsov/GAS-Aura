@@ -57,6 +57,8 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = Combat)
     bool bDead = false;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+    TObjectPtr<USoundBase> DeathSound;
 
 public:
 
@@ -95,5 +97,8 @@ protected:
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
     void DissolveDeadBody();
-    
+
+    // plays on both server and client
+    UFUNCTION(BlueprintImplementableEvent)
+    void OnDeath();
 };
