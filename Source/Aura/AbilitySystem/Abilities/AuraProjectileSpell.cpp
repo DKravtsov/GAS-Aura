@@ -37,16 +37,15 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 UAuraProjectileSpell::UAuraProjectileSpell()
 {
-    CombatSocketTag = AuraGameplayTags::CombatSocket_Weapon;
+    DefaultSocketTag = AuraGameplayTags::CombatSocket_Weapon;
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation)
+void UAuraProjectileSpell::SpawnProjectile(const FVector& TargetLocation, const FGameplayTag& SocketTag)
 {
-    const bool bIsServer = HasAuthority(&GetCurrentActivationInfoRef());
-
-    if (bIsServer)
+    if (HasAuthority(&GetCurrentActivationInfoRef()))
     {
-        FVector SpawnLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), CombatSocketTag);
+        const FVector SpawnLocation =
+            ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), SocketTag.IsValid() ? SocketTag : DefaultSocketTag);
         FRotator Rotation = (TargetLocation - SpawnLocation).Rotation();
         Rotation.Pitch = 0.f;
 

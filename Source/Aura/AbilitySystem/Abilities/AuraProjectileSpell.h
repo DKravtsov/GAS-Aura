@@ -21,14 +21,14 @@ public:
 
     // The gameplay tag to extract correct socket from the character where the projectile will be spawned
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
-    FGameplayTag CombatSocketTag;
+    FGameplayTag DefaultSocketTag;
 
 public:
 
     UAuraProjectileSpell();
 
     UFUNCTION(BlueprintCallable)
-    void SpawnProjectile(const FVector& TargetLocation);
+    void SpawnProjectile(const FVector& TargetLocation, const FGameplayTag& SocketTag);
 
 protected:
 
