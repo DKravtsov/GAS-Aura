@@ -6,6 +6,7 @@
 #include "Interaction/InteractableInterface.h"
 #include "Player/Input/AuraInputComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Aura.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
 #include "AuraGameplayTags.h"
@@ -127,7 +128,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputValue)
 
 void AAuraPlayerController::TraceUnderCursor()
 {
-    if (!GetHitResultUnderCursor(ECC_Visibility, false, CursorHit))
+    if (!GetHitResultUnderCursor(ECC_MouseTrace, false, CursorHit))
     {
         return;
     }

@@ -8,3 +8,6 @@
 constexpr int32 CUSTOM_DEPTH_STENCIL_RED = 250;
 
 const FName CollisionProfile_Projectile = FName("Projectile");
+
+#define ECC_Projectile ECC_GameTraceChannel1
+#define ECC_MouseTrace ECC_GameTraceChannel2
