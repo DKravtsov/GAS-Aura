@@ -10,6 +10,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
 #include "AuraGameplayTags.h"
+#include "CameraOcclusionComponent.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "UI/Components/DamageTextComponent.h"
@@ -20,6 +21,9 @@ AAuraPlayerController::AAuraPlayerController()
     bReplicates = true;
 
     PathSpline = CreateDefaultSubobject<USplineComponent>("Spline");
+
+    CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>("CameraOcclusionAwarenessComponent");
+    CameraOcclusionComponent->SetAutoActivate(true);
 }
 
 void AAuraPlayerController::Tick(float DeltaTime)

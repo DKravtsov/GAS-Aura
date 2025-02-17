@@ -38,6 +38,9 @@ private:
     UPROPERTY()
     mutable TObjectPtr<class UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    TObjectPtr<class UCameraOcclusionComponent> CameraOcclusionComponent;
+
     FVector CachedDestination = {};
     float FollowTime = 0.f;
     bool bAutoRuning = false;
