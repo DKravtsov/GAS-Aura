@@ -7,6 +7,13 @@
 #include "GameplayEffectTypes.h"
 #include "AuraProjectile.generated.h"
 
+UENUM()
+enum class EProjectileEffectApplyingPolicy : uint8
+{
+    ApplyOnHit,
+    ApplyOnOverlapping,
+};
+
 UCLASS()
 class AURA_API AAuraProjectile : public AActor
 {
@@ -15,14 +22,17 @@ class AURA_API AAuraProjectile : public AActor
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     TObjectPtr<class USphereComponent> SphereComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UProjectileMovementComponent> ProjectileMovement; 
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditDefaultsOnly, Category = "Projectile")
     TObjectPtr<class UNiagaraSystem> ImpactFX;
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditDefaultsOnly, Category = "Projectile")
     TObjectPtr<class USoundBase> ImpactSound;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+    EProjectileEffectApplyingPolicy EffectApplyingPolicy = EProjectileEffectApplyingPolicy::ApplyOnHit;
 
 public:
 
@@ -42,12 +52,15 @@ public:
 
     //~ Begin of AActor interface
 
-    void Destroyed() override;
+    virtual void Destroyed() override;
+    bool ProcessColliding(AActor* OtherActor, const FHitResult* HitResult = nullptr);
 
-    void NotifyActorBeginOverlap(AActor* OtherActor) override;
-    void NotifyActorEndOverlap(AActor* OtherActor) override;
+    virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+    virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
+
+    virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 protected:
-    void BeginPlay() override;
+    virtual void BeginPlay() override;
     //~ End of AActor interface
 
     void PlayEffects();

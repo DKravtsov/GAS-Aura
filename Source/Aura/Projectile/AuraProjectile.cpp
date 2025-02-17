@@ -24,6 +24,8 @@ AAuraProjectile::AAuraProjectile()
 
     SphereComponent = CreateDefaultSubobject<USphereComponent>("Sphere");
     SetRootComponent(SphereComponent);
+
+    // #todo: make different collision profiles for overlapping and blocking policies
     SphereComponent->SetCollisionProfileName(CollisionProfile_Projectile);
 
     ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovement");
@@ -61,13 +63,11 @@ void AAuraProjectile::Destroyed()
     Super::Destroyed();
 }
 
-void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
+bool AAuraProjectile::ProcessColliding(AActor* OtherActor, const FHitResult* HitResult)
 {
-    Super::NotifyActorBeginOverlap(OtherActor);
-
     if (OtherActor == GetInstigator() || UAuraBlueprintFunctionLibrary::AreFriendly(OtherActor, GetInstigator())) 
     {
-        return;
+        return false;
     }
 
 #if DEBUG_PROJECTILE
@@ -82,10 +82,25 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
     {
         if (auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
         {
+            if (HitResult)
+            {
+                DamageEffectSpecHandle.Data->GetContext().AddHitResult(*HitResult);
+            }
             TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
         }
 
         SetLifeSpan(0.01);
+    }
+    return true;
+}
+
+void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+    Super::NotifyActorBeginOverlap(OtherActor);
+
+    if (!bHit && EffectApplyingPolicy == EProjectileEffectApplyingPolicy::ApplyOnOverlapping)
+    {
+        ProcessColliding(OtherActor);
     }
 
 }
@@ -104,6 +119,17 @@ void AAuraProjectile::PlayEffects()
 void AAuraProjectile::NotifyActorEndOverlap(AActor* OtherActor)
 {
     Super::NotifyActorEndOverlap(OtherActor);
+}
+
+void AAuraProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp,
+    bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+    Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+
+    if (EffectApplyingPolicy == EProjectileEffectApplyingPolicy::ApplyOnHit && !bHit)
+    {
+        ProcessColliding(Other, &Hit);
+    }
 }
 
 
