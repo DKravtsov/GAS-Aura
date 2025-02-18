@@ -28,7 +28,7 @@ private:
 
 public:
 
-    UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (DisplayName = "TargetDataUnderCursor", HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = true))
+    UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (DisplayName = "TargetDataUnderCursor", HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = true, AdvancedDisplay = "1"))
     static UAbilityTask_TargetDataUnderCursor* CreateTargetDataUnderCursorProxy(UGameplayAbility* OwningAbility,
         ECollisionChannel TraceChannel = ECC_Visibility, bool bTraceComplex = false);
 

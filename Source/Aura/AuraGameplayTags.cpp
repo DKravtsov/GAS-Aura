@@ -64,6 +64,8 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_Weapon, "CombatSocket.Weapon", "Get socket location from the equipped weapon");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_LeftHand, "CombatSocket.LeftHand", "get socket location from the character's mesh left hand");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_RightHand, "CombatSocket.RightHand", "get socket location from the character's mesh right hand");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cooldown, "Cooldown", "Parent tag for all cooldown tags");
     
 }
 
