@@ -26,6 +26,11 @@ void UCameraOcclusionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitPawn();
+}
+
+void UCameraOcclusionComponent::InitPawn()
+{
 	OwningPawn = GetOwner<APawn>();
 	if (!IsValid(OwningPawn))
 	{
@@ -44,16 +49,21 @@ void UCameraOcclusionComponent::BeginPlay()
 
 void UCameraOcclusionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT;
+	
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (!IsActive())
 		return;
-
-	if (CameraBoom->bDoCollisionTest)
+	
+	if (CameraBoom != nullptr && CameraBoom->bDoCollisionTest)
 	{
 		ShowAllMeshes();
 		return;
 	}
+
+	check(CameraComponent.IsValid());
+	check(PawnCapsule.IsValid());
 
 	FVector Start = CameraComponent->GetComponentLocation();
 	FVector End = OwningPawn->GetActorLocation();
@@ -103,6 +113,21 @@ void UCameraOcclusionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		ShowAllMeshes();
 	}
 	
+}
+
+void UCameraOcclusionComponent::Activate(bool bReset)
+{
+	Super::Activate(bReset);
+
+	if (IsActive())
+	{
+		InitPawn();
+
+		if (!IsValid(OwningPawn) || !CameraComponent.IsValid() || !PawnCapsule.IsValid())
+		{
+			Deactivate();
+		}
+	}
 }
 
 void UCameraOcclusionComponent::HideMesh(UStaticMeshComponent* StaticMesh)

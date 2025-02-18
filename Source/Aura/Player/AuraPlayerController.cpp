@@ -23,7 +23,8 @@ AAuraPlayerController::AAuraPlayerController()
     PathSpline = CreateDefaultSubobject<USplineComponent>("Spline");
 
     CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>("CameraOcclusionAwarenessComponent");
-    CameraOcclusionComponent->SetAutoActivate(true);
+    CameraOcclusionComponent->SetAutoActivate(false);
+    CameraOcclusionComponent->SetIsReplicated(true);
 }
 
 void AAuraPlayerController::Tick(float DeltaTime)
@@ -254,4 +255,24 @@ void AAuraPlayerController::MakePathSpline(const TArray<FVector>& PathPoints)
         PathSpline->AddSplinePoint(P, ESplineCoordinateSpace::World, false);
     }
     PathSpline->UpdateSpline();
+}
+
+void AAuraPlayerController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+
+    if (CameraOcclusionComponent)
+    {
+        CameraOcclusionComponent->Activate();
+    }
+}
+
+void AAuraPlayerController::OnUnPossess()
+{
+    Super::OnUnPossess();
+
+    if (CameraOcclusionComponent)
+    {
+        CameraOcclusionComponent->Deactivate();
+    }
 }

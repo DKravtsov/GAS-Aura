@@ -63,7 +63,7 @@ public:
 
     AAuraPlayerController();
 
-    void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
     void AutoRun();
 
@@ -80,9 +80,12 @@ public:
 
 protected:
 
-    void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-    void SetupInputComponent() override;
+    virtual void SetupInputComponent() override;
+
+    virtual void OnPossess(APawn* InPawn) override;
+    virtual void OnUnPossess() override;
 
 private:
 

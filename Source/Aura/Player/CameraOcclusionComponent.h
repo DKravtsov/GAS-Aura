@@ -59,6 +59,8 @@ public:
 	UCameraOcclusionComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual void Activate(bool bReset = false) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -66,4 +68,6 @@ protected:
 	void ShowMesh(UStaticMeshComponent* StaticMesh, FOccludedComponentInfo& Info);
 
 	void ShowAllMeshes();
+
+	void InitPawn();
 };
