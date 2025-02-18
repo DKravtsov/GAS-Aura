@@ -35,6 +35,7 @@ namespace AuraGameplayTags
 
     /**  Input Tags **/
 
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_PrimaryAction);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_SecondaryAction);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action1);
@@ -57,6 +58,7 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Lightning);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Arcane);
     
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Melee);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Ranged);

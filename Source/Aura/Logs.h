@@ -27,6 +27,9 @@ DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);
 #define LOG_FUNCTIONCALL_MSG(format, ...) \
     UE_LOG(LogMyGame, Warning, TEXT("--> %s: %s"), FUNC_NAME, *FString::Printf(format, ##__VA_ARGS__))
 
+#define LOG_ERROR(format, ...) \
+    UE_LOG(LogMyGame, Error, TEXT("--> %s: %s"), FUNC_NAME, *FString::Printf(format, ##__VA_ARGS__))
+
 #define LOG_FUNCTIONCALL_A \
     UE_LOG(LogMyGame, Warning, TEXT("[%s] --> %s"), *GetName(), FUNC_NAME)
 

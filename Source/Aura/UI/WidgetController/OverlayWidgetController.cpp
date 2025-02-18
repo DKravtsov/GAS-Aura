@@ -4,6 +4,7 @@
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/Data/AbilityInfoDataAsset.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -13,6 +14,11 @@ void UOverlayWidgetController::BroadcastInitialValues()
     OnAttributeChanged.Broadcast(AuraAttributeSet->GetMaxHealthAttribute(), AuraAttributeSet->GetMaxHealth());
     OnAttributeChanged.Broadcast(AuraAttributeSet->GetManaAttribute(), AuraAttributeSet->GetMana());
     OnAttributeChanged.Broadcast(AuraAttributeSet->GetMaxManaAttribute(), AuraAttributeSet->GetMaxMana());
+
+    if (bForceInitializeStartupAbilities)
+    {
+        InitializedStartupAbilities();
+    }
 }
 
 void UOverlayWidgetController::BindCallbacks()
@@ -31,6 +37,14 @@ void UOverlayWidgetController::BindCallbacks()
 
     auto AuraAbilitySystemComponent = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
     AuraAbilitySystemComponent->OnEffectApplied.AddUObject(this, &UOverlayWidgetController::BroadcastMessagesByTags);
+    if (AuraAbilitySystemComponent->AreStartupAbilitiesGiven())
+    {
+        bForceInitializeStartupAbilities = true;
+    }
+    else
+    {
+        AuraAbilitySystemComponent->OnAbilitiesGiven.AddUObject(this, &UOverlayWidgetController::InitializedStartupAbilities);
+    }
 }
 
 void UOverlayWidgetController::AttributeChanged(const FOnAttributeChangeData& Data)
@@ -53,4 +67,21 @@ void UOverlayWidgetController::BroadcastMessagesByTags(const FGameplayTagContain
             OnReceiveUIMessage.Broadcast(*Row);
         }
     }
+}
+
+void UOverlayWidgetController::InitializedStartupAbilities()
+{
+    auto AuraAbilitySystemComponent = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+
+    if (!AuraAbilitySystemComponent->AreStartupAbilitiesGiven())
+    {
+        return;
+    }
+
+    AuraAbilitySystemComponent->ForEachAbility(FForEachAbilityDelegate::CreateLambda([this](const FGameplayAbilitySpec& AbilitySpec)
+        {
+            auto Info = AbilityInfo->FindAbilityInfoByTag(UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec), true);
+            Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
+            OnReceivedAbilityInfo.Broadcast(Info);
+        }));
 }

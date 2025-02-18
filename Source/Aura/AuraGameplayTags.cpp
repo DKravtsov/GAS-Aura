@@ -33,6 +33,7 @@ namespace AuraGameplayTags
 
     /**  Input Tags **/
 
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag, "InputTag", "Parent tag for all input tags");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_PrimaryAction, "InputTag.PrimaryAction", "LMB");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_SecondaryAction, "InputTag.SecondaryAction", "RMB");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action1, "InputTag.Action1", "1");
@@ -52,6 +53,7 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Lightning, "Damage.Lightning", "Lightning damage type");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Arcane, "Damage.Arcane", "Arcane damage type");
 
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities, "Abilities", "Parent tag for all gameplay abilities");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack, "Abilities.Attack", "Parent tag for all attacking abilities");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Melee, "Abilities.Attack.Melee", "Melee attack");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Ranged, "Abilities.Attack.Ranged", "Ranged attack");

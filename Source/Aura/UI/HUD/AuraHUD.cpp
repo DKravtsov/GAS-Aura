@@ -49,11 +49,10 @@ void AAuraHUD::InitOverlay()
         return;
     }
 
-    auto WidgetController = GetOverlayWidgetController();
-
     OverlayWidget = CreateWidget<UAuraUserWidget>(GetWorld(), OverlayWidgetClass);
+    OverlayWidget->AddToViewport();
+    auto WidgetController = GetOverlayWidgetController();
     OverlayWidget->SetWidgetController(WidgetController);
     WidgetController->BroadcastInitialValues();
-    OverlayWidget->AddToViewport();
 }
 
