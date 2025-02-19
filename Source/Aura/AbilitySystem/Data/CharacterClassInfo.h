@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ScalableFloat.h"
 #include "Engine/DataAsset.h"
 #include "CharacterClassInfo.generated.h"
 
 UENUM(BlueprintType)
 enum class EAuraCharacterClass : uint8
 {
+    Undefined,
     Warrior,
     Ranger,
     Elementalist,
@@ -29,6 +31,9 @@ struct FCharacterClassDefaultInfo
 
     UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
     TObjectPtr<class UBehaviorTree> ClassBehaviorTree;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
+    FScalableFloat RewardXP;
 };
 
 /**

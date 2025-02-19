@@ -31,6 +31,10 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance_Lightning, "Attributes.Resistance.Lightning", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Resistance_Arcane, "Attributes.Resistance.Arcane", "");
 
+    /**  Secondary Attribute Tags **/
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attributes_Meta_IncomingXP, "Attributes.Meta.IncomingXP", "");
+
     /**  Input Tags **/
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag, "InputTag", "Parent tag for all input tags");
@@ -42,8 +46,6 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action4, "InputTag.Action4", "4");
 
     /**  Combat Tags **/
-
-    UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_BaseDamage, "SetByCaller.BaseDamage", "");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Effects_HitReact, "Effects.HitReact", "");
 

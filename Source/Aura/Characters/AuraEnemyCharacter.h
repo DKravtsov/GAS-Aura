@@ -61,11 +61,13 @@ public:
 
     //~ Begin of ICombatInterface interface
     virtual int32 GetCharacterLevel() const override { return CharacterLevel; }
+    virtual EAuraCharacterClass GetCharacterClass() const override;
     virtual void SetCombatTarget_Implementation(AActor* TargetActor) override { CombatTarget = TargetActor; }
     virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
     virtual void Die() override;
     virtual TArray<FAttackInfo> GetAttackMontages_Implementation() const override { return AttackMontages;}
     virtual FAttackInfo GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag) override;
+    virtual int32 GetRewardXP_Implementation() const override;
     //~ End of ICombatInterface interface
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);

@@ -31,6 +31,7 @@ public:
 
     //~ Begin of ICombatInterface interface
     virtual int32 GetCharacterLevel() const override;
+    virtual void AddXP_Implementation(int32 Amount) override;
     //~ End of ICombatInterface interface
 
 private:

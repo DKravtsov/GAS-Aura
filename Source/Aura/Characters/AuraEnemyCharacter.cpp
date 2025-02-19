@@ -27,6 +27,8 @@ AAuraEnemyCharacter::AAuraEnemyCharacter()
     bUseControllerRotationRoll = false;
 
     GetCharacterMovement()->bUseControllerDesiredRotation = true;
+
+    RewardXP = -1;
 }
 
 void AAuraEnemyCharacter::HighlightActor()
@@ -84,6 +86,16 @@ void AAuraEnemyCharacter::BeginPlay()
         AbilitySystemComponent->RegisterGameplayTagEvent(AuraGameplayTags::Effects_HitReact, EGameplayTagEventType::NewOrRemoved)
             .AddUObject(this, &AAuraEnemyCharacter::HitReactTagChanged);
     }
+}
+
+EAuraCharacterClass AAuraEnemyCharacter::GetCharacterClass() const
+{
+    return CharacterClass;
+}
+
+int32 AAuraEnemyCharacter::GetRewardXP_Implementation() const
+{
+    return RewardXP.GetValueAtLevel(GetCharacterLevel());
 }
 
 void AAuraEnemyCharacter::Die()
@@ -164,6 +176,11 @@ void AAuraEnemyCharacter::InitializeDefaultAttributes()
         DefaultPrimaryAttributes = DefaultPrimaryAttributes? DefaultPrimaryAttributes : DefaultInfo.PrimaryAttributes;
         DefaultSecondaryAttributes = DefaultSecondaryAttributes ? DefaultSecondaryAttributes : GM->CharacterClassInfo->SecondaryAttributes;
         DefaultVitalAttributes = DefaultVitalAttributes ? DefaultVitalAttributes : GM->CharacterClassInfo->VitalAttributes;
+
+        if (RewardXP.IsStatic() && RewardXP.Value < 0)
+        {
+            RewardXP = DefaultInfo.RewardXP;
+        }
     }
     else
     {

@@ -8,6 +8,7 @@
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "UI/HUD/AuraHUD.h"
 
 AAuraPlayerCharacter::AAuraPlayerCharacter()
@@ -87,6 +88,12 @@ void AAuraPlayerCharacter::OnRep_PlayerState()
 
 int32 AAuraPlayerCharacter::GetCharacterLevel() const
 {
-    auto PS = GetPlayerStateChecked<AAuraPlayerState>();
+    const auto PS = GetPlayerStateChecked<AAuraPlayerState>();
     return PS->GetPlayerLevel();
+}
+
+void AAuraPlayerCharacter::AddXP_Implementation(int32 Amount)
+{
+    auto PS = GetPlayerStateChecked<AAuraPlayerState>();
+    PS->AddXP(Amount);
 }

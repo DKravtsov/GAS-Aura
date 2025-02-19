@@ -33,6 +33,11 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance_Lightning);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Resistance_Arcane);
 
+
+    /**  Meta Attribute Tags **/
+
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attributes_Meta_IncomingXP);
+
     /**  Input Tags **/
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag);
@@ -45,7 +50,7 @@ namespace AuraGameplayTags
 
     /**  Combat Tags **/
 
-    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_BaseDamage);
+    //AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_BaseDamage);
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effects_HitReact);
 

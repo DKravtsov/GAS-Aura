@@ -13,6 +13,14 @@ enum class EAbilityDamagePolicy : uint8
     CausesDamage,
 };
 
+UENUM(BlueprintType)
+enum class EAuraAbilityActivationPolicy : uint8
+{
+    OnTriggered,
+    OnGiven,
+};
+
+
 /**
  *
  */
@@ -23,10 +31,13 @@ class AURA_API UAuraGameplayAbility : public UGameplayAbility
 
 public:
 
-    UPROPERTY(EditDefaultsOnly, Category = Input, meta = (Categories = "InputTag"))
+    UPROPERTY(EditDefaultsOnly, Category = AuraAbility, meta = (Categories = "InputTag"))
     FGameplayTag StartupInputTag;
 
-    UPROPERTY(EditDefaultsOnly, Category = Damage)
+    UPROPERTY(EditDefaultsOnly, Category = AuraAbility)
+    EAuraAbilityActivationPolicy ActivationPolicy = EAuraAbilityActivationPolicy::OnTriggered;
+
+    UPROPERTY(EditDefaultsOnly, Category = AuraAbility)
     EAbilityDamagePolicy DamagePolicy = EAbilityDamagePolicy::NoDamage;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
@@ -36,6 +47,9 @@ public:
     TMap<FGameplayTag, FScalableFloat> DamageTypes;
 
 public:
+
+    virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
     UFUNCTION(BlueprintCallable, Category = Caombat)
     void CauseDamageToActor(AActor* TargetActor);

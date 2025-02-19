@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "ScalableFloat.h"
 #include "Characters/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
@@ -48,6 +49,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 
+    UPROPERTY(EditAnywhere, Category = "Abilities")
+    TArray<TSubclassOf<class UGameplayAbility>> StartupPassiveAbilities;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
     TObjectPtr<class UAnimMontage> HitReactMontage;
 
@@ -61,6 +65,10 @@ protected:
     TObjectPtr<USoundBase> DeathSound;
 
     int32 MinionCount = 0;
+
+    // default value (-1) will be overwritten by class defaults
+    UPROPERTY(EditDefaultsOnly, Category=Combat)
+    FScalableFloat RewardXP;
     
 public:
 

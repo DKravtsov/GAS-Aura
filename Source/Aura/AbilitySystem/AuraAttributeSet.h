@@ -128,10 +128,14 @@ public:
     FGameplayAttributeData IncomingDamage;
     ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage);
 
+    UPROPERTY(BlueprintReadOnly, Category = "Meta Attributes")
+    FGameplayAttributeData IncomingXP;
+    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingXP);
+
 public:
 
-    void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-    void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+    virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+    virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
     UFUNCTION()
     void OnRep_Strength(const FGameplayAttributeData& OldValue) const;
@@ -193,11 +197,10 @@ public:
     UFUNCTION()
     void OnRep_ArcaneResistance(const FGameplayAttributeData& OldValue) const;
 
-    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+    static void ShowFloatingText(const class FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit);
 
-    void ShowFloatingText(const class FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit) const;
-
-
+    static void SendXPEvent(const class FEffectProperties& EffectProps);
 };

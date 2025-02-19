@@ -7,6 +7,8 @@
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
+enum class EAuraCharacterClass : uint8;
+
 USTRUCT(BlueprintType)
 struct FAttackInfo
 {
@@ -48,6 +50,8 @@ public:
 
     virtual int32 GetCharacterLevel() const { return 0; }
 
+    virtual EAuraCharacterClass GetCharacterClass() const;
+
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, meta = (Categories = "CombatSocket"))
     FVector GetCombatSocketLocation(FGameplayTag CombatSocketTag) const;
 
@@ -86,4 +90,10 @@ public:
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     APawn* SummonMinion(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation);
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    int32 GetRewardXP() const;
+
+    UFUNCTION(BlueprintNativeEvent)
+    void AddXP(int32 Amount);
 };

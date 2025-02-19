@@ -2,6 +2,8 @@
 
 
 #include "AbilitySystem/AuraAttributeSet.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectTypes.h"
@@ -11,6 +13,8 @@
 #include "Characters/AuraCharacterBase.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
 #include "Player/AuraPlayerController.h"
+
+#include "DebugHelper.h"
 
 #pragma region FEffectProperties
 
@@ -226,14 +230,14 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
         {
             const float NewHealth = GetHealth() - Damage;
             SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
-            const bool bFatal = (NewHealth <= 0.f);
 
-            if (bFatal)
+            if (NewHealth <= 0.f)
             {
                 if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
                 {
                     Interface->Die();
                 }
+                SendXPEvent(EffectProps);
             }
             else
             {
@@ -245,21 +249,48 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
             ShowFloatingText(EffectProps, Damage, bBlocked, bCriticalHit);
         }
     }
+    else if (Data.EvaluatedData.Attribute == GetIncomingXPAttribute())
+    {
+        const int32 XP = FMath::TruncToInt(GetIncomingXP());
+        SetIncomingXP(0.f);
+        Debug::Print(FString::Printf(TEXT("Incoming [%d] XP"), XP));
+
+        //#todo: Should we check level up
+        if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
+        {
+            ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
+        }
+    }
 }
 
-void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit) const
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit)
 {
     if (EffectProps.GetSourceCharacter() != EffectProps.GetTargetCharacter())
     {
-        if (auto PC = EffectProps.GetSourceController<AAuraPlayerController>())
+        if (const auto PC = EffectProps.GetSourceController<AAuraPlayerController>())
         {
             PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage, bBlockedHit, bCriticalHit);
         }
-        if (auto PC = EffectProps.GetTargetController<AAuraPlayerController>())
+        if (const auto PC = EffectProps.GetTargetController<AAuraPlayerController>())
         {
             PC->ClientShowDamageFloatingNumber(EffectProps.GetTargetCharacter(), Damage, bBlockedHit, bCriticalHit);
         }
     }
+}
+
+void UAuraAttributeSet::SendXPEvent(const FEffectProperties& EffectProps)
+{
+    if (EffectProps.GetTargetAvatarActor() && EffectProps.GetTargetAvatarActor()->Implements<UCombatInterface>())
+    {
+        int32 XPReward = ICombatInterface::Execute_GetRewardXP(EffectProps.GetTargetAvatarActor());
+
+        FGameplayEventData Payload;
+        Payload.EventTag =AuraGameplayTags::Attributes_Meta_IncomingXP;
+        Payload.EventMagnitude = XPReward;
+        UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(EffectProps.GetSourceAvatarActor(),
+            AuraGameplayTags::Attributes_Meta_IncomingXP, Payload);
+    }
+    
 }
 
 #pragma region Replication
