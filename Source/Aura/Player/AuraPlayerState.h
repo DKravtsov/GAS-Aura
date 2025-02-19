@@ -7,6 +7,8 @@
 #include "AbilitySystemInterface.h"
 #include "AuraPlayerState.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedDelegate, const int32 /*Value*/);
+
 /**
  *
  */
@@ -14,7 +16,14 @@ UCLASS()
 class AURA_API AAuraPlayerState : public APlayerState, public IAbilitySystemInterface
 {
     GENERATED_BODY()
+public:
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AuraPlayerState")
+    TObjectPtr<class ULevelUpDataAsset> LevelUpData;
+
+    FOnPlayerStatChangedDelegate OnXPChanged;
+    FOnPlayerStatChangedDelegate OnLevelChanged;
+    
 protected:
 
     UPROPERTY()
@@ -28,6 +37,9 @@ private:
     UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Level)
     int32 Level = 1;
 
+    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_CurrentXP)
+    int32 CurrentXP = 0;
+
 public:
 
     AAuraPlayerState();
@@ -39,11 +51,19 @@ public:
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
     FORCEINLINE int32 GetPlayerLevel() const { return Level; }
+    void SetPlayerLevel(int32 NewLevel);
 
-    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    FORCEINLINE int32 GetXP() const { return CurrentXP; }
+    void SetXP(int32 NewValue);
+    void AddXP(int32 Value);
+    
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 
     UFUNCTION()
     void OnRep_Level(int32 OldValue);
+
+    UFUNCTION()
+    void OnRep_CurrentXP(int32 OldValue);
 };

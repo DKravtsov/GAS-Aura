@@ -54,6 +54,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	int32 GetMaxLevel() const { return MaxLevel; }
 
+	UFUNCTION(BlueprintPure)
+	float GetLevelPercent(int32 XP) const;
+	
 protected:
 
 	UFUNCTION(CallInEditor)

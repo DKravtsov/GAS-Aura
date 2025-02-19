@@ -12,11 +12,12 @@ void ULevelUpDataAsset::PostLoad()
 
 int32 ULevelUpDataAsset::FindLevelByXP(int32 XP) const
 {
+	// Levels are from [1..MaxLevel]
 	check(!LevelUpData.IsEmpty());
-	for (int32 Index = 0; Index < LevelUpData.Num(); ++Index)
+	for (int32 Index = 1; Index < LevelUpData.Num(); ++Index)
 	{
 		if (XP < LevelUpData[Index].LevelUpRequirements)
-			return Index + 1;
+			return Index;
 	}
 	return MaxLevel;
 }
@@ -24,8 +25,20 @@ int32 ULevelUpDataAsset::FindLevelByXP(int32 XP) const
 FLevelUpInfo ULevelUpDataAsset::GetLevelUpInfo(int32 InLevel) const
 {
 	check(!LevelUpData.IsEmpty());
-	const int32 Index = FMath::Clamp(InLevel, 1, MaxLevel) - 1;
+	// Levels are from [1..MaxLevel]
+	const int32 Index = FMath::Clamp(InLevel, 1, MaxLevel) ;
+	check(LevelUpData.IsValidIndex(Index));
 	return LevelUpData[Index];
+}
+
+float ULevelUpDataAsset::GetLevelPercent(int32 XP) const
+{
+	const int32 CurrentLevel = FindLevelByXP(XP);
+	if (CurrentLevel == MaxLevel)
+		return 1.f;
+	const int32 CurrentRequirementXP = LevelUpData[CurrentLevel].LevelUpRequirements;
+	const int32 BaseXP = LevelUpData[CurrentLevel - 1].LevelUpRequirements;
+	return (CurrentRequirementXP > BaseXP) ? static_cast<float>(XP - BaseXP) / static_cast<float>(CurrentRequirementXP - BaseXP) : 0.f;
 }
 
 void ULevelUpDataAsset::UpdateDataFromTable()
@@ -37,7 +50,8 @@ void ULevelUpDataAsset::UpdateDataFromTable()
 		DataTable->GetAllRows(ContextString, TableRows);
 
 		MaxLevel = TableRows.Num();
-		LevelUpData.Reset(MaxLevel);
+		LevelUpData.Reset(MaxLevel + 1);
+		LevelUpData.Emplace(/*a dummy entry for level 0*/);
 		for (const auto Row : TableRows)
 		{
 			LevelUpData.Add(*Row);

@@ -46,8 +46,14 @@ public:
     UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
     FOnReceiveUIMessageSignature OnReceiveUIMessage;
 
-    UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+    UPROPERTY(BlueprintAssignable, Category="GAS|Abilities")
     FOnAbilityInfoSignature OnReceivedAbilityInfo;
+
+    UPROPERTY(BlueprintAssignable, Category="GAS|Player Stats")
+    FOnFloatStatChangedSignature OnXPPercentChanged;
+
+    UPROPERTY(BlueprintAssignable, Category="GAS|Player Stats")
+    FOnIntStatChangedSignature OnLevelChanged;
 
 protected:
 
@@ -62,9 +68,9 @@ private:
 
 public:
 
-    void BroadcastInitialValues() override;
+    virtual void BroadcastInitialValues() override;
 
-    void BindCallbacks() override;
+    virtual void BindCallbacks() override;
 
 protected:
 

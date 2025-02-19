@@ -5,6 +5,8 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/Data/AbilityInfoDataAsset.h"
+#include "AbilitySystem/Data/LevelUpDataAsset.h"
+#include "Player/AuraPlayerState.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -18,6 +20,12 @@ void UOverlayWidgetController::BroadcastInitialValues()
     if (bForceInitializeStartupAbilities)
     {
         InitializedStartupAbilities();
+    }
+
+    if (AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState))
+    {
+        OnXPPercentChanged.Broadcast(AuraPlayerState->GetXP());
+        OnLevelChanged.Broadcast(AuraPlayerState->GetPlayerLevel());
     }
 }
 
@@ -44,6 +52,20 @@ void UOverlayWidgetController::BindCallbacks()
     else
     {
         AuraAbilitySystemComponent->OnAbilitiesGiven.AddUObject(this, &UOverlayWidgetController::InitializedStartupAbilities);
+    }
+
+    if (AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState))
+    {
+        AuraPlayerState->OnXPChanged.AddLambda([this](const int32 NewXP)
+        {
+            const AAuraPlayerState* PS = CastChecked<AAuraPlayerState>(PlayerState);
+            const float PercentXP = PS->LevelUpData->GetLevelPercent(NewXP);
+            OnXPPercentChanged.Broadcast(PercentXP); 
+        });
+        AuraPlayerState->OnLevelChanged.AddLambda([this](const int32 NewLevel)
+        {
+            OnLevelChanged.Broadcast(NewLevel); 
+        });
     }
 }
 
