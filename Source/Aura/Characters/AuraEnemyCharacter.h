@@ -60,8 +60,8 @@ public:
     //~ End of IInteractableInterface interface
 
     //~ Begin of ICombatInterface interface
-    virtual int32 GetCharacterLevel() const override { return CharacterLevel; }
-    virtual EAuraCharacterClass GetCharacterClass() const override;
+    virtual int32 BP_GetCharacterLevel_Implementation() const override { return CharacterLevel; }
+    virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
     virtual void SetCombatTarget_Implementation(AActor* TargetActor) override { CombatTarget = TargetActor; }
     virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
     virtual void Die() override;

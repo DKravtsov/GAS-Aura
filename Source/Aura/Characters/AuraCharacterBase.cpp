@@ -174,3 +174,8 @@ APawn* AAuraCharacterBase::SummonMinion_Implementation(TSubclassOf<APawn> Minion
     }
     return nullptr;
 }
+
+int32 AAuraCharacterBase::GetCharacterLevel() const
+{
+    return Execute_BP_GetCharacterLevel(this);
+}

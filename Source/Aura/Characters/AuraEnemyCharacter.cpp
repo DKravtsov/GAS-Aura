@@ -88,7 +88,7 @@ void AAuraEnemyCharacter::BeginPlay()
     }
 }
 
-EAuraCharacterClass AAuraEnemyCharacter::GetCharacterClass() const
+EAuraCharacterClass AAuraEnemyCharacter::GetCharacterClass_Implementation() const
 {
     return CharacterClass;
 }

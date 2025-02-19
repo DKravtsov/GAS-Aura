@@ -30,8 +30,9 @@ public:
     //~End APawn Interface
 
     //~ Begin of ICombatInterface interface
-    virtual int32 GetCharacterLevel() const override;
+    virtual int32 BP_GetCharacterLevel_Implementation() const override;
     virtual void AddXP_Implementation(int32 Amount) override;
+    virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
     //~ End of ICombatInterface interface
 
 private:

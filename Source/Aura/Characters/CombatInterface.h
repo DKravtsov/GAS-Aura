@@ -48,9 +48,11 @@ class AURA_API ICombatInterface
 
 public:
 
-    virtual int32 GetCharacterLevel() const { return 0; }
+    UFUNCTION(BlueprintNativeEvent)
+    int32 BP_GetCharacterLevel() const;
 
-    virtual EAuraCharacterClass GetCharacterClass() const;
+    UFUNCTION(BlueprintNativeEvent)
+    EAuraCharacterClass GetCharacterClass() const;
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, meta = (Categories = "CombatSocket"))
     FVector GetCombatSocketLocation(FGameplayTag CombatSocketTag) const;

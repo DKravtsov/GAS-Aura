@@ -96,6 +96,8 @@ public:
     virtual APawn* SummonMinion_Implementation(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation) override;
     //~ End of ICombatInterface interface
 
+    int32 GetCharacterLevel() const;
+    
 protected:
 
     virtual void BeginPlay() override;

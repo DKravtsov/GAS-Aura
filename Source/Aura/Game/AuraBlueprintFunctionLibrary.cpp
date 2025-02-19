@@ -53,9 +53,9 @@ UCharacterClassInfo* UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(const 
 
 int32 UAuraBlueprintFunctionLibrary::GetCharacterLevel(const AActor* Actor)
 {
-    if (const ICombatInterface* Interface = Cast<ICombatInterface>(Actor))
+    if (ensureAlways(Actor) && Actor->Implements<UCombatInterface>())
     {
-        return Interface->GetCharacterLevel();
+        return ICombatInterface::Execute_BP_GetCharacterLevel(Actor);
     }
     return 1;
 }

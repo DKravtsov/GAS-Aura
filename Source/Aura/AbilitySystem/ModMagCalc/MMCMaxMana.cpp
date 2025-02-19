@@ -4,6 +4,7 @@
 #include "AbilitySystem/ModMagCalc/MMCMaxMana.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "Characters/CombatInterface.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 
 UMMCMaxMana::UMMCMaxMana()
 {
@@ -27,12 +28,11 @@ float UMMCMaxMana::CalculateBaseMagnitude_Implementation(const FGameplayEffectSp
 
     if (GetCapturedAttributeMagnitude(IntelligenceDef, Spec, EvaluatedParams, Intelligence))
     {
-        const float IntelligenceMinValue = 0.f;
+        constexpr float IntelligenceMinValue = 0.f;
         Intelligence = FMath::Max(Intelligence, IntelligenceMinValue);
     }
 
-    ICombatInterface* CombatInterface = Cast<ICombatInterface>(Spec.GetContext().GetSourceObject());
-    const int32 CharacterLevel = CombatInterface ? CombatInterface->GetCharacterLevel() : 1.f;
+    const int32 CharacterLevel =UAuraBlueprintFunctionLibrary::GetCharacterLevel(Spec.GetContext().GetInstigator());
 
     return 50.f + 2.f * Intelligence + 5.f * CharacterLevel;
 }

@@ -86,7 +86,7 @@ void AAuraPlayerCharacter::OnRep_PlayerState()
     InitOverlay();
 }
 
-int32 AAuraPlayerCharacter::GetCharacterLevel() const
+int32 AAuraPlayerCharacter::BP_GetCharacterLevel_Implementation() const
 {
     const auto PS = GetPlayerStateChecked<AAuraPlayerState>();
     return PS->GetPlayerLevel();
@@ -96,4 +96,9 @@ void AAuraPlayerCharacter::AddXP_Implementation(int32 Amount)
 {
     auto PS = GetPlayerStateChecked<AAuraPlayerState>();
     PS->AddXP(Amount);
+}
+
+EAuraCharacterClass AAuraPlayerCharacter::GetCharacterClass_Implementation() const
+{
+    return EAuraCharacterClass::Elementalist;
 }
