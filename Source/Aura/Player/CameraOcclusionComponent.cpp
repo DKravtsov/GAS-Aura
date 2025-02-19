@@ -49,7 +49,7 @@ void UCameraOcclusionComponent::InitPawn()
 
 void UCameraOcclusionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT;
+	//LOG_NETFUNCTIONCALL_COMPONENT;
 	
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 

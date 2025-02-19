@@ -40,7 +40,7 @@ protected:
 	UPROPERTY()
 	TWeakObjectPtr<class UCapsuleComponent> PawnCapsule;
 
-	UPROPERTY(EditDefaultsOnly, Category="Camera Occlusion", meta = (ClampMin=0.1, AllowedClasses=2))
+	UPROPERTY(EditDefaultsOnly, Category="Camera Occlusion", meta = (ClampMin=0.1, ClampMax=2.0))
 	float CapsuleExt;
 
 	UPROPERTY()
