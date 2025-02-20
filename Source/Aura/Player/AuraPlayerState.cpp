@@ -7,6 +7,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/LevelUpDataAsset.h"
+#include "Characters/CombatInterface.h"
 #include "Net/UnrealNetwork.h"
 
 AAuraPlayerState::AAuraPlayerState()
@@ -44,8 +45,9 @@ void AAuraPlayerState::SetPlayerLevel(int32 NewLevel)
     AddAttributePoints(AttributePointsReward);
     AddSpellPoints(SpellPointsReward);
 
+    ICombatInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
+
     Level = NewLevel;
-    // #todo: broadcast old and new values OR num levels up
     OnLevelChanged.Broadcast(Level);
 }
 

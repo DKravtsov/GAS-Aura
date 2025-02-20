@@ -26,7 +26,7 @@ void UAuraGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	if (ActivationPolicy == EAuraAbilityActivationPolicy::OnGiven)
+	if (ActivationPolicy == EAuraAbilityActivationPolicy::OnGiven && HasAuthority(&ActivationInfo))
 	{
 		if (ActorInfo)
 		{

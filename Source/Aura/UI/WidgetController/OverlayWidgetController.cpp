@@ -102,7 +102,9 @@ void UOverlayWidgetController::InitializedStartupAbilities()
 
     AuraAbilitySystemComponent->ForEachAbility(FForEachAbilityDelegate::CreateLambda([this](const FGameplayAbilitySpec& AbilitySpec)
         {
-            auto Info = AbilityInfo->FindAbilityInfoByTag(UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec), true);
+            const auto Tag = UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec);
+            UE_LOG(LogTemp, Warning, TEXT("== %s : %s =="), *AbilitySpec.Ability->GetClass()->GetName(), *Tag.ToString());
+            auto Info = AbilityInfo->FindAbilityInfoByTag(Tag, false);
             Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
             OnReceivedAbilityInfo.Broadcast(Info);
         }));

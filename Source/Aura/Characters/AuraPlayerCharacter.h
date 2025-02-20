@@ -23,6 +23,9 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Effects, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UNiagaraComponent> LevelUpNiagaraComponent;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Effects, meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<UGameplayEffect> LevelUpEffect;
+
 public:
 
     AAuraPlayerCharacter();
@@ -42,7 +45,4 @@ public:
 private:
     void InitAbilitySystemComponent();
     void InitOverlay();
-
-    UFUNCTION(NetMulticast, Unreliable)
-    void MulticastPlayLevelUpEffect() const;
 };

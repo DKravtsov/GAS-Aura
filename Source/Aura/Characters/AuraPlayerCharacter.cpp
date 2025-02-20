@@ -110,18 +110,6 @@ EAuraCharacterClass AAuraPlayerCharacter::GetCharacterClass_Implementation() con
 
 void AAuraPlayerCharacter::NotifyLevelUp_Implementation()
 {
-    MulticastPlayLevelUpEffect();
-}
-
-void AAuraPlayerCharacter::MulticastPlayLevelUpEffect_Implementation() const
-{
-    if (IsValid(LevelUpNiagaraComponent))
-    {
-        const FVector CameraLocation = CameraComponent->GetComponentLocation();
-        const FVector FXLocation = LevelUpNiagaraComponent->GetComponentLocation();
-        const auto Rotation = (CameraLocation - FXLocation).Rotation();
-        LevelUpNiagaraComponent->SetWorldRotation(Rotation);
-        LevelUpNiagaraComponent->Activate(true);
-    }
+    ApplyGameplayEffectToSelf(LevelUpEffect, GetCharacterLevel());
 }
 

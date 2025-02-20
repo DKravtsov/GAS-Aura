@@ -252,22 +252,14 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
     else if (Data.EvaluatedData.Attribute == GetIncomingXPAttribute())
     {
         const int32 XP = FMath::TruncToInt(GetIncomingXP());
-        SetIncomingXP(0.f);
-        Debug::Print(FString::Printf(TEXT("Incoming [%d] XP"), XP));
-
-        //#todo: Should we check level up
-        if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
+        if (XP > 0)
         {
-            int32 OldLevel = ICombatInterface::Execute_BP_GetCharacterLevel(EffectProps.GetSourceAvatarActor());
-            ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
-            int32 NewLevel = ICombatInterface::Execute_BP_GetCharacterLevel(EffectProps.GetSourceAvatarActor());
-            if (OldLevel != NewLevel)
-            {
-                // refill Health and Mana on level up
-                SetHealth(GetMaxHealth());
-                SetMana(GetMaxMana());
+            SetIncomingXP(0.f);
+            //Debug::Print(FString::Printf(TEXT("Incoming [%d] XP"), XP));
 
-                ICombatInterface::Execute_NotifyLevelUp(EffectProps.GetSourceAvatarActor());
+            if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
+            {
+                ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
             }
         }
     }
