@@ -20,6 +20,9 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UCameraComponent> CameraComponent;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Effects, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<class UNiagaraComponent> LevelUpNiagaraComponent;
+
 public:
 
     AAuraPlayerCharacter();
@@ -33,9 +36,13 @@ public:
     virtual int32 BP_GetCharacterLevel_Implementation() const override;
     virtual void AddXP_Implementation(int32 Amount) override;
     virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
+    virtual void NotifyLevelUp_Implementation() override;
     //~ End of ICombatInterface interface
 
 private:
     void InitAbilitySystemComponent();
     void InitOverlay();
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void MulticastPlayLevelUpEffect() const;
 };

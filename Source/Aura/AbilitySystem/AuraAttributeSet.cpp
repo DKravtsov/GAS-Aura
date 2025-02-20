@@ -266,6 +266,8 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
                 // refill Health and Mana on level up
                 SetHealth(GetMaxHealth());
                 SetMana(GetMaxMana());
+
+                ICombatInterface::Execute_NotifyLevelUp(EffectProps.GetSourceAvatarActor());
             }
         }
     }

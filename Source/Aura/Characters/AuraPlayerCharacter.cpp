@@ -2,11 +2,12 @@
 
 
 #include "Characters/AuraPlayerCharacter.h"
+
+#include "NiagaraComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/AuraPlayerState.h"
-#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "UI/HUD/AuraHUD.h"
@@ -37,6 +38,10 @@ AAuraPlayerCharacter::AAuraPlayerCharacter()
 
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = true;
+
+    LevelUpNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("LevelUpFXComponent");
+    LevelUpNiagaraComponent->SetupAttachment(GetRootComponent());
+    LevelUpNiagaraComponent->bAutoActivate = false;
 }
 
 void AAuraPlayerCharacter::PossessedBy(AController* NewController)
@@ -102,3 +107,21 @@ EAuraCharacterClass AAuraPlayerCharacter::GetCharacterClass_Implementation() con
 {
     return EAuraCharacterClass::Elementalist;
 }
+
+void AAuraPlayerCharacter::NotifyLevelUp_Implementation()
+{
+    MulticastPlayLevelUpEffect();
+}
+
+void AAuraPlayerCharacter::MulticastPlayLevelUpEffect_Implementation() const
+{
+    if (IsValid(LevelUpNiagaraComponent))
+    {
+        const FVector CameraLocation = CameraComponent->GetComponentLocation();
+        const FVector FXLocation = LevelUpNiagaraComponent->GetComponentLocation();
+        const auto Rotation = (CameraLocation - FXLocation).Rotation();
+        LevelUpNiagaraComponent->SetWorldRotation(Rotation);
+        LevelUpNiagaraComponent->Activate(true);
+    }
+}
+

@@ -98,4 +98,7 @@ public:
 
     UFUNCTION(BlueprintNativeEvent)
     void AddXP(int32 Amount);
+
+    UFUNCTION(BlueprintNativeEvent)
+    void NotifyLevelUp();
 };
