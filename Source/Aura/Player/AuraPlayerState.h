@@ -23,6 +23,8 @@ public:
 
     FOnPlayerStatChangedDelegate OnXPChanged;
     FOnPlayerStatChangedDelegate OnLevelChanged;
+    FOnPlayerStatChangedDelegate OnAttributePointsChanged;
+    FOnPlayerStatChangedDelegate OnSpellPointsChanged;
     
 protected:
 
@@ -39,6 +41,12 @@ private:
 
     UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_CurrentXP)
     int32 CurrentXP = 0;
+
+    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_AttributePoints)
+    int32 AttributePoints = 0;
+
+    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SpellPoints)
+    int32 SpellPoints = 0;
 
 public:
 
@@ -58,9 +66,11 @@ public:
     void SetXP(int32 NewValue);
     void AddXP(int32 Value);
 
+    FORCEINLINE int32 GetAttributePoints() const {return AttributePoints; }
     void SetAttributePoints(int32 NewValue);
     void AddAttributePoints(int32 Amount);
 
+    FORCEINLINE int32 GetSpellPoints() const { return SpellPoints; }
     void SetSpellPoints(int32 NewValue);
     void AddSpellPoints(int32 Amount);
 
@@ -75,4 +85,10 @@ private:
 
     UFUNCTION()
     void OnRep_CurrentXP(int32 OldValue);
+
+    UFUNCTION()
+    void OnRep_AttributePoints(int32 OldValue);
+
+    UFUNCTION()
+    void OnRep_SpellPoints(int32 OldValue);
 };

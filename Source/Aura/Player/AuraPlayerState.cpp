@@ -73,18 +73,29 @@ void AAuraPlayerState::AddXP(int32 Value)
 
 void AAuraPlayerState::SetAttributePoints(int32 NewValue)
 {
+    if (AttributePoints == NewValue)
+        return;
+    
+    AttributePoints = NewValue;
+    OnAttributePointsChanged.Broadcast(NewValue);
 }
 
 void AAuraPlayerState::AddAttributePoints(int32 Amount)
 {
+    SetAttributePoints(AttributePoints + Amount);
 }
 
 void AAuraPlayerState::SetSpellPoints(int32 NewValue)
 {
+    if (SpellPoints == NewValue)
+        return;
+    SpellPoints = NewValue;
+    OnSpellPointsChanged.Broadcast(NewValue);
 }
 
 void AAuraPlayerState::AddSpellPoints(int32 Amount)
 {
+    SetSpellPoints(SpellPoints + Amount);
 }
 
 
@@ -100,12 +111,24 @@ void AAuraPlayerState::OnRep_CurrentXP(int32 OldValue)
     OnXPChanged.Broadcast(CurrentXP);
 }
 
+void AAuraPlayerState::OnRep_AttributePoints(int32 OldValue)
+{
+    OnAttributePointsChanged.Broadcast(AttributePoints);
+}
+
+void AAuraPlayerState::OnRep_SpellPoints(int32 OldValue)
+{
+    OnSpellPointsChanged.Broadcast(SpellPoints);
+}
+
 void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(AAuraPlayerState, Level);
     DOREPLIFETIME(AAuraPlayerState, CurrentXP);
+    DOREPLIFETIME(AAuraPlayerState, AttributePoints);
+    DOREPLIFETIME(AAuraPlayerState, SpellPoints);
 }
 
 #pragma endregion 

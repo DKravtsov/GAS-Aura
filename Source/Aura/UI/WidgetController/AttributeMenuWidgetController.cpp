@@ -4,6 +4,7 @@
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
 #include "AbilitySystemComponent.h"
+#include "Player/AuraPlayerState.h"
 
 UAttributeMenuWidgetController::UAttributeMenuWidgetController()
 {
@@ -19,6 +20,12 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()
     for (const auto& Attr : AllAttributes)
     {
         BroadcastAttributeInfo(Attr);
+    }
+    
+    if (AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState))
+    {
+        OnAttributePointsChanged.Broadcast(AuraPlayerState->GetAttributePoints());
+        OnSpellPointsChanged.Broadcast(AuraPlayerState->GetSpellPoints());
     }
 }
 
@@ -42,5 +49,17 @@ void UAttributeMenuWidgetController::BindCallbacks()
                 {
                     BroadcastAttributeInfo(Data.Attribute);
                 });
+    }
+
+    if (AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState))
+    {
+        AuraPlayerState->OnAttributePointsChanged.AddLambda([this](const int32 AP)
+        {
+            OnAttributePointsChanged.Broadcast(AP);
+        });
+        AuraPlayerState->OnSpellPointsChanged.AddLambda([this](const int32 SP)
+        {
+            OnSpellPointsChanged.Broadcast(SP); 
+        });
     }
 }
