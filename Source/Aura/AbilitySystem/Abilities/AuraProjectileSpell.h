@@ -16,12 +16,18 @@ class AURA_API UAuraProjectileSpell : public UAuraGameplayAbility
 
 public:
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
     TSubclassOf<class AAuraProjectile> ProjectileClass;
 
     // The gameplay tag to extract correct socket from the character where the projectile will be spawned
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "CombatSocket"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile", meta = (Categories = "CombatSocket"))
     FGameplayTag DefaultSocketTag;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile", meta=(InlineEditConditionToggle))
+    bool bOverrideLaunchPitchAngle = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile", meta =(EditCondition="bOverrideLaunchPitchAngle"))
+    float LaunchPitchAngle = 0.f;
 
 public:
 

@@ -128,7 +128,15 @@ void AAuraProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other
 
     if (EffectApplyingPolicy == EProjectileEffectApplyingPolicy::ApplyOnHit && !bHit)
     {
+        bHit = true;
+        SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
         ProcessColliding(Other, &Hit);
+
+        if (HasAuthority())
+        {
+            SetLifeSpan(0.01);
+        }
     }
 }
 
