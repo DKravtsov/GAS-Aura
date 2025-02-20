@@ -40,8 +40,8 @@ public:
 
     virtual void BindCallbacks() override;
 
-    UFUNCTION(BlueprintCallable)
-    void UpgradeAttribute(const struct FGameplayTag& AttributeTag);
+    UFUNCTION(BlueprintCallable, meta = (Points = 1))
+    void UpgradeAttribute(const struct FGameplayTag& AttributeTag, const int32 Points);
 
 protected:
 

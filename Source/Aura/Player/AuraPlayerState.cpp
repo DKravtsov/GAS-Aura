@@ -100,28 +100,28 @@ void AAuraPlayerState::AddSpellPoints(int32 Amount)
     SetSpellPoints(SpellPoints + Amount);
 }
 
-void AAuraPlayerState::UpgradeAttribute(const FGameplayTag& AttributeTag)
+void AAuraPlayerState::UpgradeAttribute(const FGameplayTag& AttributeTag, const int32 Points)
 {
-    if (AttributePoints > 0)
+    if (Points < 0 || (Points > 0 && AttributePoints >= Points))
     {
-        ServerUpgradeAttribute(AttributeTag);
+        ServerUpgradeAttribute(AttributeTag, Points);
     }
 }
 
-void AAuraPlayerState::ServerUpgradeAttribute_Implementation(const FGameplayTag& AttributeTag)
+void AAuraPlayerState::ServerUpgradeAttribute_Implementation(const FGameplayTag& AttributeTag, const int32 Points)
 {
     FGameplayEventData Payload;
     Payload.EventTag = AttributeTag;
-    Payload.EventMagnitude = 1.f;
+    Payload.EventMagnitude = Points;
 
     UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(AbilitySystemComponent->GetAvatarActor(), AttributeTag, Payload);
 
-    AddAttributePoints(-1);
+    AddAttributePoints(-Points);
 }
 
-bool AAuraPlayerState::ServerUpgradeAttribute_Validate(const FGameplayTag& AttributeTag)
+bool AAuraPlayerState::ServerUpgradeAttribute_Validate(const FGameplayTag& AttributeTag, const int32 Points)
 {
-    return true;
+    return Points == 1 || Points == -1;
 }
 
 

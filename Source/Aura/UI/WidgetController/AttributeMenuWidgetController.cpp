@@ -65,8 +65,8 @@ void UAttributeMenuWidgetController::BindCallbacks()
     }
 }
 
-void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag, const int32 Points)
 {
     AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
-    AuraPlayerState->UpgradeAttribute(AttributeTag);
+    AuraPlayerState->UpgradeAttribute(AttributeTag, Points);
 }

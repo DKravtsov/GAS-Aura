@@ -74,10 +74,10 @@ public:
     void SetSpellPoints(int32 NewValue);
     void AddSpellPoints(int32 Amount);
 
-    void UpgradeAttribute(const struct FGameplayTag& AttributeTag);
+    void UpgradeAttribute(const struct FGameplayTag& AttributeTag, const int32 Points = 1);
 
     UFUNCTION(Server, WithValidation, Reliable)
-    void ServerUpgradeAttribute(const FGameplayTag& AttributeTag);
+    void ServerUpgradeAttribute(const FGameplayTag& AttributeTag, const int32 Points = 1);
     
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

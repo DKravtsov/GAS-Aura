@@ -39,7 +39,7 @@ public:
 
     static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
     static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
-    
+
 protected:
 
     UFUNCTION(Client, Reliable)

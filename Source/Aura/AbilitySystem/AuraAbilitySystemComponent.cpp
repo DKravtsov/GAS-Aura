@@ -3,6 +3,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "GameplayTagContainer.h"
 #include "Logs.h"
@@ -126,3 +127,4 @@ void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
         OnAbilitiesGiven.Broadcast();
     }
 }
+
