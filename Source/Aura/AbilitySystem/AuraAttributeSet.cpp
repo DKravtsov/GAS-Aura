@@ -258,7 +258,15 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
         //#todo: Should we check level up
         if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
         {
+            int32 OldLevel = ICombatInterface::Execute_BP_GetCharacterLevel(EffectProps.GetSourceAvatarActor());
             ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
+            int32 NewLevel = ICombatInterface::Execute_BP_GetCharacterLevel(EffectProps.GetSourceAvatarActor());
+            if (OldLevel != NewLevel)
+            {
+                // refill Health and Mana on level up
+                SetHealth(GetMaxHealth());
+                SetMana(GetMaxMana());
+            }
         }
     }
 }

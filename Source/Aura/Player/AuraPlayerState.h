@@ -52,10 +52,19 @@ public:
 
     FORCEINLINE int32 GetPlayerLevel() const { return Level; }
     void SetPlayerLevel(int32 NewLevel);
+    void AddPlayerLevel(int32 NumLevels = 1);
 
     FORCEINLINE int32 GetXP() const { return CurrentXP; }
     void SetXP(int32 NewValue);
     void AddXP(int32 Value);
+
+    void SetAttributePoints(int32 NewValue);
+    void AddAttributePoints(int32 Amount);
+
+    void SetSpellPoints(int32 NewValue);
+    void AddSpellPoints(int32 Amount);
+
+
     
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
