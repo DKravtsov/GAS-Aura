@@ -4,6 +4,7 @@
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Player/AuraPlayerState.h"
 
 UAttributeMenuWidgetController::UAttributeMenuWidgetController()
@@ -62,4 +63,10 @@ void UAttributeMenuWidgetController::BindCallbacks()
             OnSpellPointsChanged.Broadcast(SP); 
         });
     }
+}
+
+void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+    AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+    AuraPlayerState->UpgradeAttribute(AttributeTag);
 }

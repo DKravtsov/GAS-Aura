@@ -2,6 +2,8 @@
 
 
 #include "Player/AuraPlayerState.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/LevelUpDataAsset.h"
@@ -96,6 +98,30 @@ void AAuraPlayerState::SetSpellPoints(int32 NewValue)
 void AAuraPlayerState::AddSpellPoints(int32 Amount)
 {
     SetSpellPoints(SpellPoints + Amount);
+}
+
+void AAuraPlayerState::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+    if (AttributePoints > 0)
+    {
+        ServerUpgradeAttribute(AttributeTag);
+    }
+}
+
+void AAuraPlayerState::ServerUpgradeAttribute_Implementation(const FGameplayTag& AttributeTag)
+{
+    FGameplayEventData Payload;
+    Payload.EventTag = AttributeTag;
+    Payload.EventMagnitude = 1.f;
+
+    UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(AbilitySystemComponent->GetAvatarActor(), AttributeTag, Payload);
+
+    AddAttributePoints(-1);
+}
+
+bool AAuraPlayerState::ServerUpgradeAttribute_Validate(const FGameplayTag& AttributeTag)
+{
+    return true;
 }
 
 

@@ -36,9 +36,12 @@ public:
 
     UAttributeMenuWidgetController();
 
-    void BroadcastInitialValues() override;
+    virtual void BroadcastInitialValues() override;
 
-    void BindCallbacks() override;
+    virtual void BindCallbacks() override;
+
+    UFUNCTION(BlueprintCallable)
+    void UpgradeAttribute(const struct FGameplayTag& AttributeTag);
 
 protected:
 
