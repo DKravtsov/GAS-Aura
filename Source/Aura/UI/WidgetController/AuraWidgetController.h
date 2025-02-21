@@ -9,6 +9,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAttributeChangedSignature, const struct FGameplayAttribute&, Attribute, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFloatStatChangedSignature, const float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnIntStatChangedSignature, const int32, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityInfoSignature, const struct FAuraAbilityInfo&, AbilityInfo);
 
 /**
  *
@@ -17,20 +18,27 @@ UCLASS()
 class AURA_API UAuraWidgetController : public UObject
 {
     GENERATED_BODY()
-
+public:
+    
+    UPROPERTY(BlueprintAssignable, Category="GAS|Abilities")
+    FOnAbilityInfoSignature OnReceivedAbilityInfo;
+    
 protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-    TObjectPtr<class APlayerController> PlayerController;
+    TObjectPtr<class AAuraPlayerController> AuraPlayerController;
 
     UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-    TObjectPtr<class APlayerState> PlayerState;
+    TObjectPtr<class AAuraPlayerState> AuraPlayerState;
 
     UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-    TObjectPtr<class UAbilitySystemComponent> AbilitySystemComponent;
+    TObjectPtr<class UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
 
     UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
-    TObjectPtr<class UAttributeSet> AttributeSet;
+    TObjectPtr<const class UAuraAttributeSet> AuraAttributeSet;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS|Abilities")
+    TObjectPtr<class UAbilityInfoDataAsset> AbilityInfo;
 
 public:
 
@@ -43,4 +51,10 @@ public:
     virtual void BroadcastInitialValues();
 
     virtual void BindCallbacks();
+
+    class UAbilityInfoDataAsset* GetAbilityInfo() const { return AbilityInfo; }
+
+protected:
+    
+    void BroadcastAbilityInfo() const;
 };

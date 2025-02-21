@@ -45,5 +45,5 @@ public:
 
 protected:
 
-    void BroadcastAttributeInfo(const FGameplayAttribute& Attr);
+    void BroadcastAttributeInfo(const FGameplayAttribute& Attr) const;
 };

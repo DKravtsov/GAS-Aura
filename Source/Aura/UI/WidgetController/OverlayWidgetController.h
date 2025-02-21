@@ -26,7 +26,7 @@ struct FUIWidgetRow : public FTableRowBase
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveUIMessageSignature, const FUIWidgetRow&, UIWidgetRow);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityInfoSignature, const struct FAuraAbilityInfo&, AbilityInfo);
+
 
 
 
@@ -46,9 +46,6 @@ public:
     UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
     FOnReceiveUIMessageSignature OnReceiveUIMessage;
 
-    UPROPERTY(BlueprintAssignable, Category="GAS|Abilities")
-    FOnAbilityInfoSignature OnReceivedAbilityInfo;
-
     UPROPERTY(BlueprintAssignable, Category="GAS|Player Stats")
     FOnFloatStatChangedSignature OnXPPercentChanged;
 
@@ -59,9 +56,6 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data", meta = (RequiredAssetDataTags = "RowStructure=/Script/Aura.UIWidgetRow"))
     TObjectPtr<UDataTable> MessageWidgetDataTable;
-
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
-    TObjectPtr<class UAbilityInfoDataAsset> AbilityInfo;
 
 private:
     bool bForceInitializeStartupAbilities = false;
@@ -74,7 +68,7 @@ public:
 
 protected:
 
-    void AttributeChanged(const struct FOnAttributeChangeData& Data);
+    void AttributeChanged(const struct FOnAttributeChangeData& Data) const;
 
     template<class T>
     static T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
@@ -86,7 +80,5 @@ protected:
 
 private:
 
-    void BroadcastMessagesByTags(const FGameplayTagContainer& AssetTags);
-
-    void InitializedStartupAbilities();
+    void BroadcastMessagesByTags(const FGameplayTagContainer& AssetTags) const;
 };

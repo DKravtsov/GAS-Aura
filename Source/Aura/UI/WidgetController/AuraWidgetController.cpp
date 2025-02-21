@@ -2,13 +2,18 @@
 
 
 #include "UI/WidgetController/AuraWidgetController.h"
-#include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "GameFramework/PlayerController.h"
-#include "GameFramework/PlayerState.h"
 #include "GameFramework/Pawn.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Logs.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfoDataAsset.h"
+#include "Characters/AuraPlayerCharacter.h"
+#include "Player/AuraPlayerController.h"
+#include "Player/AuraPlayerState.h"
 
 UAuraWidgetController::UAuraWidgetController()
 {
@@ -21,14 +26,12 @@ void UAuraWidgetController::InitWidgetController(APlayerController* PC)
         return;
     }
 
-    PlayerController = PC;
-    PlayerState = PC->GetPlayerState<APlayerState>();
+    AuraPlayerController = CastChecked<AAuraPlayerController>(PC);
+    AuraPlayerState = PC->GetPlayerState<AAuraPlayerState>();
+    checkf(AuraPlayerState != nullptr, TEXT("PlayerState must be inherited from AuraPlayerState class"));
 
-    AbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PlayerState);
-    if (IsValid(AbilitySystemComponent))
-    {
-        AttributeSet = const_cast<UAttributeSet*>(AbilitySystemComponent->GetAttributeSet(UAttributeSet::StaticClass()));
-    }
+    AuraAbilitySystemComponent = CastChecked<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(AuraPlayerState));
+    AuraAttributeSet = CastChecked<UAuraAttributeSet>(AuraAbilitySystemComponent->GetAttributeSet(UAuraAttributeSet::StaticClass()));
 }
 
 void UAuraWidgetController::BroadcastInitialValues()
@@ -37,4 +40,21 @@ void UAuraWidgetController::BroadcastInitialValues()
 
 void UAuraWidgetController::BindCallbacks()
 {
+}
+
+void UAuraWidgetController::BroadcastAbilityInfo() const
+{
+    if (!AuraAbilitySystemComponent->AreStartupAbilitiesGiven())
+    {
+        return;
+    }
+
+    AuraAbilitySystemComponent->ForEachAbility(FForEachAbilityDelegate::CreateLambda([this](const FGameplayAbilitySpec& AbilitySpec)
+        {
+            const auto Tag = UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec);
+            UE_LOG(LogMyGame, Warning, TEXT("== %s : %s =="), *AbilitySpec.Ability->GetClass()->GetName(), *Tag.ToString());
+            auto Info = GetAbilityInfo()->FindAbilityInfoByTag(Tag, false);
+            Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
+            OnReceivedAbilityInfo.Broadcast(Info);
+        }));
 }
