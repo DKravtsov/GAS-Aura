@@ -25,7 +25,6 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()
     }
     
     OnAttributePointsChanged.Broadcast(AuraPlayerState->GetAttributePoints());
-    OnSpellPointsChanged.Broadcast(AuraPlayerState->GetSpellPoints());
 }
 
 void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayAttribute& Attr) const
@@ -53,10 +52,6 @@ void UAttributeMenuWidgetController::BindCallbacks()
     AuraPlayerState->OnAttributePointsChanged.AddLambda([this](const int32 AP)
         {
             OnAttributePointsChanged.Broadcast(AP);
-        });
-    AuraPlayerState->OnSpellPointsChanged.AddLambda([this](const int32 SP)
-        {
-            OnSpellPointsChanged.Broadcast(SP); 
         });
 }
 

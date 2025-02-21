@@ -24,9 +24,6 @@ public:
     UPROPERTY(BlueprintAssignable, Category="GAS|Player Stats")
     FOnIntStatChangedSignature OnAttributePointsChanged;
     
-    UPROPERTY(BlueprintAssignable, Category="GAS|Player Stats")
-    FOnIntStatChangedSignature OnSpellPointsChanged;
-    
 protected:
 
     UPROPERTY(EditDefaultsOnly)
