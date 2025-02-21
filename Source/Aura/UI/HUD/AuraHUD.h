@@ -9,6 +9,7 @@
 class UOverlayWidgetController;
 class UAttributeMenuWidgetController;
 class UAuraUserWidget;
+class USpellMenuWidgetController;
 
 /**
  *
@@ -36,6 +37,12 @@ class AURA_API AAuraHUD : public AHUD
     UPROPERTY()
     TObjectPtr<UAttributeMenuWidgetController> AttributeMenuWidgetController;
 
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
+
+    UPROPERTY()
+    TObjectPtr<USpellMenuWidgetController> SpellMenuWidgetController;
+
 public:
 
     AAuraHUD();
@@ -45,6 +52,9 @@ public:
 
     // returns AttributeMenuWidgetController, creates and initializes it if needed
     UAttributeMenuWidgetController* GetAttributeMenuWidgetController();
+
+    // returns SpellMenuWidgetController, creates and initializes it if needed
+    USpellMenuWidgetController* GetSpellMenuWidgetController();
 
     void InitOverlay();
 };

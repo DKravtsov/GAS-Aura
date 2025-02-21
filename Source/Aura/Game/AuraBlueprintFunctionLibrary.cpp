@@ -23,7 +23,6 @@ UOverlayWidgetController* UAuraBlueprintFunctionLibrary::GetOverlayWidgetControl
             return AuraHUD->GetOverlayWidgetController();
         }
     }
-
     return nullptr;
 }
 
@@ -38,7 +37,20 @@ UAttributeMenuWidgetController* UAuraBlueprintFunctionLibrary::GetAttributeMenuW
             return AuraHUD->GetAttributeMenuWidgetController();
         }
     }
+    return nullptr;
+}
 
+class USpellMenuWidgetController* UAuraBlueprintFunctionLibrary::GetSpellMenuWidgetController(const UObject* WorldContextObject)
+{
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContextObject, 0))
+    {
+        checkf(PC->IsLocalController(), TEXT("The Player Controller must be a local player controller only."));
+
+        if (AAuraHUD* AuraHUD = PC->GetHUD<AAuraHUD>())
+        {
+            return AuraHUD->GetSpellMenuWidgetController();
+        }
+    }
     return nullptr;
 }
 

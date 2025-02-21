@@ -22,6 +22,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|WidgetController", BlueprintCosmetic, meta = (WorldContext = "WorldContextObject"))
     static class UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const UObject* WorldContextObject);
 
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|WidgetController", BlueprintCosmetic, meta = (WorldContext = "WorldContextObject"))
+    static class USpellMenuWidgetController* GetSpellMenuWidgetController(const UObject* WorldContextObject);
+
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterClassDefaults", meta = (WorldContext = "WorldContextObject"))
     static class UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
 
