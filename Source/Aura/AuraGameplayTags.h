@@ -52,8 +52,6 @@ namespace AuraGameplayTags
 
     //AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_BaseDamage);
 
-    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effects_HitReact);
-
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Combat_Event_CritHit);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Combat_Event_Block);
 
@@ -70,6 +68,18 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Spell);
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Summon);
+    
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_HitReact);
+    
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Eligible);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Unlocked);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Equipped);
+    
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Type);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Type_None);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Type_Offensive);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Type_Passive);
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_Weapon);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatSocket_LeftHand);

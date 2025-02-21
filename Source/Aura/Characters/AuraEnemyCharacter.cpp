@@ -83,7 +83,7 @@ void AAuraEnemyCharacter::BeginPlay()
         OnHealthAttributesChanged.Broadcast(AuraAttributeSet->GetHealthAttribute(), AuraAttributeSet->GetHealth());
         OnHealthAttributesChanged.Broadcast(AuraAttributeSet->GetMaxHealthAttribute(), AuraAttributeSet->GetMaxHealth());
 
-        AbilitySystemComponent->RegisterGameplayTagEvent(AuraGameplayTags::Effects_HitReact, EGameplayTagEventType::NewOrRemoved)
+        AbilitySystemComponent->RegisterGameplayTagEvent(AuraGameplayTags::Abilities_HitReact, EGameplayTagEventType::NewOrRemoved)
             .AddUObject(this, &AAuraEnemyCharacter::HitReactTagChanged);
     }
 }

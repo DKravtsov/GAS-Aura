@@ -33,6 +33,9 @@ struct FAuraAbilityInfo
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Cooldown"))
 	FGameplayTag CooldownTag;
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag StatusTag;
+
 	FORCEINLINE bool operator==(const FGameplayTag& Tag) const
 	{
 		return AbilityTag.MatchesTagExact(Tag);

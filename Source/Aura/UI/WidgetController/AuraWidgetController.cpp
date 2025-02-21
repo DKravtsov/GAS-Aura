@@ -55,6 +55,7 @@ void UAuraWidgetController::BroadcastAbilityInfo() const
             UE_LOG(LogMyGame, Warning, TEXT("== %s : %s =="), *AbilitySpec.Ability->GetClass()->GetName(), *Tag.ToString());
             auto Info = GetAbilityInfo()->FindAbilityInfoByTag(Tag, false);
             Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
+            Info.StatusTag = UAuraAbilitySystemComponent::GetStatusTagFromSpec(AbilitySpec);
             OnReceivedAbilityInfo.Broadcast(Info);
         }));
 }

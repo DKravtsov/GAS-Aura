@@ -20,19 +20,17 @@ void UAuraAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AAc
     }
 }
 
-void UAuraAbilitySystemComponent::GrantStartupAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& StartupAbilities, int32 AbilityLevel)
+void UAuraAbilitySystemComponent::GrantAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& Abilities, int32 AbilityLevel)
 {
-    for (const auto& AbilityClass : StartupAbilities)
+    for (const auto& AbilityClass : Abilities)
     {
         auto Spec = FGameplayAbilitySpec(AbilityClass, AbilityLevel);
         Spec.SourceObject = GetAvatarActor();
         if (const auto AuraAbility = Cast<UAuraGameplayAbility>(Spec.Ability))
         {
-            if (AuraAbility->StartupInputTag.IsValid())
-            {
-                Spec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
-            }
+            Spec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
         }
+        Spec.DynamicAbilityTags.AddTag(AuraGameplayTags::Abilities_Status_Equipped);
         GiveAbility(Spec);
     }
     bStartupAbilitiesGiven = true;
@@ -110,6 +108,30 @@ FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbi
     for (const FGameplayTag& Tag : AbilitySpec.DynamicAbilityTags)
     {
         if (Tag.MatchesTag(AuraGameplayTags::InputTag))
+        {
+            return Tag;
+        }
+    }
+    return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetStatusTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+    for (const FGameplayTag& Tag : AbilitySpec.DynamicAbilityTags)
+    {
+        if (Tag.MatchesTag(AuraGameplayTags::Abilities_Status))
+        {
+            return Tag;
+        }
+    }
+    return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetTypeTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+    for (const FGameplayTag& Tag : AbilitySpec.DynamicAbilityTags)
+    {
+        if (Tag.MatchesTag(AuraGameplayTags::Abilities_Type))
         {
             return Tag;
         }

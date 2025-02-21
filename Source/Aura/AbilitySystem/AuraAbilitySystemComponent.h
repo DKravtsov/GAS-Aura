@@ -28,7 +28,7 @@ public:
     virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
     //~ End of UAbilitySystemComponent interface
 
-    void GrantStartupAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& StartupAbilities, int32 AbilityLevel);
+    void GrantAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& Abilities, int32 AbilityLevel);
 
     void AbilityInputPressed(const FGameplayTag& InputTag);
     void AbilityInputReleased(const FGameplayTag& InputTag);
@@ -39,6 +39,8 @@ public:
 
     static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
     static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+    static FGameplayTag GetStatusTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+    static FGameplayTag GetTypeTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
 protected:
 
