@@ -28,6 +28,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterClassDefaults", meta = (WorldContext = "WorldContextObject"))
     static class UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
 
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterClassDefaults", meta = (WorldContext = "WorldContextObject"))
+    static class UAbilityInfoDataAsset* GetAbilityInfo(const UObject* WorldContextObject);
+
 
 
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterInfo")

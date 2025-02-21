@@ -9,6 +9,8 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnEffectAppliedSignature, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGivenSignature);
 DECLARE_DELEGATE_OneParam(FForEachAbilityDelegate, const FGameplayAbilitySpec&);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FAbilityStatusChangeDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/);
+
 /**
  *
  */
@@ -21,6 +23,7 @@ public:
 
     FOnEffectAppliedSignature OnEffectApplied;
     FAbilitiesGivenSignature OnAbilitiesGiven;
+    FAbilityStatusChangeDelegate OnAbilityStatusChange;
     
 public:
 
@@ -42,6 +45,10 @@ public:
     static FGameplayTag GetStatusTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
     static FGameplayTag GetTypeTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
+    FGameplayAbilitySpec* FindAbilitySpecByAbilityTag(const FGameplayTag& AbilityTag);
+    
+    void UpdateAbilityStatuses(int32 Level);
+    
 protected:
 
     UFUNCTION(Client, Reliable)
@@ -51,6 +58,9 @@ protected:
     virtual void OnRep_ActivateAbilities() override;
     //~ End of UAbilitySystemComponent interface
 
+    UFUNCTION(Client, Reliable)
+    void ClientUpdateAbilityStatus(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag);
+    
 private:
     FDelegateHandle DelegateHandle_GameplayEffectAppliedToSelf;
     bool bStartupAbilitiesGiven = false;

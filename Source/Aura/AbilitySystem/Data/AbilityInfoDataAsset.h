@@ -12,29 +12,39 @@ struct FAuraAbilityInfo
 {
 	GENERATED_BODY()
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Abilities"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (Categories = "Abilities"))
 	FGameplayTag AbilityTag;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+	TSubclassOf<class UGameplayAbility> AbilityClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
 	FText AbilityName;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
 	FText Description;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Assets")
 	TSoftObjectPtr<class UTexture2D> IconImage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Assets")
 	TSoftObjectPtr<class UMaterialInterface> BackgroundImage;
 
-    UPROPERTY(BlueprintReadOnly, meta = (Categories = "InputTag"))
+    UPROPERTY(BlueprintReadOnly, Category = "Tags", meta = (Categories = "InputTag"))
 	FGameplayTag InputTag;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Cooldown"))
 	FGameplayTag CooldownTag;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Requirements")
+	int32 LevelRequirement = 1;
+
+	/* Dynamic Data */
+	
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag StatusTag;
+
+public:
 
 	FORCEINLINE bool operator==(const FGameplayTag& Tag) const
 	{

@@ -26,6 +26,16 @@ UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
+UAuraAbilitySystemComponent* AAuraPlayerState::GetAuraAbilitySystemComponent() const
+{
+    return CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+}
+
+class UAuraAttributeSet* AAuraPlayerState::GetAuraAttributeSet() const
+{
+    return CastChecked<UAuraAttributeSet>(AttributeSet);
+}
+
 void AAuraPlayerState::SetPlayerLevel(int32 NewLevel)
 {
     if (NewLevel <= Level)
@@ -45,9 +55,11 @@ void AAuraPlayerState::SetPlayerLevel(int32 NewLevel)
     AddAttributePoints(AttributePointsReward);
     AddSpellPoints(SpellPointsReward);
 
-    ICombatInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
-
     Level = NewLevel;
+
+    GetAuraAbilitySystemComponent()->UpdateAbilityStatuses(Level);
+
+    ICombatInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
     OnLevelChanged.Broadcast(Level);
 }
 

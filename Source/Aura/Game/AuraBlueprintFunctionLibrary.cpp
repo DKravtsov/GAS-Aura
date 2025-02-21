@@ -4,6 +4,7 @@
 #include "Game/AuraBlueprintFunctionLibrary.h"
 
 #include "AbilitySystem/AuraAbilitySystemTypes.h"
+#include "AbilitySystem/Data/AbilityInfoDataAsset.h"
 #include "Algo/Accumulate.h"
 #include "Algo/ForEach.h"
 #include "Kismet/GameplayStatics.h"
@@ -59,6 +60,15 @@ UCharacterClassInfo* UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(const 
     if (auto GM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
     {
         return GM->CharacterClassInfo;
+    }
+    return nullptr;
+}
+
+ UAbilityInfoDataAsset* UAuraBlueprintFunctionLibrary::GetAbilityInfo(const UObject* WorldContextObject)
+{
+    if (auto GM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+    {
+        return GM->AbilityInfo;
     }
     return nullptr;
 }

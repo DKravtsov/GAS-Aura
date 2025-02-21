@@ -58,6 +58,9 @@ public:
 
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+    class UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
+    class UAuraAttributeSet* GetAuraAttributeSet() const;
+
     FORCEINLINE int32 GetPlayerLevel() const { return Level; }
     void SetPlayerLevel(int32 NewLevel);
     void AddPlayerLevel(int32 NumLevels = 1);
