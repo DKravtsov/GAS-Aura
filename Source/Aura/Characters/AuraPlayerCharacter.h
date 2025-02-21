@@ -45,4 +45,6 @@ public:
 private:
     void InitAbilitySystemComponent();
     void InitOverlay();
+
+    mutable int32 CachedPlayerLevel = 1;
 };

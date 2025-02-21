@@ -86,6 +86,9 @@ void AAuraPlayerCharacter::OnRep_PlayerState()
 {
     Super::OnRep_PlayerState();
 
+    if (bDead || GetPlayerState() == nullptr)
+        return;
+    
     // init for the client
     InitAbilitySystemComponent();
     InitOverlay();
@@ -93,8 +96,11 @@ void AAuraPlayerCharacter::OnRep_PlayerState()
 
 int32 AAuraPlayerCharacter::BP_GetCharacterLevel_Implementation() const
 {
-    const auto PS = GetPlayerStateChecked<AAuraPlayerState>();
-    return PS->GetPlayerLevel();
+    if (const auto PS = GetPlayerState<AAuraPlayerState>())
+    {
+        CachedPlayerLevel = PS->GetPlayerLevel();
+    }
+    return CachedPlayerLevel;
 }
 
 void AAuraPlayerCharacter::AddXP_Implementation(int32 Amount)
