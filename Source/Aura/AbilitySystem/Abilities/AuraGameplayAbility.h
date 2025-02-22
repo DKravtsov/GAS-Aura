@@ -45,7 +45,27 @@ public:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, Categories="Damage", ForceInlineRow))
     TMap<FGameplayTag, FScalableFloat> DamageTypes;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
+    FText AbilityName;
 
+    /*
+     * @brief: Description of the ability (spell)
+     * Full description can use styles from the RichTextStyles data table;
+     * Alse can be used "variables" in curly brackets, such as:
+     *	Title
+     *	Level
+     *	Damage
+     *	Cooldown
+     *	...
+     *	etc.
+     */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description", meta = (MultiLine = true))
+    FText Description;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description", meta = (MultiLine = true))
+    FText NextLevelDescription;
+    
 public:
 
     virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
@@ -59,11 +79,28 @@ public:
     UFUNCTION(BlueprintCallable, Category = Caombat)
     bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
 
-    FText GetDescription(const int32 Level) const;
-    FText GetNextLevelDescription(const int32 Level) const;
+    virtual void GetDescription(const int32 Level, FText& OutDesc, FText& OutNextLevelDesc) const;
 
 protected:
 
     void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle);
 
+    float CalculateTotalDamage(int32 InLevel) const;
+    float GetDamageByType(const FGameplayTag& DamageType, const int32 InLevel) const;
+    float GetManaCost(const int32 InLevel) const;
+    float GetCooldown(const int32 InLevel) const;
+    
+    virtual void UpdateDescriptionTextArgs(FFormatNamedArguments& InArgs, const int32 InLevel) const;
+    virtual void UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const int32 InLevel) const;
+
+    virtual void AnalyzeDescription();
+
+protected:
+    uint32 bDamageText : 1 = false;
+    uint32 bDamageTypeFireText : 1 = false;
+    uint32 bDamageTypeLightningText : 1 = false;
+    uint32 bDamageTypeArcaneText : 1 = false;
+    uint32 bManaCostText : 1 = false;
+    uint32 bCooldownText : 1 = false;
+    uint32 bTextInitialized : 1 = false;  
 };

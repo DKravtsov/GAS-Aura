@@ -18,9 +18,6 @@ struct FAuraAbilityInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 	TSubclassOf<class UGameplayAbility> AbilityClass;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
-	FText AbilityName;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Assets")
 	TSoftObjectPtr<class UTexture2D> IconImage;
 
