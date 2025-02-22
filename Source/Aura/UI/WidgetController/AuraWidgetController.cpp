@@ -57,6 +57,7 @@ void UAuraWidgetController::BroadcastAbilityInfo() const
             Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
             Info.StatusTag = UAuraAbilitySystemComponent::GetStatusTagFromSpec(AbilitySpec);
             Info.SpellLevel = AbilitySpec.Level;
+            AuraAbilitySystemComponent->GetAbilityDescriptionsByTag(Tag, Info.Description, Info.NextLevelDescription);
             OnReceivedAbilityInfo.Broadcast(Info);
         }));
 }

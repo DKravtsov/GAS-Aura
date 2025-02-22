@@ -11,6 +11,8 @@
 #include "Data/AbilityInfoDataAsset.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
 
+#define LOCTEXT_NAMESPACE "AuraGameplayAbility"
+
 void UAuraAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
 {
     Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
@@ -155,6 +157,42 @@ FGameplayAbilitySpec* UAuraAbilitySystemComponent::FindAbilitySpecByAbilityTag(c
     return nullptr;
 }
 
+bool UAuraAbilitySystemComponent::GetAbilityDescriptionsByTag(const FGameplayTag& AbilityTag, FText& OutDesc, FText& OutNextLevelDesc)
+{
+    const UAbilityInfoDataAsset* AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor());
+    check(AbilityInfo);
+    const auto Info = AbilityInfo->FindAbilityInfoByTag(AbilityTag);
+    
+    if (const FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecByAbilityTag(AbilityTag))
+    {
+        if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec->Ability))
+        {
+            static auto SelectText = [](const FText& InText, const auto& Default)
+            {
+                return !InText.IsEmpty() ? InText : Default;
+            };
+            static const FTextFormat DefaultTextFormat = LOCTEXT("SpellDefaultDescFmt", "<Title>{Name}</>\r\nLevel <Level>{Level}</>\r\nDescription:\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla condimentum augue id purus porta lacinia. Praesent non lorem posuere, interdum sapien sit amet, efficitur tortor. Duis scelerisque tortor velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Cras auctor ex vel nisl vehicula, convallis euismod.");
+            static const FTextFormat DefaultNextTextFormat = LOCTEXT("SpellDefaultDescNextFmt", "Next level: <Level>{Level}</>\r\nCauses much more <damage>damage</>.");
+            static const FText DefaultSpellName = LOCTEXT("SpellDefaultName", "Default Spell Name");
+
+            // Replace all "variables" in the description with their values
+
+            FFormatNamedArguments Args;
+            Args.Add(TEXT("Level"), AbilitySpec->Level);
+            Args.Add(TEXT("Name"), SelectText(Info.AbilityName, DefaultSpellName));
+            
+            OutDesc = FText::Format(SelectText(Info.Description, DefaultTextFormat), Args);
+            Args[TEXT("Level")] = AbilitySpec->Level;
+            OutNextLevelDesc = FText::Format(SelectText(Info.NextLevelDescription, DefaultNextTextFormat), Args);
+            return true;
+        }
+    }
+    static const FTextFormat LockedTextFormat = LOCTEXT("LockedSpellDesc", "Required level <Level>{level}</> to unlock."); 
+    OutDesc = FText::Format(LockedTextFormat, Info.LevelRequirement);
+    OutNextLevelDesc = FText::GetEmpty();
+    return false;
+}
+
 void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 CharacterLevel)
 {
     auto AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor());
@@ -177,7 +215,6 @@ void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 CharacterLevel)
             GiveAbility(Spec);
             MarkAbilitySpecDirty(Spec);
 
-            //OnAbilityStatusChange.Broadcast(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible);
             ClientUpdateAbilityStatus(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible, Spec.Level);
         }
     }
@@ -243,3 +280,4 @@ void UAuraAbilitySystemComponent::ClientUpdateAbilityStatus_Implementation(const
     OnAbilityStatusChange.Broadcast(AbilityTag, StatusTag, Level);
 }
 
+#undef LOCTEXT_NAMESPACE

@@ -59,6 +59,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = Caombat)
     bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
 
+    FText GetDescription(const int32 Level) const;
+    FText GetNextLevelDescription(const int32 Level) const;
+
 protected:
 
     void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle);

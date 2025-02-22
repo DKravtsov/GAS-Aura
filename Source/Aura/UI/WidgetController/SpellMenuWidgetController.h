@@ -24,4 +24,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpgradeSpell(const struct FGameplayTag& AbilityTag);
+
+	UFUNCTION(BlueprintCallable)
+	bool GetSpellDescription(const FGameplayTag& AbilityTag, FText& OutDescription, FText& OutNextLevelDescription);
 };

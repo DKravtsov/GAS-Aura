@@ -23,6 +23,7 @@ void USpellMenuWidgetController::BindCallbacks()
 				auto Info = AbilityInfo->FindAbilityInfoByTag(AbilityTag);
 			    Info.StatusTag = StatusTag;
 				Info.SpellLevel = Level;
+	            AuraAbilitySystemComponent->GetAbilityDescriptionsByTag(AbilityTag, Info.Description, Info.NextLevelDescription);
 			    OnReceivedAbilityInfo.Broadcast(Info);
 			}
 		});
@@ -38,4 +39,11 @@ void USpellMenuWidgetController::UpgradeSpell(const FGameplayTag& AbilityTag)
 	{
 		AuraPlayerState->UpgradeSpell(AbilityTag);
 	}
+}
+
+bool USpellMenuWidgetController::GetSpellDescription(const FGameplayTag& AbilityTag, FText& OutDescription, FText& OutNextLevelDescription)
+{
+	if (!IsValid(AuraAbilitySystemComponent))
+		return false;
+	return AuraAbilitySystemComponent->GetAbilityDescriptionsByTag(AbilityTag, OutDescription, OutNextLevelDescription);
 }

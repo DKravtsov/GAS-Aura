@@ -46,6 +46,8 @@ public:
     static FGameplayTag GetTypeTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
     FGameplayAbilitySpec* FindAbilitySpecByAbilityTag(const FGameplayTag& AbilityTag);
+
+    bool GetAbilityDescriptionsByTag(const FGameplayTag& AbilityTag, FText& OutDesc, FText& OutNextLevelDesc);
     
     void UpdateAbilityStatuses(int32 Level);
 

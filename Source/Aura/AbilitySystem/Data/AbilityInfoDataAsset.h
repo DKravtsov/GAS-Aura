@@ -21,9 +21,6 @@ struct FAuraAbilityInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
 	FText AbilityName;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
-	FText Description;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Assets")
 	TSoftObjectPtr<class UTexture2D> IconImage;
 
@@ -41,11 +38,18 @@ struct FAuraAbilityInfo
 
 	/* Dynamic Data */
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Transient)
 	FGameplayTag StatusTag;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Transient)
 	int32 SpellLevel;
+
+	UPROPERTY(BlueprintReadOnly, Transient)
+	FText Description;
+
+	UPROPERTY(BlueprintReadOnly, Transient)
+	FText NextLevelDescription;
+
 
 public:
 
