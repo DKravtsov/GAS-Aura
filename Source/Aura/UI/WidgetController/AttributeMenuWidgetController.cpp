@@ -57,5 +57,8 @@ void UAttributeMenuWidgetController::BindCallbacks()
 
 void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag, const int32 Points)
 {
-    AuraPlayerState->UpgradeAttribute(AttributeTag, Points);
+    if (AuraPlayerState)
+    {
+        AuraPlayerState->UpgradeAttribute(AttributeTag, Points);
+    }
 }

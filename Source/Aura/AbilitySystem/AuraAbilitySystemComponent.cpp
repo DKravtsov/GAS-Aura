@@ -155,13 +155,13 @@ FGameplayAbilitySpec* UAuraAbilitySystemComponent::FindAbilitySpecByAbilityTag(c
     return nullptr;
 }
 
-void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level)
+void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 CharacterLevel)
 {
     auto AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor());
 
     for (const auto& Info : AbilityInfo->AbilityInfos)
     {
-        if (Level < Info.LevelRequirement || !Info.AbilityTag.IsValid())
+        if (CharacterLevel < Info.LevelRequirement || !Info.AbilityTag.IsValid())
             continue;;
         
         // TArray<FGameplayAbilitySpecHandle> Handles;
@@ -178,9 +178,52 @@ void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level)
             MarkAbilitySpecDirty(Spec);
 
             //OnAbilityStatusChange.Broadcast(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible);
-            ClientUpdateAbilityStatus(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible);
+            ClientUpdateAbilityStatus(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible, Spec.Level);
         }
     }
+}
+
+bool UAuraAbilitySystemComponent::UpgradeAbility(const FGameplayTag& AbilityTag)
+{
+    auto AbilitySpec = FindAbilitySpecByAbilityTag(AbilityTag);
+    if (AbilitySpec == nullptr)
+    {
+        UE_LOG(LogMyGame, Warning, TEXT("Failed to upgrade ability [%s]: Not found."), *AbilityTag.ToString());
+        return false;
+    }
+
+    static auto CreateTagContainer = []()
+    {
+        TArray<FGameplayTag> Array = {AuraGameplayTags::Abilities_Status_Equipped, AuraGameplayTags::Abilities_Status_Unlocked};
+        return FGameplayTagContainer::CreateFromArray(Array);
+    };
+        
+    static const FGameplayTagContainer EquipOrUnlocked = CreateTagContainer();
+        
+    FGameplayTag Status = GetStatusTagFromSpec(*AbilitySpec);
+    if (Status.MatchesTagExact(AuraGameplayTags::Abilities_Status_Eligible))
+    {
+        // Unlock the ability
+        AbilitySpec->DynamicAbilityTags.RemoveTag(AuraGameplayTags::Abilities_Status_Eligible);
+        AbilitySpec->DynamicAbilityTags.AddTag(AuraGameplayTags::Abilities_Status_Unlocked);
+        Status = AuraGameplayTags::Abilities_Status_Unlocked;
+    }
+    else if (Status.MatchesAnyExact(EquipOrUnlocked))
+    {
+        // level up the ability
+        AbilitySpec->Level++;
+    }
+    else
+    {
+        UE_LOG(LogMyGame, Warning, TEXT("Failed to upgrade ability [%s]: Invalid status [%s]."),
+            *AbilityTag.ToString(), *Status.ToString());
+        return false;
+    }
+
+    ClientUpdateAbilityStatus(AbilityTag, Status, AbilitySpec->Level);
+    MarkAbilitySpecDirty(*AbilitySpec);
+    
+    return true;
 }
 
 void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
@@ -194,9 +237,9 @@ void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
     }
 }
 
-void UAuraAbilitySystemComponent::ClientUpdateAbilityStatus_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag)
+void UAuraAbilitySystemComponent::ClientUpdateAbilityStatus_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag, const int32 Level)
 {
     LOG_NETFUNCTIONCALL_COMPONENT;
-    OnAbilityStatusChange.Broadcast(AbilityTag, StatusTag);
+    OnAbilityStatusChange.Broadcast(AbilityTag, StatusTag, Level);
 }
 

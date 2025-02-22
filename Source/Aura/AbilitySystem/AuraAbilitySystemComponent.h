@@ -9,7 +9,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnEffectAppliedSignature, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGivenSignature);
 DECLARE_DELEGATE_OneParam(FForEachAbilityDelegate, const FGameplayAbilitySpec&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FAbilityStatusChangeDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChangeDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/, const int32 /*Level*/);
 
 /**
  *
@@ -48,6 +48,8 @@ public:
     FGameplayAbilitySpec* FindAbilitySpecByAbilityTag(const FGameplayTag& AbilityTag);
     
     void UpdateAbilityStatuses(int32 Level);
+
+    bool UpgradeAbility(const FGameplayTag& AbilityTag);
     
 protected:
 
@@ -59,7 +61,7 @@ protected:
     //~ End of UAbilitySystemComponent interface
 
     UFUNCTION(Client, Reliable)
-    void ClientUpdateAbilityStatus(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag);
+    void ClientUpdateAbilityStatus(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag, const int32 Level);
     
 private:
     FDelegateHandle DelegateHandle_GameplayEffectAppliedToSelf;

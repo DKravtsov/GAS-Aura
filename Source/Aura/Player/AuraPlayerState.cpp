@@ -4,6 +4,7 @@
 #include "Player/AuraPlayerState.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/LevelUpDataAsset.h"
@@ -26,12 +27,17 @@ UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
     return AbilitySystemComponent;
 }
 
-UAuraAbilitySystemComponent* AAuraPlayerState::GetAuraAbilitySystemComponent() const
+class UAuraAbilitySystemComponent* AAuraPlayerState::GetAuraAbilitySystemComponent() const
+{
+    return Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+}
+
+UAuraAbilitySystemComponent* AAuraPlayerState::GetAuraAbilitySystemComponentChecked() const
 {
     return CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 }
 
-class UAuraAttributeSet* AAuraPlayerState::GetAuraAttributeSet() const
+class UAuraAttributeSet* AAuraPlayerState::GetAuraAttributeSetChecked() const
 {
     return CastChecked<UAuraAttributeSet>(AttributeSet);
 }
@@ -57,7 +63,7 @@ void AAuraPlayerState::SetPlayerLevel(int32 NewLevel)
 
     Level = NewLevel;
 
-    GetAuraAbilitySystemComponent()->UpdateAbilityStatuses(Level);
+    GetAuraAbilitySystemComponentChecked()->UpdateAbilityStatuses(Level);
 
     ICombatInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
     OnLevelChanged.Broadcast(Level);
@@ -122,6 +128,11 @@ void AAuraPlayerState::UpgradeAttribute(const FGameplayTag& AttributeTag, const 
     }
 }
 
+void AAuraPlayerState::UpgradeSpell(const FGameplayTag& AbilityTag)
+{
+    ServerUpgradeSpell(AbilityTag);
+}
+
 void AAuraPlayerState::ServerUpgradeAttribute_Implementation(const FGameplayTag& AttributeTag, const int32 Points)
 {
     FGameplayEventData Payload;
@@ -159,6 +170,22 @@ void AAuraPlayerState::OnRep_AttributePoints(int32 OldValue)
 void AAuraPlayerState::OnRep_SpellPoints(int32 OldValue)
 {
     OnSpellPointsChanged.Broadcast(SpellPoints);
+}
+
+void AAuraPlayerState::ServerUpgradeSpell_Implementation(const FGameplayTag& AbilityTag)
+{
+    if (auto ASC = GetAuraAbilitySystemComponent())
+    {
+        if (ASC->UpgradeAbility(AbilityTag))
+        {
+            AddSpellPoints(-1);
+        }
+    }
+}
+
+bool AAuraPlayerState::ServerUpgradeSpell_Validate(const FGameplayTag& AbilityTag)
+{
+    return true;
 }
 
 void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

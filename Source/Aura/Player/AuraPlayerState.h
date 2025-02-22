@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "AuraPlayerState.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedDelegate, const int32 /*Value*/);
@@ -59,7 +60,8 @@ public:
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
     class UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
-    class UAuraAttributeSet* GetAuraAttributeSet() const;
+    class UAuraAbilitySystemComponent* GetAuraAbilitySystemComponentChecked() const;
+    class UAuraAttributeSet* GetAuraAttributeSetChecked() const;
 
     FORCEINLINE int32 GetPlayerLevel() const { return Level; }
     void SetPlayerLevel(int32 NewLevel);
@@ -81,6 +83,11 @@ public:
 
     UFUNCTION(Server, WithValidation, Reliable)
     void ServerUpgradeAttribute(const FGameplayTag& AttributeTag, const int32 Points = 1);
+
+    void UpgradeSpell(const FGameplayTag& AbilityTag);
+
+    UFUNCTION(Server, WithValidation, Reliable)
+    void ServerUpgradeSpell(const FGameplayTag& AbilityTag);
     
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

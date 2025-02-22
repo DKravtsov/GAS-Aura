@@ -44,6 +44,9 @@ struct FAuraAbilityInfo
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag StatusTag;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 SpellLevel;
+
 public:
 
 	FORCEINLINE bool operator==(const FGameplayTag& Tag) const

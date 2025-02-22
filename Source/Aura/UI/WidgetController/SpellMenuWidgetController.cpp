@@ -16,13 +16,14 @@ void USpellMenuWidgetController::BroadcastInitialValues()
 void USpellMenuWidgetController::BindCallbacks()
 {
 	AuraAbilitySystemComponent->OnAbilityStatusChange
-		.AddLambda([this](const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag)
+		.AddLambda([this](const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag, const int32 Level)
 		{
 			if (AbilityInfo)
 			{
 				auto Info = AbilityInfo->FindAbilityInfoByTag(AbilityTag);
-			   Info.StatusTag = StatusTag;
-			   OnReceivedAbilityInfo.Broadcast(Info);
+			    Info.StatusTag = StatusTag;
+				Info.SpellLevel = Level;
+			    OnReceivedAbilityInfo.Broadcast(Info);
 			}
 		});
 	AuraPlayerState->OnSpellPointsChanged.AddLambda([this](const int32 SP)
@@ -31,6 +32,10 @@ void USpellMenuWidgetController::BindCallbacks()
 		});
 }
 
-void USpellMenuWidgetController::UpgradeSpell(const FGameplayTag& AttributeTag)
+void USpellMenuWidgetController::UpgradeSpell(const FGameplayTag& AbilityTag)
 {
+	if (AuraPlayerState)
+	{
+		AuraPlayerState->UpgradeSpell(AbilityTag);
+	}
 }

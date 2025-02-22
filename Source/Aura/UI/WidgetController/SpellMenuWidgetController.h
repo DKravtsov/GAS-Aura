@@ -23,5 +23,5 @@ public:
 	virtual void BindCallbacks() override;
 
 	UFUNCTION(BlueprintCallable)
-	void UpgradeSpell(const struct FGameplayTag& AttributeTag);
+	void UpgradeSpell(const struct FGameplayTag& AbilityTag);
 };
