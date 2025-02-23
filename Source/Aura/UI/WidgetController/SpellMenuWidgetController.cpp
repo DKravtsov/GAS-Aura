@@ -3,6 +3,7 @@
 
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 
+#include "Logs.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/Data/AbilityInfoDataAsset.h"
 #include "Player/AuraPlayerState.h"
@@ -46,4 +47,16 @@ bool USpellMenuWidgetController::GetSpellDescription(const FGameplayTag& Ability
 	if (!IsValid(AuraAbilitySystemComponent))
 		return false;
 	return AuraAbilitySystemComponent->GetAbilityDescriptionsByTag(AbilityTag, OutDescription, OutNextLevelDescription);
+}
+
+void USpellMenuWidgetController::EquipAbility(const FGameplayTag& AbilityTag, const FGameplayTag& InputTag)
+{
+	UE_LOG(LogMyGame, Warning, TEXT("SpellMenuWidgetController (%s): Equip Ability [%s] to slot [%s]"),
+		 NETMODE_WORLD, *AbilityTag.ToString(), *InputTag.ToString());
+}
+
+void USpellMenuWidgetController::UnEquipAbility(const FGameplayTag& InputTag)
+{
+	UE_LOG(LogMyGame, Warning, TEXT("SpellMenuWidgetController (%s): UnEquip Ability from slot [%s]"),
+		NETMODE_WORLD, *InputTag.ToString());
 }

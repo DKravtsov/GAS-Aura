@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "SpellMenuWidgetController.generated.h"
 
@@ -27,4 +28,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool GetSpellDescription(const FGameplayTag& AbilityTag, FText& OutDescription, FText& OutNextLevelDescription);
+
+	UFUNCTION(BlueprintCallable)
+	void EquipAbility(const FGameplayTag& AbilityTag, const FGameplayTag& InputTag);
+
+	UFUNCTION(BlueprintCallable)
+	void UnEquipAbility(const FGameplayTag& InputTag);
 };

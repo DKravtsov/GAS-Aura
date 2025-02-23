@@ -30,6 +30,9 @@ struct FAuraAbilityInfo
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Cooldown"))
 	FGameplayTag CooldownTag;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Abilities.Type"))
+	FGameplayTag AbilityTypeTag;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Requirements")
 	int32 LevelRequirement = 1;
 
