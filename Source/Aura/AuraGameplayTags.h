@@ -62,6 +62,9 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Arcane);
     
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities);
+
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_None);
+    
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Melee);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Attack_Ranged);
@@ -72,6 +75,7 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_HitReact);
     
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Locked);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Eligible);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Unlocked);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities_Status_Equipped);

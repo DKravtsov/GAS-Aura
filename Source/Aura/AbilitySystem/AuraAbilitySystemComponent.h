@@ -10,6 +10,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnEffectAppliedSignature, const FGameplayTa
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGivenSignature);
 DECLARE_DELEGATE_OneParam(FForEachAbilityDelegate, const FGameplayAbilitySpec&);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChangeDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/, const int32 /*Level*/);
+DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquippedDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*Status*/, const FGameplayTag& /*Slot*/, const FGameplayTag& /*PrevSlot*/);
 
 /**
  *
@@ -24,11 +25,13 @@ public:
     FOnEffectAppliedSignature OnEffectApplied;
     FAbilitiesGivenSignature OnAbilitiesGiven;
     FAbilityStatusChangeDelegate OnAbilityStatusChange;
+    FAbilityEquippedDelegate OnAbilityEquipped;
     
 public:
 
     //~ Begin of UAbilitySystemComponent interface
     virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
+    virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
     //~ End of UAbilitySystemComponent interface
 
     void GrantAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& Abilities, int32 AbilityLevel);
@@ -45,14 +48,23 @@ public:
     static FGameplayTag GetStatusTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
     static FGameplayTag GetTypeTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
+    UFUNCTION(BlueprintCallable)
+    FGameplayTag GetAbilityInputTagFromAbilityTag(const FGameplayTag& AbilityTag);
+
+    UFUNCTION(BlueprintCallable)
+    FGameplayTag GetAbilityStatusFromAbilityTag(const FGameplayTag& AbilityTag);
+
     FGameplayAbilitySpec* FindAbilitySpecByAbilityTag(const FGameplayTag& AbilityTag);
 
-    bool GetAbilityDescriptionsByTag(const FGameplayTag& AbilityTag, FText& OutDesc, FText& OutNextLevelDesc);
+    bool GetAbilityDescriptionsByTag(const FGameplayTag& AbilityTag, int32 Level, FText& OutDesc, FText& OutNextLevelDesc);
     
     void UpdateAbilityStatuses(int32 Level);
 
     bool UpgradeAbility(const FGameplayTag& AbilityTag);
-    
+
+    UFUNCTION(Server, Reliable, WithValidation)
+    void ServerEquipAbility(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag);
+
 protected:
 
     UFUNCTION(Client, Reliable)
@@ -64,6 +76,15 @@ protected:
 
     UFUNCTION(Client, Reliable)
     void ClientUpdateAbilityStatus(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag, const int32 Level);
+
+    UFUNCTION(Client, Reliable)
+    void ClientEquipAbility(const FGameplayTag& InAbilityTag, const FGameplayTag& InInputTag, const FGameplayTag& InStatus, const FGameplayTag& InPrevSlot);
+
+    static bool IsStatusEquipOrUnlocked(const FGameplayTag& InStatusTag);
+
+    void ClearInputSlot(FGameplayAbilitySpec& Spec);
+    void ClearAbilitiesOfInputSlot(const FGameplayTag& InSlot);
+    static bool HasAbilitySlot(FGameplayAbilitySpec& Spec, const FGameplayTag& InSlot);
     
 private:
     FDelegateHandle DelegateHandle_GameplayEffectAppliedToSelf;

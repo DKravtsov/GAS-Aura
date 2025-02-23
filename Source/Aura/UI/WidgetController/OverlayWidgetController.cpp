@@ -37,6 +37,7 @@ void UOverlayWidgetController::BindCallbacks()
     AuraAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxManaAttribute())
         .AddUObject(this, &UOverlayWidgetController::AttributeChanged);
 
+	AuraAbilitySystemComponent->OnAbilityEquipped.AddUObject(this, &UOverlayWidgetController::AbilityEquipped);
     AuraAbilitySystemComponent->OnEffectApplied.AddUObject(this, &UOverlayWidgetController::BroadcastMessagesByTags);
     if (AuraAbilitySystemComponent->AreStartupAbilitiesGiven())
     {

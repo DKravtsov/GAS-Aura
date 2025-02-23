@@ -54,6 +54,9 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Arcane, "Damage.Arcane", "Arcane damage type");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities, "Abilities", "Parent tag for all gameplay abilities");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_None, "Abilities.None", "?");
+    
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack, "Abilities.Attack", "Parent tag for all attacking abilities");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Melee, "Abilities.Attack.Melee", "Melee attack");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_Attack_Ranged, "Abilities.Attack.Ranged", "Ranged attack");

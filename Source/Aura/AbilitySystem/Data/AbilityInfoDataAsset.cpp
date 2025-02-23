@@ -2,12 +2,13 @@
 
 
 #include "AbilitySystem/Data/AbilityInfoDataAsset.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 
 FAuraAbilityInfo UAbilityInfoDataAsset::FindAbilityInfoByTag(const FGameplayTag& Tag, bool bLogNotFound) const
 {
 	if (const auto Info = AbilityInfos.FindByKey(Tag))
 	{
-		return *Info;
+		return FAuraAbilityInfo(*Info, true);
 	}
 	if (bLogNotFound)
 	{

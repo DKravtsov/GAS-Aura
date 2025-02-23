@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/NoExportTypes.h"
 #include "AuraWidgetController.generated.h"
 
@@ -52,9 +53,10 @@ public:
 
     virtual void BindCallbacks();
 
-    class UAbilityInfoDataAsset* GetAbilityInfo() const { return AbilityInfo; }
+    UAbilityInfoDataAsset* GetAbilityInfo() const { return AbilityInfo; }
 
 protected:
     
     void BroadcastAbilityInfo() const;
+	void AbilityEquipped(const FGameplayTag& AbilityTag, const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PrevSlot) const;
 };
