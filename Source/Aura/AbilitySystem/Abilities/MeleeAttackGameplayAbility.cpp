@@ -5,5 +5,4 @@
 
 UMeleeAttackGameplayAbility::UMeleeAttackGameplayAbility()
 {
-	DamagePolicy = EAbilityDamagePolicy::CausesDamage;
 }
