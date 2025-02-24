@@ -77,8 +77,6 @@ public:
 
     virtual void GetDescription(const int32 Level, FText& OutDesc, FText& OutNextLevelDesc) const;
 
-    virtual float GetBaseDamage(const int32 InLevel) const { return 0.f;}
-    virtual FGameplayTag GetDamageType() const { return FGameplayTag(); }
     float GetManaCost(const int32 InLevel) const;
     float GetCooldown(const int32 InLevel) const;
     
@@ -86,7 +84,7 @@ protected:
 
 #pragma region Description Internal
     
-    struct FDescriptionInfo
+    struct FDynamicDescriptionInfo
     {
         uint32 bTextInitialized : 1 = false;
 
@@ -105,12 +103,12 @@ protected:
         float NextCooldown = 0.f;
         
         static void AnalyzeDescription(TSubclassOf<UAuraGameplayAbility> AbilityClass);
-
-        static void UpdateDescriptionTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel);
         static void UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel);
     };
 
-    FDescriptionInfo DescriptionInfo;
+    virtual void GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const;
+
+    FDynamicDescriptionInfo DynamicDescriptionInfo;
 
 #pragma endregion 
 };

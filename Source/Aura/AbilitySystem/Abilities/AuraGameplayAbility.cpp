@@ -24,7 +24,7 @@ void UAuraGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorI
 		}
 	}
 
-	FDescriptionInfo::AnalyzeDescription(GetClass());
+	FDynamicDescriptionInfo::AnalyzeDescription(GetClass());
 }
 
 void UAuraGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -89,47 +89,26 @@ void UAuraGameplayAbility::GetDescription(const int32 Level, FText& OutDesc, FTe
 	FFormatNamedArguments Args;
 	Args.Add(TEXT("Name"), SelectText(AbilityName.ToUpper(), DefaultSpellName));
 
-	DescriptionInfo.UpdateDescriptionPredefinedTextArgs(Args, this, Level);
+	DynamicDescriptionInfo.UpdateDescriptionPredefinedTextArgs(Args, this, Level);
 	OutDesc = FText::Format(SelectText(Description, DefaultTextFormat), Args);
 	OutNextLevelDesc = FText::Format(SelectText(NextLevelDescription, DefaultNextTextFormat), Args);
 }
 
-void UAuraGameplayAbility::FDescriptionInfo::UpdateDescriptionTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel)
-{
-	InArgs.FindOrAdd(TEXT("Level")) = InLevel;
-	InArgs.FindOrAdd(TEXT("NextLevel")) = InLevel + 1;
-
-	static FNumberFormattingOptions Options = FNumberFormattingOptions().SetMaximumFractionalDigits(1);
-
-	InArgs.FindOrAdd(TEXT("Damage")) = FText::AsNumber(Ability->GetBaseDamage(InLevel), &Options);
-	InArgs.FindOrAdd(TEXT("NextDamage")) = FText::AsNumber(Ability->GetBaseDamage(InLevel + 1), &Options);
-
-	InArgs.FindOrAdd(TEXT("Cost")) = FText::AsNumber(Ability->GetManaCost(InLevel), &Options);
-	InArgs.FindOrAdd(TEXT("NextCost")) = FText::AsNumber(Ability->GetManaCost(InLevel + 1), &Options);
-
-	InArgs.FindOrAdd(TEXT("Cooldown")) = FText::AsNumber(Ability->GetCooldown(InLevel), &Options);
-	InArgs.FindOrAdd(TEXT("NextCooldown")) = FText::AsNumber(Ability->GetCooldown(InLevel + 1), &Options);
-}
-
-void UAuraGameplayAbility::FDescriptionInfo::UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel)
+void UAuraGameplayAbility::FDynamicDescriptionInfo::UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel)
 {
 	if (Ability == nullptr)
 		return;
 	
-	UAuraGameplayAbility* CDO = Ability->GetClass()->GetDefaultObject<UAuraGameplayAbility>();
-	check(CDO != nullptr);
+	FDynamicDescriptionInfo DescriptionInfo;
+	Ability->GetDynamicDescriptionInfo(DescriptionInfo, InLevel);
 
 	InArgs.FindOrAdd(TEXT("Level")) = FText::Format(INVTEXT("<level>{0}</>"), InLevel);
 	InArgs.FindOrAdd(TEXT("NextLevel")) = FText::Format(INVTEXT("<old>{0}</> > <level>{1}</>"), InLevel, InLevel + 1);
 
 	static const FNumberFormattingOptions Options = FNumberFormattingOptions().SetMaximumFractionalDigits(1);
 
-	if (CDO->DescriptionInfo.bDamageText)
+	if (DescriptionInfo.bDamageText)
 	{
-		const float Damage = Ability->GetBaseDamage(InLevel);
-		const float NextDamage = Ability->GetBaseDamage(InLevel + 1);
-		const FGameplayTag& DamageType = Ability->GetDamageType();
-	
 		static const FTextFormat GenericDamageTypeFmt = LOCTEXT("GenericDamageFmt", "<dmg>{0}</> damage");
 		static const FTextFormat FireDamageTypeFmt = LOCTEXT("FireDamageFmt", "<dmgfire>{0} fire</> damage");
 		static const FTextFormat LightningDamageTypeFmt = LOCTEXT("LightningDamageFmt", "<dmglght>{0} lightning</> damage");
@@ -142,19 +121,19 @@ void UAuraGameplayAbility::FDescriptionInfo::UpdateDescriptionPredefinedTextArgs
 
 		const FTextFormat* DamageFmt;
 		const FTextFormat* NextDamageFmt;
-		const bool bEqualDamage = FMath::IsNearlyEqual(Damage, NextDamage, 0.05f);
-		if (DamageType == AuraGameplayTags::Damage_Fire)
+		const bool bEqualDamage = FMath::IsNearlyEqual(DescriptionInfo.Damage, DescriptionInfo.NextDamage, 0.05f);
+		if (DescriptionInfo.DamageType == AuraGameplayTags::Damage_Fire)
 		{
 			DamageFmt = &FireDamageTypeFmt;
 			NextDamageFmt = bEqualDamage ? &FireDamageTypeFmt : &NextFireDamageTypeFmt;
 		}
-		else if (DamageType == AuraGameplayTags::Damage_Lightning)
+		else if (DescriptionInfo.DamageType == AuraGameplayTags::Damage_Lightning)
 		{
 			DamageFmt = &LightningDamageTypeFmt;
 			NextDamageFmt = bEqualDamage ? &LightningDamageTypeFmt: &NextLightningDamageTypeFmt;
 			
 		}
-		else if (DamageType == AuraGameplayTags::Damage_Arcane)
+		else if (DescriptionInfo.DamageType == AuraGameplayTags::Damage_Arcane)
 		{
 			DamageFmt = &ArcaneDamageTypeFmt;
 			NextDamageFmt = bEqualDamage ? &ArcaneDamageTypeFmt : &NextArcaneDamageTypeFmt;
@@ -165,48 +144,63 @@ void UAuraGameplayAbility::FDescriptionInfo::UpdateDescriptionPredefinedTextArgs
 			NextDamageFmt = bEqualDamage ? &GenericDamageTypeFmt : &NextGenericDamageTypeFmt;
 		}
 		
-		const auto DamageText = FText::AsNumber(Damage, &Options);
-		const auto NextDamageText = FText::AsNumber(NextDamage, &Options);
+		const auto DamageText = FText::AsNumber(DescriptionInfo.Damage, &Options);
+		const auto NextDamageText = FText::AsNumber(DescriptionInfo.NextDamage, &Options);
 		InArgs.FindOrAdd(TEXT("Damage")) = FText::Format(*DamageFmt, DamageText);
 		InArgs.FindOrAdd(TEXT("NextDamage")) = FText::Format(*NextDamageFmt, NextDamageText, DamageText);
 	}
 
-	if (CDO->DescriptionInfo.bManaCostText)
+	if (DescriptionInfo.bManaCostText)
 	{
-		const float ManaCost = Ability->GetManaCost(InLevel);
-		const float NextManaCost = Ability->GetManaCost(InLevel + 1);
-		const FText ManaCostText = FText::AsNumber(ManaCost, &Options);
+		const FText ManaCostText = FText::AsNumber(DescriptionInfo.ManaCost, &Options);
 		InArgs.FindOrAdd(TEXT("Cost")) = FText::Format(INVTEXT("<mana>{0}</>"), ManaCostText);
-		InArgs.FindOrAdd(TEXT("NextCost")) = !FMath::IsNearlyEqual(ManaCost, NextManaCost, 0.05f)
-			? FText::Format(INVTEXT("<old>{0}</> > <mana>{1}</>"), ManaCostText, FText::AsNumber(NextManaCost, &Options))
+		InArgs.FindOrAdd(TEXT("NextCost")) = !FMath::IsNearlyEqual(DescriptionInfo.ManaCost, DescriptionInfo.NextManaCost, 0.05f)
+			? FText::Format(INVTEXT("<old>{0}</> > <mana>{1}</>"), ManaCostText, FText::AsNumber(DescriptionInfo.NextManaCost, &Options))
 			: InArgs[TEXT("Cost")];
 	}
 
-	if (CDO->DescriptionInfo.bCooldownText)
+	if (DescriptionInfo.bCooldownText)
 	{
-		const float Cooldown = Ability->GetCooldown(InLevel);
-		const float NextCooldown = Ability->GetCooldown(InLevel + 1);
-		const FText CooldownText = FText::AsNumber(Cooldown, &Options);
-	
+		const FText CooldownText = FText::AsNumber(DescriptionInfo.Cooldown, &Options);
 		InArgs.FindOrAdd(TEXT("Cooldown")) = FText::Format(INVTEXT("<cooldown>{0}</>"), CooldownText);
-		InArgs.FindOrAdd(TEXT("NextCooldown")) = !FMath::IsNearlyEqual(Cooldown, NextCooldown, 0.05f)
-			? FText::Format(INVTEXT("<old>{0}</> > <cooldown>{1}</>"), CooldownText, FText::AsNumber(NextCooldown, &Options))
+		InArgs.FindOrAdd(TEXT("NextCooldown")) = !FMath::IsNearlyEqual(DescriptionInfo.Cooldown, DescriptionInfo.NextCooldown, 0.05f)
+			? FText::Format(INVTEXT("<old>{0}</> > <cooldown>{1}</>"), CooldownText, FText::AsNumber(DescriptionInfo.NextCooldown, &Options))
 			: InArgs[TEXT("Cooldown")];
 	}
 }
 
-void UAuraGameplayAbility::FDescriptionInfo::AnalyzeDescription(TSubclassOf<UAuraGameplayAbility> AbilityClass)
+void UAuraGameplayAbility::GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const
+{
+	UAuraGameplayAbility* CDO = GetClass()->GetDefaultObject<UAuraGameplayAbility>();
+	if (CDO == nullptr)
+		return;
+	OutDescriptionInfo = CDO->DynamicDescriptionInfo;
+	
+	if (DynamicDescriptionInfo.bManaCostText)
+	{
+		OutDescriptionInfo.ManaCost = GetManaCost(InLevel);
+		OutDescriptionInfo.NextManaCost = GetManaCost(InLevel + 1);
+	}
+
+	if (DynamicDescriptionInfo.bCooldownText)
+	{
+		OutDescriptionInfo.Cooldown = GetCooldown(InLevel);
+		OutDescriptionInfo.NextCooldown = GetCooldown(InLevel + 1);
+	}
+}
+
+void UAuraGameplayAbility::FDynamicDescriptionInfo::AnalyzeDescription(TSubclassOf<UAuraGameplayAbility> AbilityClass)
 {
 	UAuraGameplayAbility* CDO = AbilityClass->GetDefaultObject<UAuraGameplayAbility>();
-	if (CDO == nullptr || CDO->DescriptionInfo.bTextInitialized || CDO->Description.IsEmpty())
+	if (CDO == nullptr || CDO->DynamicDescriptionInfo.bTextInitialized || CDO->Description.IsEmpty())
 		return;
 
 	const FString Desc = CDO->Description.ToString();
 	const FString NextDesc = CDO->NextLevelDescription.ToString();
 
-	CDO->DescriptionInfo.bDamageText = Desc.Contains(TEXT("{Damage}"), ESearchCase::IgnoreCase);
-	CDO->DescriptionInfo.bManaCostText = Desc.Contains(TEXT("{Cost}"), ESearchCase::IgnoreCase);
-	CDO->DescriptionInfo.bCooldownText = Desc.Contains(TEXT("{Cooldown}"), ESearchCase::IgnoreCase);
+	CDO->DynamicDescriptionInfo.bDamageText = Desc.Contains(TEXT("{Damage}"), ESearchCase::IgnoreCase);
+	CDO->DynamicDescriptionInfo.bManaCostText = Desc.Contains(TEXT("{Cost}"), ESearchCase::IgnoreCase);
+	CDO->DynamicDescriptionInfo.bCooldownText = Desc.Contains(TEXT("{Cooldown}"), ESearchCase::IgnoreCase);
 #if !WITH_EDITOR
   	CDO->DescriptionInfo.bTextInitialized = true;
 #endif

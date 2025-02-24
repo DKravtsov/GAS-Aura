@@ -51,12 +51,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Caombat)
 	bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
 
-	virtual float GetBaseDamage(const int32 InLevel) const override;
-	virtual FGameplayTag GetDamageType() const override { return DamageType;}
+	float GetBaseDamage(const int32 InLevel) const;
+	FGameplayTag GetDamageType() const { return DamageType;}
 
     FDamageEffectParams MakeDamageEffectParams(AActor* TargetActor = nullptr) const;
 
 protected:
 
     void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle) const;
+
+	virtual void GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const override;
 };

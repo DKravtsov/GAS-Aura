@@ -58,3 +58,14 @@ void UDamageGameplayAbility::SetupDamageTypes(const FGameplayEffectSpecHandle& D
 	const float Damage = BaseDamage.GetValueAtLevel(GetAbilityLevel());
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, DamageType, Damage);
 }
+
+void UDamageGameplayAbility::GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const
+{
+	Super::GetDynamicDescriptionInfo(OutDescriptionInfo, InLevel);
+	if (OutDescriptionInfo.bDamageText)
+	{
+		OutDescriptionInfo.Damage = GetBaseDamage(InLevel);
+		OutDescriptionInfo.NextDamage = GetBaseDamage(InLevel + 1);
+		OutDescriptionInfo.DamageType = GetDamageType();
+	}
+}
