@@ -13,7 +13,11 @@ UCLASS(Abstract)
 class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
     GENERATED_BODY()
+public:
 
+    UPROPERTY(BlueprintAssignable)
+    FOnDeathSignature OnDeath;
+    
 protected:
     
     UPROPERTY()
@@ -94,6 +98,7 @@ public:
     virtual UNiagaraSystem* GetBloodEffect_Implementation() const override { return BloodEffect; }
     virtual int32 GetMinionCount_Implementation() const override { return MinionCount; }
     virtual APawn* SummonMinion_Implementation(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation) override;
+    virtual FOnDeathSignature& GetOnDeathDelegate() override { return OnDeath; };
     //~ End of ICombatInterface interface
 
     int32 GetCharacterLevel() const;
@@ -116,6 +121,6 @@ protected:
     virtual void RemovedMinion(APawn* Minion) {}
 
     // plays on both server and client
-    UFUNCTION(BlueprintImplementableEvent)
-    void OnDeath();
+    UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "HandleDeath"))
+    void BP_HandleDeath();
 };

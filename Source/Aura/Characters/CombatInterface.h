@@ -9,6 +9,8 @@
 
 enum class EAuraCharacterClass : uint8;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeathSignature, AActor*, DeadActor);
+
 USTRUCT(BlueprintType)
 struct FAttackInfo
 {
@@ -101,4 +103,6 @@ public:
 
     UFUNCTION(BlueprintNativeEvent)
     void NotifyLevelUp();
+
+    virtual FOnDeathSignature& GetOnDeathDelegate() = 0;
 };

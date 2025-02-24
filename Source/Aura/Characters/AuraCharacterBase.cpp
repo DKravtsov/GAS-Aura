@@ -156,7 +156,9 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
         }
     }
 
-    OnDeath();
+    BP_HandleDeath();
+    OnDeath.Broadcast(this);
+    
 
     DetachFromControllerPendingDestroy();
 }
