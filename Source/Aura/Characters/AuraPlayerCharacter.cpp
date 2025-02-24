@@ -38,10 +38,6 @@ AAuraPlayerCharacter::AAuraPlayerCharacter()
 
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = true;
-
-    LevelUpNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("LevelUpFXComponent");
-    LevelUpNiagaraComponent->SetupAttachment(GetRootComponent());
-    LevelUpNiagaraComponent->bAutoActivate = false;
 }
 
 void AAuraPlayerCharacter::PossessedBy(AController* NewController)

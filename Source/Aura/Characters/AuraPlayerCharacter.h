@@ -20,9 +20,6 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UCameraComponent> CameraComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Effects, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<class UNiagaraComponent> LevelUpNiagaraComponent;
-
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Effects, meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UGameplayEffect> LevelUpEffect;
 
