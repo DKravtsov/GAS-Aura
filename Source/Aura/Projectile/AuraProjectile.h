@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayEffectTypes.h"
+#include "AbilitySystem/AuraAbilitySystemTypes.h"
 #include "AuraProjectile.generated.h"
 
 UENUM()
@@ -37,7 +38,7 @@ class AURA_API AAuraProjectile : public AActor
 public:
 
     UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = "true"))
-    FGameplayEffectSpecHandle DamageEffectSpecHandle;
+    FDamageEffectParams DamageEffectParams;
 
 private:
 
@@ -53,7 +54,7 @@ public:
     //~ Begin of AActor interface
 
     virtual void Destroyed() override;
-    bool ProcessColliding(AActor* OtherActor, const FHitResult* HitResult = nullptr);
+    bool OnHit(AActor* OtherActor, const FHitResult* HitResult = nullptr);
 
     virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
     virtual void NotifyActorEndOverlap(AActor* OtherActor) override;

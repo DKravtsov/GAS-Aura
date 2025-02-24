@@ -63,7 +63,7 @@ void AAuraProjectile::Destroyed()
     Super::Destroyed();
 }
 
-bool AAuraProjectile::ProcessColliding(AActor* OtherActor, const FHitResult* HitResult)
+bool AAuraProjectile::OnHit(AActor* OtherActor, const FHitResult* HitResult)
 {
     if (OtherActor == GetInstigator() || UAuraBlueprintFunctionLibrary::AreFriendly(OtherActor, GetInstigator())) 
     {
@@ -82,11 +82,14 @@ bool AAuraProjectile::ProcessColliding(AActor* OtherActor, const FHitResult* Hit
     {
         if (auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
         {
-            if (HitResult)
-            {
-                DamageEffectSpecHandle.Data->GetContext().AddHitResult(*HitResult);
-            }
-            TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
+            DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
+            
+            // if (HitResult)
+            // {
+            //     DamageEffectSpecHandle.Data->GetContext().AddHitResult(*HitResult);
+            // }
+            //TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
+            UAuraBlueprintFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
         }
 
         SetLifeSpan(0.01);
@@ -100,7 +103,7 @@ void AAuraProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
     if (!bHit && EffectApplyingPolicy == EProjectileEffectApplyingPolicy::ApplyOnOverlapping)
     {
-        ProcessColliding(OtherActor);
+        OnHit(OtherActor);
     }
 
 }
@@ -131,7 +134,7 @@ void AAuraProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other
         bHit = true;
         SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-        ProcessColliding(Other, &Hit);
+        OnHit(Other, &Hit);
 
         if (HasAuthority())
         {
