@@ -44,7 +44,10 @@ public:
     TSubclassOf<class UGameplayEffect> DamageEffectClass;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, Categories="Damage", ForceInlineRow))
-    TMap<FGameplayTag, FScalableFloat> DamageTypes;
+    FGameplayTag DamageType;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, ForceInlineRow))
+    FScalableFloat BaseDamage;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
     FText AbilityName;
@@ -52,17 +55,32 @@ public:
     /*
      * @brief: Description of the ability (spell)
      * Full description can use styles from the RichTextStyles data table;
-     * Alse can be used "variables" in curly brackets, such as:
+     * You can use "variables" in curly brackets which will be replaced with the correct values, such as:
      *	Title
      *	Level
      *	Damage
      *	Cooldown
      *	...
      *	etc.
+     *	For example, string "{Damage}" will be replaced with the value of damage for this level of the spell
+     *	using 'dmg' style: "<dmg>25</>"
      */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description", meta = (MultiLine = true))
     FText Description;
 
+    /*
+     * @brief Description of the next level of the ability (spell)
+     * Full description can use styles from the RichTextStyles data table;
+     * You can use "variables" in curly brackets which will be replaced with the correct values, such as:
+     *	NextLevel
+     *	NextDamage
+     *	NextCooldown
+     *	...
+     *	etc.
+     *	or any other "variable" from the Description property
+     *	For example, string "{NextDamage}" will be replaced with the value of damage for this level and next level
+     *	of the spell using corresponding styles: "<old>25</> -> <dmg>28</>"
+     */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description", meta = (MultiLine = true))
     FText NextLevelDescription;
     
@@ -81,26 +99,40 @@ public:
 
     virtual void GetDescription(const int32 Level, FText& OutDesc, FText& OutNextLevelDesc) const;
 
-protected:
-
-    void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle);
-
-    float CalculateTotalDamage(int32 InLevel) const;
-    float GetDamageByType(const FGameplayTag& DamageType, const int32 InLevel) const;
+    float GetBaseDamage(const int32 InLevel) const;
+    const FGameplayTag& GetDamageType() const { return DamageType;}
     float GetManaCost(const int32 InLevel) const;
     float GetCooldown(const int32 InLevel) const;
     
-    virtual void UpdateDescriptionTextArgs(FFormatNamedArguments& InArgs, const int32 InLevel) const;
-    virtual void UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const int32 InLevel) const;
-
-    virtual void AnalyzeDescription();
-
 protected:
-    uint32 bDamageText : 1 = false;
-    uint32 bDamageTypeFireText : 1 = false;
-    uint32 bDamageTypeLightningText : 1 = false;
-    uint32 bDamageTypeArcaneText : 1 = false;
-    uint32 bManaCostText : 1 = false;
-    uint32 bCooldownText : 1 = false;
-    uint32 bTextInitialized : 1 = false;  
+
+    void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle) const;
+
+    struct FDescriptionInfo
+    {
+        uint32 bTextInitialized : 1 = false;
+
+        uint32 bDamageText : 1 = false;
+        uint32 bManaCostText : 1 = false;
+        uint32 bCooldownText : 1 = false;
+
+        float Damage = 0.f;
+        float NextDamage = 0.f;
+        FGameplayTag DamageType;
+
+        float ManaCost = 0.f;
+        float NextManaCost = 0.f;
+
+        float Cooldown = 0.f;
+        float NextCooldown = 0.f;
+        
+        static void AnalyzeDescription(TSubclassOf<UAuraGameplayAbility> AbilityClass);
+
+        static void UpdateDescriptionTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel);
+        static void UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel);
+    };
+
+    FDescriptionInfo DescriptionInfo;
+
+ 
 };
