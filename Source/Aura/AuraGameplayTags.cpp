@@ -93,6 +93,11 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(CombatSocket_RightHand, "CombatSocket.RightHand", "get socket location from the character's mesh right hand");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cooldown, "Cooldown", "Parent tag for all cooldown tags");
+
+    /**  Gameplay Cues  **/
+    
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue, "GameplayCue", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff, "GameplayCue.Debuff", "");
     
 }
 

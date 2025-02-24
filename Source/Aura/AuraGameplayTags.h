@@ -103,6 +103,11 @@ namespace AuraGameplayTags
 
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown);
 
+    /**  Gameplay Cues **/
+    
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff);
+
     
 }
 

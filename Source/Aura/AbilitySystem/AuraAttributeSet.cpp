@@ -299,6 +299,10 @@ void UAuraAttributeSet::HandleDebuff(const FEffectProperties& EffectProps)
     ModInfo.ModifierOp = EGameplayModOp::Additive;
     ModInfo.Attribute = GetIncomingDamageAttribute();
 
+    const auto BurnCueTag = FGameplayTag::RequestGameplayTag("GameplayCue.Debuff.Burn");
+    FGameplayEffectCue Cue(BurnCueTag, DebuffDamage, DebuffDamage);
+    DebuffEffect->GameplayCues.Add(Cue);
+
     if (FGameplayEffectSpec* Spec = new FGameplayEffectSpec(DebuffEffect, DebuffEffectContext, 1.f))
     {
         const auto AuraContext = static_cast<FAuraGameplayEffectContext*>(DebuffEffectContext.Get());
