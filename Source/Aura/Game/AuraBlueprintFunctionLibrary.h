@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AuraBlueprintFunctionLibrary.generated.h"
 
@@ -42,6 +43,21 @@ public:
 
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
     static bool IsCriticalHit(const FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static bool IsSuccessfulDebuff(const FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static float GetDebuffDamage(const FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static float GetDebuffDuration(const FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static float GetDebuffFrequency(const FGameplayEffectContextHandle& EffectContextHandle);
+
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
+    static FGameplayTag GetDamageTypeFromEffectContext(const FGameplayEffectContextHandle& EffectContextHandle);
 
     UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
     static void SetIsBlockedHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bBlockedHit);

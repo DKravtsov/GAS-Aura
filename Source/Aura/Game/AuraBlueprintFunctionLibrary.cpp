@@ -105,6 +105,56 @@ bool UAuraBlueprintFunctionLibrary::IsCriticalHit(const struct FGameplayEffectCo
     return false;
 }
 
+bool UAuraBlueprintFunctionLibrary::IsSuccessfulDebuff(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->IsSuccessfulDebuff();
+    }
+    return false;
+}
+
+float UAuraBlueprintFunctionLibrary::GetDebuffDamage(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->GetDebuffDamage();
+    }
+    return 0.f;
+}
+
+float UAuraBlueprintFunctionLibrary::GetDebuffDuration(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->GetDebuffDuration();
+    }
+    return 0.f;
+}
+
+float UAuraBlueprintFunctionLibrary::GetDebuffFrequency(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->GetDebuffFrequency();
+    }
+    return 0.f;
+}
+
+FGameplayTag UAuraBlueprintFunctionLibrary::GetDamageTypeFromEffectContext(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->GetDamageType();
+    }
+    return FGameplayTag();
+}
+
 void UAuraBlueprintFunctionLibrary::SetIsBlockedHit(FGameplayEffectContextHandle& EffectContextHandle, bool bBlockedHit)
 {
     // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini

@@ -50,22 +50,33 @@ struct FAuraGameplayEffectContext : public FGameplayEffectContext
 protected:
 
     UPROPERTY()
-    uint8 bBlockedHit : 1;
+    uint8 bBlockedHit:1 = false;
 
     UPROPERTY()
-    uint8 bCriticalHit : 1;
+    uint8 bCriticalHit:1 = false;
+
+    UPROPERTY()
+    uint8 bDebuff:1 = false;
+    
+    UPROPERTY()
+    float DebuffDamage = 0.f;
+
+    UPROPERTY()
+    float DebuffDuration = 0.f;
+
+    UPROPERTY()
+    float DebuffFrequency = 0.f;
+
+    UPROPERTY()
+    FGameplayTag DamageType;
 
 public:
 
     FAuraGameplayEffectContext()
-        : bBlockedHit(false)
-        , bCriticalHit(false)
     {
     }
     FAuraGameplayEffectContext(AActor* InInstigator, AActor* InEffectCauser)
         : FGameplayEffectContext(InInstigator, InEffectCauser)
-        , bBlockedHit(false)
-        , bCriticalHit(false)
     {
     }
 
@@ -75,7 +86,19 @@ public:
     void SetIsCriticalHit(bool bNewValue) { bCriticalHit = bNewValue; }
     void SetIsBlockedHit(bool bNewValue) { bBlockedHit = bNewValue; }
 
-    UScriptStruct* GetScriptStruct() const override
+    bool IsSuccessfulDebuff() const { return bDebuff; }
+    void SetIsSuccessfulDebuff(bool bNewValue) { bDebuff = bNewValue; }
+
+    float GetDebuffDamage() const { return DebuffDamage; }
+    float GetDebuffDuration() const { return DebuffDuration; }
+    float GetDebuffFrequency() const { return DebuffFrequency; }
+    void SetupDebuff(const float InDamage, const float InDuration, const float InFrequency);
+    void SetupDebuffFromDamageParams(const FDamageEffectParams& Params);
+
+    const FGameplayTag& GetDamageType() const { return DamageType; }
+    void SetDamageType(const FGameplayTag& InDamageType) { DamageType = InDamageType; }
+
+    virtual UScriptStruct* GetScriptStruct() const override
     {
         return StaticStruct();
     }
@@ -107,3 +130,11 @@ struct TStructOpsTypeTraits< FAuraGameplayEffectContext > : public TStructOpsTyp
         WithCopy = true		// Necessary so that TSharedPtr<FHitResult> Data is copied around
     };
 };
+
+FORCEINLINE void FAuraGameplayEffectContext::SetupDebuff(const float InDamage, const float InDuration, const float InFrequency)
+{
+    bDebuff = true;
+    DebuffDamage = InDamage;
+    DebuffDuration = InDuration;
+    DebuffFrequency = InFrequency;
+}
