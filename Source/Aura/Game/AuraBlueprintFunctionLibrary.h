@@ -61,4 +61,7 @@ public:
     // Returns random integer respecting given weights, in range [0..Weights.Length)
     UFUNCTION(Category = "Math|Random", BlueprintPure)
     static int32 RandomIntWithWeights(TArray<float> Weights);
+
+    UFUNCTION(BlueprintCallable, Category = "Aura|Combat")
+    static FGameplayEffectContextHandle ApplyDamageEffect(const struct FDamageEffectParams& Params);
 };

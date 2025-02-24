@@ -54,11 +54,16 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Arcane, "Damage.Arcane", "Arcane damage type");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff, "Debuff", "");
-    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Physical, "Debuff.Physical", "");
-    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Burn, "Debuff.Burn", "");
-    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Stun, "Debuff.Stun", "");
-    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Arcane, "Debuff.Arcane", "");
-    
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Type_Physical, "Debuff.Type.Physical", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Type_Burn, "Debuff.Type.Burn", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Type_Stun, "Debuff.Type.Stun", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Type_Arcane, "Debuff.Type.Arcane", "");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_SetByCaller_Chance, "Debuff.SetByCaller.Chance", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_SetByCaller_Damage, "Debuff.SetByCaller.Damage", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_SetByCaller_Duration, "Debuff.SetByCaller.Duration", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_SetByCaller_Frequency, "Debuff.SetByCaller.Frequency", "");
+
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities, "Abilities", "Parent tag for all gameplay abilities");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_None, "Abilities.None", "?");
@@ -110,19 +115,19 @@ FGameplayTag FGameplayTagHelper::GetDebufTagByDamageType(FGameplayTag DamageType
 {
     if (DamageTypeTag == AuraGameplayTags::Damage_Physical)
     {
-        return AuraGameplayTags::Debuff_Physical;
+        return AuraGameplayTags::Debuff_Type_Physical;
     }
     if (DamageTypeTag == AuraGameplayTags::Damage_Fire)
     {
-        return AuraGameplayTags::Debuff_Burn;
+        return AuraGameplayTags::Debuff_Type_Burn;
     }
     if (DamageTypeTag == AuraGameplayTags::Damage_Lightning)
     {
-        return AuraGameplayTags::Debuff_Stun;
+        return AuraGameplayTags::Debuff_Type_Stun;
     }
     if (DamageTypeTag == AuraGameplayTags::Damage_Arcane)
     {
-        return AuraGameplayTags::Debuff_Arcane;
+        return AuraGameplayTags::Debuff_Type_Arcane;
     }
     return FGameplayTag();
 }

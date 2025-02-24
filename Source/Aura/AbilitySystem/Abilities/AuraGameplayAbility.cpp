@@ -107,6 +107,22 @@ float UAuraGameplayAbility::GetCooldown(const int32 InLevel) const
 	return Cooldown;
 }
 
+FDamageEffectParams UAuraGameplayAbility::MakeDamageEffectParams(AActor* TargetActor) const
+{
+	FDamageEffectParams Params;
+	Params.DamageEffectClass = DamageEffectClass;
+	Params.SourceAbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
+	Params.TargetAbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	Params.BaseDamage = GetBaseDamage(GetAbilityLevel());
+	Params.AbilityLevel = GetAbilityLevel();
+	Params.DamageType = DamageType;
+	Params.DebuffChance = DebuffChance.GetValueAtLevel(Params.AbilityLevel);
+	Params.DebuffDamage = DebuffDamage.GetValueAtLevel(Params.AbilityLevel);
+	Params.DebuffDuration = DebuffDuration.GetValueAtLevel(Params.AbilityLevel);
+	Params.DebuffFrequenct = DebuffFrequency.GetValueAtLevel(Params.AbilityLevel);
+	return Params;
+}
+
 void UAuraGameplayAbility::GetDescription(const int32 Level, FText& OutDesc, FText& OutNextLevelDesc) const
 {
 	static auto SelectText = [](const FText& InText, const auto& Default)

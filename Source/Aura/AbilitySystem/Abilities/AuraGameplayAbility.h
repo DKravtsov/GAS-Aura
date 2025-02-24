@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "AbilitySystem/AuraAbilitySystemTypes.h"
 #include "AuraGameplayAbility.generated.h"
 
 UENUM()
@@ -43,11 +44,23 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
     TSubclassOf<class UGameplayEffect> DamageEffectClass;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, Categories="Damage", ForceInlineRow))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, Categories="Damage"))
     FGameplayTag DamageType;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides, ForceInlineRow))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage, meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
     FScalableFloat BaseDamage;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|Debuff", meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
+    FScalableFloat DebuffChance;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|Debuff", meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
+    FScalableFloat DebuffDamage;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|Debuff", meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
+    FScalableFloat DebuffFrequency;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|Debuff", meta = (EditCondition = "DamagePolicy==EAbilityDamagePolicy::CausesDamage", EditConditionHides))
+    FScalableFloat DebuffDuration;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Description")
     FText AbilityName;
@@ -103,6 +116,8 @@ public:
     const FGameplayTag& GetDamageType() const { return DamageType;}
     float GetManaCost(const int32 InLevel) const;
     float GetCooldown(const int32 InLevel) const;
+
+    FDamageEffectParams MakeDamageEffectParams(AActor* TargetActor = nullptr) const;
     
 protected:
 

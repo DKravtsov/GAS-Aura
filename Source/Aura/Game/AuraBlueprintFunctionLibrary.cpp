@@ -3,6 +3,9 @@
 
 #include "Game/AuraBlueprintFunctionLibrary.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemTypes.h"
 #include "AbilitySystem/Data/AbilityInfoDataAsset.h"
 #include "Algo/Accumulate.h"
@@ -214,4 +217,22 @@ int32 UAuraBlueprintFunctionLibrary::RandomIntWithWeights(TArray<float> Weights)
     }
     check(Index < NumElements);
     return Index;
+}
+
+FGameplayEffectContextHandle UAuraBlueprintFunctionLibrary::ApplyDamageEffect(const FDamageEffectParams& Params)
+{
+    FGameplayEffectContextHandle EffectContextHandle = Params.SourceAbilitySystemComponent->MakeEffectContext();
+    FGameplayEffectSpecHandle DamageEffectSpecHandle = Params.SourceAbilitySystemComponent->MakeOutgoingSpec(Params.DamageEffectClass, Params.AbilityLevel, EffectContextHandle);
+
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, Params.DamageType, Params.BaseDamage);
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Chance, Params.DebuffChance);
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Damage, Params.DebuffDamage);
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Duration, Params.DebuffDuration);
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Frequency, Params.DebuffFrequenct);
+
+    check(Params.TargetAbilitySystemComponent);
+    Params.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
+
+    return EffectContextHandle;
+    
 }
