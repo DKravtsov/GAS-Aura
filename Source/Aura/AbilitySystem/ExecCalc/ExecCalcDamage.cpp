@@ -124,6 +124,25 @@ void UExecCalcDamage::Execute_Implementation(const FGameplayEffectCustomExecutio
             float Resistance = 0.f;
             ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ResistanceDef, Params, Resistance);
             // do not clamp resist value: it can be negative or more than 1
+
+            // debuff
+            const float DebuffChance = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::Debuff_SetByCaller_Chance, false, -1);
+            const float EffectiveDebuffChance = FMath::Clamp(DebuffChance * (1.f - Resistance), 0.f, 1.f);
+            PRINT_DEBUG(EffectiveDebuffChance);
+            const bool bDebuffTriggered = UKismetMathLibrary::RandomBoolWithWeight(EffectiveDebuffChance);
+            PRINT_DEBUG1((bDebuffTriggered ? 1 : 0), "DebuffTriggered");
+            if (bDebuffTriggered)
+            {
+                FGameplayEffectContextHandle ContextHandle = EffectSpec.GetContext();
+
+                const float DebuffDamage = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::Debuff_SetByCaller_Damage, false);
+                const float DebuffDuration = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::Debuff_SetByCaller_Duration, false);
+                const float DebuffFrequency = EffectSpec.GetSetByCallerMagnitude(AuraGameplayTags::Debuff_SetByCaller_Frequency, false);
+
+                UAuraBlueprintFunctionLibrary::SetupDebuffParams(ContextHandle, DebuffDamage, DebuffDuration, DebuffFrequency, DamageType);
+            }
+
+            // damage
             Damage *= (1.f - Resistance);
             BaseDamage += FMath::Max(Damage, 0.f);
         }

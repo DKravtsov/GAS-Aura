@@ -115,6 +115,18 @@ bool UAuraBlueprintFunctionLibrary::IsSuccessfulDebuff(const FGameplayEffectCont
     return false;
 }
 
+UAuraBlueprintFunctionLibrary::FDebuffParams UAuraBlueprintFunctionLibrary::GetDebuffParams(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        
+        return FDebuffParams(EffectContext->GetDebuffDamage(), EffectContext->GetDebuffDuration(),
+            EffectContext->GetDebuffFrequency(), EffectContext->GetDamageType());
+    }
+    return FDebuffParams();
+}
+
 float UAuraBlueprintFunctionLibrary::GetDebuffDamage(const FGameplayEffectContextHandle& EffectContextHandle)
 {
     // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
@@ -170,6 +182,27 @@ void UAuraBlueprintFunctionLibrary::SetIsCriticalHit(FGameplayEffectContextHandl
     if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
     {
         EffectContext->SetIsCriticalHit(bCriticalHit);
+    }
+}
+
+void UAuraBlueprintFunctionLibrary::SetIsSuccessfulDebuff(FGameplayEffectContextHandle& EffectContextHandle, bool bDebuff)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        EffectContext->SetIsSuccessfulDebuff(bDebuff);
+    }
+}
+
+void UAuraBlueprintFunctionLibrary::SetupDebuffParams(FGameplayEffectContextHandle& EffectContextHandle,
+    float InDamage, float InDuration, float InFrequency, const FGameplayTag& InDamageType)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        EffectContext->SetIsSuccessfulDebuff(true);
+        EffectContext->SetDamageType(InDamageType);
+        EffectContext->SetupDebuff(InDamage, InDuration, InFrequency);
     }
 }
 

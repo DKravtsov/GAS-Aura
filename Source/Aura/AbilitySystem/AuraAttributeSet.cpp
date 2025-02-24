@@ -4,6 +4,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AuraAbilitySystemTypes.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectTypes.h"
@@ -15,6 +16,7 @@
 #include "Player/AuraPlayerController.h"
 
 #include "DebugHelper.h"
+#include "GameplayEffectComponents/TargetTagsGameplayEffectComponent.h"
 
 #pragma region FEffectProperties
 
@@ -211,6 +213,11 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
     FEffectProperties EffectProps(Data);
 
+    if (EffectProps.GetTargetCharacter()->Implements<UCombatInterface>() && ICombatInterface::Execute_IsDead(EffectProps.GetTargetCharacter()))
+    {
+        return;
+    }
+
     if (Data.EvaluatedData.Attribute == GetHealthAttribute())
     {
         const float NewHealth = FMath::Clamp(GetHealth(), 0.f, GetMaxHealth());
@@ -223,44 +230,95 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
     }
     else if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
     {
-        const float Damage = GetIncomingDamage();
-        SetIncomingDamage(0.f);
-
-        if (Damage > 0.f)
-        {
-            const float NewHealth = GetHealth() - Damage;
-            SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
-
-            if (NewHealth <= 0.f)
-            {
-                if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
-                {
-                    Interface->Die();
-                }
-                SendXPEvent(EffectProps);
-            }
-            else
-            {
-                EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Abilities_HitReact));
-            }
-
-            const bool bBlocked = UAuraBlueprintFunctionLibrary::IsBlockedHit(EffectProps.GetEffectContextHandle());
-            const bool bCriticalHit = UAuraBlueprintFunctionLibrary::IsCriticalHit(EffectProps.GetEffectContextHandle());
-            ShowFloatingText(EffectProps, Damage, bBlocked, bCriticalHit);
-        }
+        HandleIncomingDamage(EffectProps);
     }
     else if (Data.EvaluatedData.Attribute == GetIncomingXPAttribute())
     {
-        const int32 XP = FMath::TruncToInt(GetIncomingXP());
-        if (XP > 0)
-        {
-            SetIncomingXP(0.f);
-            //Debug::Print(FString::Printf(TEXT("Incoming [%d] XP"), XP));
+        HandleIncomingXP(EffectProps);
+    }
+}
 
-            if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
+void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& EffectProps)
+{
+    const float Damage = GetIncomingDamage();
+    SetIncomingDamage(0.f);
+
+    if (Damage > 0.f)
+    {
+        const float NewHealth = GetHealth() - Damage;
+        SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+
+        if (NewHealth <= 0.f)
+        {
+            if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
             {
-                ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
+                Interface->Die();
             }
+            SendXPEvent(EffectProps);
+        }
+        else
+        {
+            EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Abilities_HitReact));
+        }
+
+        const bool bBlocked = UAuraBlueprintFunctionLibrary::IsBlockedHit(EffectProps.GetEffectContextHandle());
+        const bool bCriticalHit = UAuraBlueprintFunctionLibrary::IsCriticalHit(EffectProps.GetEffectContextHandle());
+        ShowFloatingText(EffectProps, Damage, bBlocked, bCriticalHit);
+
+        if (UAuraBlueprintFunctionLibrary::IsSuccessfulDebuff(EffectProps.GetEffectContextHandle()))
+        {
+            HandleDebuff(EffectProps);
+        }
+    }
+}
+
+void UAuraAttributeSet::HandleDebuff(const FEffectProperties& EffectProps)
+{
+    const auto [DebuffDamage, DebuffDuration, DebuffFrequency, DamageType] = UAuraBlueprintFunctionLibrary::GetDebuffParams(EffectProps.GetEffectContextHandle());
+
+    // Create and apply Gameplay Effect dynamically
+    
+    FGameplayEffectContextHandle DebuffEffectContext = EffectProps.GetSourceAbilitySystemComponent()->MakeEffectContext();
+
+    const FString DebuffName = FString::Printf(TEXT("DynamicDebuff_%s"), *DamageType.ToString());
+    UGameplayEffect* DebuffEffect = NewObject<UGameplayEffect>(GetTransientPackage(), *DebuffName);
+
+    DebuffEffect->DurationPolicy = EGameplayEffectDurationType::HasDuration;
+    DebuffEffect->Period = DebuffFrequency;
+    DebuffEffect->DurationMagnitude = FScalableFloat(DebuffDuration);
+
+    FInheritedTagContainer GrantedTagsComp;
+    GrantedTagsComp.Added.AddTag(FGameplayTagHelper::GetDebuffTagByDamageType(DamageType));
+    DebuffEffect->AddComponent<UTargetTagsGameplayEffectComponent>().SetAndApplyTargetTagChanges(GrantedTagsComp);
+
+    DebuffEffect->StackingType = EGameplayEffectStackingType::AggregateBySource;
+    DebuffEffect->StackLimitCount = 1;
+
+    FGameplayModifierInfo& ModInfo = DebuffEffect->Modifiers.Add_GetRef(FGameplayModifierInfo());
+    ModInfo.ModifierMagnitude = FScalableFloat(DebuffDamage);
+    ModInfo.ModifierOp = EGameplayModOp::Additive;
+    ModInfo.Attribute = GetIncomingDamageAttribute();
+
+    if (FGameplayEffectSpec* Spec = new FGameplayEffectSpec(DebuffEffect, DebuffEffectContext, 1.f))
+    {
+        const auto AuraContext = static_cast<FAuraGameplayEffectContext*>(DebuffEffectContext.Get());
+        AuraContext->SetDamageType(DamageType);
+
+        EffectProps.GetTargetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec);
+    }
+}
+
+void UAuraAttributeSet::HandleIncomingXP(const FEffectProperties& EffectProps)
+{
+    const int32 XP = FMath::TruncToInt(GetIncomingXP());
+    if (XP > 0)
+    {
+        SetIncomingXP(0.f);
+        //Debug::Print(FString::Printf(TEXT("Incoming [%d] XP"), XP));
+
+        if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
+        {
+            ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
         }
     }
 }

@@ -47,6 +47,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
     static bool IsSuccessfulDebuff(const FGameplayEffectContextHandle& EffectContextHandle);
 
+    using FDebuffParams = TTuple<float/*Damage*/, float/*Duration*/, float/*Frequency*/, FGameplayTag/*DamageType*/>;
+    static FDebuffParams GetDebuffParams(const FGameplayEffectContextHandle& EffectContextHandle);
+
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|GameplayEffects")
     static float GetDebuffDamage(const FGameplayEffectContextHandle& EffectContextHandle);
 
@@ -64,6 +67,13 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
     static void SetIsCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bCriticalHit);
+
+    UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
+    static void SetIsSuccessfulDebuff(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bDebuff);
+
+    UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystem|GameplayEffects")
+    static void SetupDebuffParams(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,
+        float InDamage, float InDuration, float InFrequency, const FGameplayTag& InDamageType);
 
     UFUNCTION(BlueprintPure, Category = "Actor")
     static APawn* FindNearestAlivePawn(FVector Origin, const TArray<APawn*>& ActorsToCheck, float& Distance);

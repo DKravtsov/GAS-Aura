@@ -112,7 +112,7 @@ struct FGameplayTagHelper
     static FGameplayTagContainer RequestAllResistanceGameplayTags();
 
     static FGameplayTag GetResistanceTagByDamageType(FGameplayTag DamageTypeTag);
-    static FGameplayTag GetDebufTagByDamageType(FGameplayTag DamageTypeTag);
+    static FGameplayTag GetDebuffTagByDamageType(FGameplayTag DamageTypeTag);
     
 private:
     static FGameplayTagHelper& Get();

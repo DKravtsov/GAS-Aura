@@ -111,7 +111,7 @@ FGameplayTag FGameplayTagHelper::GetResistanceTagByDamageType(FGameplayTag Damag
     return Get().ResistanceTagMap.FindChecked(DamageTypeTag);
 }
 
-FGameplayTag FGameplayTagHelper::GetDebufTagByDamageType(FGameplayTag DamageTypeTag)
+FGameplayTag FGameplayTagHelper::GetDebuffTagByDamageType(FGameplayTag DamageTypeTag)
 {
     if (DamageTypeTag == AuraGameplayTags::Damage_Physical)
     {

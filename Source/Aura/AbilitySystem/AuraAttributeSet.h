@@ -8,10 +8,12 @@
 #include "AuraAttributeSet.generated.h"
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
- GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
- GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
- GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
- GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+    GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+    GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+    GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+
+class FEffectProperties;
 
 /**
  *
@@ -134,9 +136,13 @@ public:
 
 public:
 
+    //~ Begin of UAttributeSet interface
     virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
     virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+    //~ End of UAttributeSet interface
 
+#pragma region Replication
+    
     UFUNCTION()
     void OnRep_Strength(const FGameplayAttributeData& OldValue) const;
 
@@ -199,8 +205,15 @@ public:
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+#pragma endregion 
+    
 private:
-    static void ShowFloatingText(const class FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit);
 
-    static void SendXPEvent(const class FEffectProperties& EffectProps);
+    void HandleIncomingDamage(const FEffectProperties& EffectProps);
+    void HandleIncomingXP(const FEffectProperties& EffectProps);
+    void HandleDebuff(const FEffectProperties& EffectProps);
+   
+    static void ShowFloatingText(const FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit);
+    static void SendXPEvent(const FEffectProperties& EffectProps);
+
 };
