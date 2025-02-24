@@ -53,6 +53,12 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Lightning, "Damage.Lightning", "Lightning damage type");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Arcane, "Damage.Arcane", "Arcane damage type");
 
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff, "Debuff", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Physical, "Debuff.Physical", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Burn, "Debuff.Burn", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Stun, "Debuff.Stun", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Debuff_Arcane, "Debuff.Arcane", "");
+    
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities, "Abilities", "Parent tag for all gameplay abilities");
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Abilities_None, "Abilities.None", "?");
@@ -98,6 +104,27 @@ FGameplayTagContainer FGameplayTagHelper::RequestAllResistanceGameplayTags()
 FGameplayTag FGameplayTagHelper::GetResistanceTagByDamageType(FGameplayTag DamageTypeTag)
 {
     return Get().ResistanceTagMap.FindChecked(DamageTypeTag);
+}
+
+FGameplayTag FGameplayTagHelper::GetDebufTagByDamageType(FGameplayTag DamageTypeTag)
+{
+    if (DamageTypeTag == AuraGameplayTags::Damage_Physical)
+    {
+        return AuraGameplayTags::Debuff_Physical;
+    }
+    if (DamageTypeTag == AuraGameplayTags::Damage_Fire)
+    {
+        return AuraGameplayTags::Debuff_Burn;
+    }
+    if (DamageTypeTag == AuraGameplayTags::Damage_Lightning)
+    {
+        return AuraGameplayTags::Debuff_Stun;
+    }
+    if (DamageTypeTag == AuraGameplayTags::Damage_Arcane)
+    {
+        return AuraGameplayTags::Debuff_Arcane;
+    }
+    return FGameplayTag();
 }
 
 FGameplayTagHelper& FGameplayTagHelper::Get()

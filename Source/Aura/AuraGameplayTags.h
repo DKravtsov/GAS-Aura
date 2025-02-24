@@ -60,6 +60,12 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Fire);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Lightning);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Arcane);
+
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Debuff);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Debuff_Physical);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Debuff_Burn);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Debuff_Stun);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Debuff_Arcane);
     
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Abilities);
 
@@ -100,6 +106,7 @@ struct FGameplayTagHelper
     static FGameplayTagContainer RequestAllResistanceGameplayTags();
 
     static FGameplayTag GetResistanceTagByDamageType(FGameplayTag DamageTypeTag);
+    static FGameplayTag GetDebufTagByDamageType(FGameplayTag DamageTypeTag);
     
 private:
     static FGameplayTagHelper& Get();
@@ -107,4 +114,5 @@ private:
     FGameplayTagHelper();
 
     TMap<FGameplayTag, FGameplayTag> ResistanceTagMap;
+    TMap<FGameplayTag, FGameplayTag> DebuffTagMap;
 };
