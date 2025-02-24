@@ -119,7 +119,7 @@ FDamageEffectParams UAuraGameplayAbility::MakeDamageEffectParams(AActor* TargetA
 	Params.DebuffChance = DebuffChance.GetValueAtLevel(Params.AbilityLevel);
 	Params.DebuffDamage = DebuffDamage.GetValueAtLevel(Params.AbilityLevel);
 	Params.DebuffDuration = DebuffDuration.GetValueAtLevel(Params.AbilityLevel);
-	Params.DebuffFrequenct = DebuffFrequency.GetValueAtLevel(Params.AbilityLevel);
+	Params.DebuffFrequency = DebuffFrequency.GetValueAtLevel(Params.AbilityLevel);
 	return Params;
 }
 

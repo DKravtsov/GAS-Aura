@@ -228,7 +228,7 @@ FGameplayEffectContextHandle UAuraBlueprintFunctionLibrary::ApplyDamageEffect(co
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Chance, Params.DebuffChance);
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Damage, Params.DebuffDamage);
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Duration, Params.DebuffDuration);
-    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Frequency, Params.DebuffFrequenct);
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Frequency, Params.DebuffFrequency);
 
     check(Params.TargetAbilitySystemComponent);
     Params.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);

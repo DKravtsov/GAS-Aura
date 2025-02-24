@@ -35,7 +35,7 @@ struct FDamageEffectParams
     float DebuffDamage = 0.f;
     
     UPROPERTY()
-    float DebuffFrequenct = 0.f;
+    float DebuffFrequency = 0.f;
     
     UPROPERTY()
     float DebuffDuration = 0.f;
