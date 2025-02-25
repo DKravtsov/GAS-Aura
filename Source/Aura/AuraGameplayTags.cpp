@@ -98,6 +98,10 @@ namespace AuraGameplayTags
     
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue, "GameplayCue", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff, "GameplayCue.Debuff", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Burn, "GameplayCue.Debuff.Burn", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Shock, "GameplayCue.Debuff.Shock", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Arcane, "GameplayCue.Debuff.Arcane", "");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Physical, "GameplayCue.Debuff.Physical", "");
     
 }
 
@@ -111,12 +115,12 @@ FGameplayTagContainer FGameplayTagHelper::RequestAllResistanceGameplayTags()
     return UGameplayTagsManager::Get().RequestGameplayTagChildren(AuraGameplayTags::Attributes_Resistance);
 }
 
-FGameplayTag FGameplayTagHelper::GetResistanceTagByDamageType(FGameplayTag DamageTypeTag)
+FGameplayTag FGameplayTagHelper::GetResistanceTagByDamageType(const FGameplayTag& DamageTypeTag)
 {
     return Get().ResistanceTagMap.FindChecked(DamageTypeTag);
 }
 
-FGameplayTag FGameplayTagHelper::GetDebuffTagByDamageType(FGameplayTag DamageTypeTag)
+FGameplayTag FGameplayTagHelper::GetDebuffTagByDamageType(const FGameplayTag& DamageTypeTag)
 {
     if (DamageTypeTag == AuraGameplayTags::Damage_Physical)
     {
@@ -133,6 +137,27 @@ FGameplayTag FGameplayTagHelper::GetDebuffTagByDamageType(FGameplayTag DamageTyp
     if (DamageTypeTag == AuraGameplayTags::Damage_Arcane)
     {
         return AuraGameplayTags::Debuff_Type_Arcane;
+    }
+    return FGameplayTag();
+}
+
+FGameplayTag FGameplayTagHelper::GetDebuffCueTagByDamageType(const FGameplayTag& DamageTypeTag)
+{
+    if (DamageTypeTag == AuraGameplayTags::Damage_Physical)
+    {
+        return AuraGameplayTags::GameplayCue_Debuff_Physical;
+    }
+    if (DamageTypeTag == AuraGameplayTags::Damage_Fire)
+    {
+        return AuraGameplayTags::GameplayCue_Debuff_Burn;
+    }
+    if (DamageTypeTag == AuraGameplayTags::Damage_Lightning)
+    {
+        return AuraGameplayTags::GameplayCue_Debuff_Shock;
+    }
+    if (DamageTypeTag == AuraGameplayTags::Damage_Arcane)
+    {
+        return AuraGameplayTags::GameplayCue_Debuff_Arcane;
     }
     return FGameplayTag();
 }

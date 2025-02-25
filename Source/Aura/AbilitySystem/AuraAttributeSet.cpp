@@ -299,7 +299,7 @@ void UAuraAttributeSet::HandleDebuff(const FEffectProperties& EffectProps)
     ModInfo.ModifierOp = EGameplayModOp::Additive;
     ModInfo.Attribute = GetIncomingDamageAttribute();
 
-    const auto BurnCueTag = FGameplayTag::RequestGameplayTag("GameplayCue.Debuff.Burn");
+    const FGameplayTag BurnCueTag = FGameplayTagHelper::GetDebuffCueTagByDamageType(DamageType);
     FGameplayEffectCue Cue(BurnCueTag, DebuffDamage, DebuffDamage);
     DebuffEffect->GameplayCues.Add(Cue);
 

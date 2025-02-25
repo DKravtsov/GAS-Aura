@@ -107,6 +107,10 @@ namespace AuraGameplayTags
     
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff_Burn);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff_Shock);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff_Arcane);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff_Physical);
 
     
 }
@@ -116,14 +120,16 @@ struct FGameplayTagHelper
     static FGameplayTagContainer RequestAllDamageTypeGameplayTags();
     static FGameplayTagContainer RequestAllResistanceGameplayTags();
 
-    static FGameplayTag GetResistanceTagByDamageType(FGameplayTag DamageTypeTag);
-    static FGameplayTag GetDebuffTagByDamageType(FGameplayTag DamageTypeTag);
+    static FGameplayTag GetResistanceTagByDamageType(const FGameplayTag& DamageTypeTag);
+    static FGameplayTag GetDebuffTagByDamageType(const FGameplayTag& DamageTypeTag);
+    static FGameplayTag GetDebuffCueTagByDamageType(const FGameplayTag& DamageTypeTag);
     
 private:
     static FGameplayTagHelper& Get();
 
     FGameplayTagHelper();
 
+    // #todo: move all this shit to the settings (data-driven approach)
     TMap<FGameplayTag, FGameplayTag> ResistanceTagMap;
     TMap<FGameplayTag, FGameplayTag> DebuffTagMap;
 };
