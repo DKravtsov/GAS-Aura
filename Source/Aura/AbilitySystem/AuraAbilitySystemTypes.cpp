@@ -2,6 +2,25 @@
 
 #include "AuraAbilitySystemTypes.h"
 
+bool FDamageEffectParams::GetHitResult(FHitResult& OutHitResult) const
+{
+    if (HitResult)
+    {
+        OutHitResult = *HitResult;
+        return true;
+    }
+    return false;
+}
+
+void FDamageEffectParams::SetHitResult(const FHitResult& InHitResult)
+{
+    if (!HitResult)
+    {
+        HitResult = MakeShared<FHitResult>();
+    }
+    *HitResult = InHitResult; 
+}
+
 void FAuraGameplayEffectContext::SetupDebuffFromDamageParams(const FDamageEffectParams& Params)
 {
     SetupDebuff(Params.DebuffDamage, Params.DebuffDuration, Params.DebuffFrequency);
@@ -33,13 +52,15 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
         {
             RepBits |= 1 << 6;
         }
-
-        Ar.SerializeBits(&RepBits, 7);
+        if (!DeathImpulse.IsZero())
+        {
+            RepBits |= 1 << 7;
+        }
     }
-    else
-    {
-        Ar.SerializeBits(&RepBits, 7);
+    Ar.SerializeBits(&RepBits, 8);
 
+    if (Ar.IsLoading())
+    {
         bBlockedHit = RepBits & (1 << 0);
         bCriticalHit = RepBits & (1 << 1);
         bDebuff = RepBits & (1 << 2);
@@ -60,6 +81,10 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
     if (RepBits & (1 << 6))
     {
         DamageType.NetSerialize(Ar, Map, bOutSuccess);
+    }
+    if (RepBits & (1 << 7))
+    {
+        DeathImpulse.NetSerialize(Ar, Map, bOutSuccess);
     }
     
     bOutSuccess = true;

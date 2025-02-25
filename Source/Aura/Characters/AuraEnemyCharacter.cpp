@@ -98,14 +98,14 @@ int32 AAuraEnemyCharacter::GetRewardXP_Implementation() const
     return RewardXP.GetValueAtLevel(GetCharacterLevel());
 }
 
-void AAuraEnemyCharacter::Die()
+void AAuraEnemyCharacter::Die(const FVector& DeathImpulse)
 {
     SetLifeSpan(DeadBodyLifeSpan);
     if (IsValid(AuraAIController))
     {
         AuraAIController->GetBlackboardComponent()->SetValueAsBool("bDead", true);
     }
-    Super::Die();
+    Super::Die(DeathImpulse);
 }
 
 FAttackInfo AAuraEnemyCharacter::GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag)

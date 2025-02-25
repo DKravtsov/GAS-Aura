@@ -50,6 +50,7 @@ FDamageEffectParams UDamageGameplayAbility::MakeDamageEffectParams(AActor* Targe
 	Params.DebuffDamage = DebuffDamage.GetValueAtLevel(Params.AbilityLevel);
 	Params.DebuffDuration = DebuffDuration.GetValueAtLevel(Params.AbilityLevel);
 	Params.DebuffFrequency = DebuffFrequency.GetValueAtLevel(Params.AbilityLevel);
+	Params.DeathImpulseMagnitude = DeathImpulseMagnitude;
 	return Params;
 }
 

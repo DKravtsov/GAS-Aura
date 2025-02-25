@@ -37,8 +37,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|Debuff")
 	FScalableFloat DebuffDuration;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage", meta = (Categories="GameplayCue.Debuf"))
-	FGameplayTag DebuffGameplayCueTag;
+	// #todo: implementing this rather than hardcoded values needs to pass the tag through EffectContext in the current system.
+	// I need to decide if this worth it
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|Debuff", meta = (Categories="GameplayCue.Debuf"))
+	//FGameplayTag DebuffGameplayCueTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float DeathImpulseMagnitude = 60.f;
 
 public:
 

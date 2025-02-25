@@ -39,7 +39,22 @@ struct FDamageEffectParams
     
     UPROPERTY()
     float DebuffDuration = 0.f;
+    
+    UPROPERTY()
+    float DeathImpulseMagnitude = 0.f;
 
+    UPROPERTY()
+    FVector DeathImpulse;
+
+protected:
+    TSharedPtr<FHitResult> HitResult;
+
+public:
+
+    bool HasHitResult() const { return HitResult != nullptr; }
+    bool GetHitResult(FHitResult& OutHitResult) const;
+    TSharedPtr<FHitResult> GetHitResult() const { return HitResult; }
+    void SetHitResult(const FHitResult& InHitResult);
 };
 
 USTRUCT(BlueprintType)
@@ -70,6 +85,9 @@ protected:
     UPROPERTY()
     FGameplayTag DamageType;
 
+    UPROPERTY()
+    FVector DeathImpulse = FVector::ZeroVector;
+
 public:
 
     FAuraGameplayEffectContext()
@@ -97,6 +115,9 @@ public:
 
     const FGameplayTag& GetDamageType() const { return DamageType; }
     void SetDamageType(const FGameplayTag& InDamageType) { DamageType = InDamageType; }
+
+    FVector GetDeathImpulse() const { return DeathImpulse; }
+    void SetDeathImpulse(const FVector& ImpulseVector) { DeathImpulse = ImpulseVector; }
 
     virtual UScriptStruct* GetScriptStruct() const override
     {

@@ -252,7 +252,9 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& EffectProp
         {
             if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
             {
-                Interface->Die();
+                const FVector DeathImpulse = UAuraBlueprintFunctionLibrary::GetDeathImpulse(EffectProps.GetEffectContextHandle());
+                const bool bWasCrit = UAuraBlueprintFunctionLibrary::IsCriticalHit(EffectProps.GetEffectContextHandle());
+                Interface->Die(DeathImpulse * (bWasCrit ? 2.f : 1.f));
             }
             SendXPEvent(EffectProps);
         }

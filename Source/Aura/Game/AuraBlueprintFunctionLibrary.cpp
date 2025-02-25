@@ -167,6 +167,16 @@ FGameplayTag UAuraBlueprintFunctionLibrary::GetDamageTypeFromEffectContext(const
     return FGameplayTag();
 }
 
+FVector UAuraBlueprintFunctionLibrary::GetDeathImpulse(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->GetDeathImpulse();
+    }
+    return FVector();
+}
+
 void UAuraBlueprintFunctionLibrary::SetIsBlockedHit(FGameplayEffectContextHandle& EffectContextHandle, bool bBlockedHit)
 {
     // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
@@ -313,6 +323,16 @@ FGameplayEffectContextHandle UAuraBlueprintFunctionLibrary::ApplyDamageEffect(co
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Duration, Params.DebuffDuration);
     UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageEffectSpecHandle, AuraGameplayTags::Debuff_SetByCaller_Frequency, Params.DebuffFrequency);
 
+    if (Params.HasHitResult())
+    {
+        DamageEffectSpecHandle.Data->GetContext().AddHitResult(*Params.GetHitResult());
+    }
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        EffectContext->SetDeathImpulse(Params.DeathImpulse);
+    }
+    
     check(Params.TargetAbilitySystemComponent);
     Params.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
 

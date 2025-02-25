@@ -8,6 +8,7 @@
 #include "Aura.h"
 #include "AuraGameplayTags.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -108,13 +109,13 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(FGameplayTag 
     return GetActorLocation();
 }
 
-void AAuraCharacterBase::Die()
+void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 {
     if (HasAuthority())
     {
         Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
-        MulticastHandleDeath();
+        MulticastHandleDeath(DeathImpulse);
     }
 }
 
@@ -128,18 +129,23 @@ AActor* AAuraCharacterBase::GetAvatar_Implementation()
     return this;
 }
 
-void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& DeathImpulse)
 {
     bDead = true;
     
     Weapon->SetSimulatePhysics(true);
     Weapon->SetEnableGravity(true);
     Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+    Weapon->AddImpulse(DeathImpulse*0.2f, NAME_None, true);
+
+    GetMovementComponent()->StopMovementImmediately();
+    GetMovementComponent()->SetComponentTickEnabled(false);
 
     GetMesh()->SetSimulatePhysics(true);
     GetMesh()->SetEnableGravity(true);
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
     GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECollisionResponse::ECR_Block);
+    GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -158,7 +164,6 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 
     BP_HandleDeath();
     OnDeath.Broadcast(this);
-    
 
     DetachFromControllerPendingDestroy();
 }

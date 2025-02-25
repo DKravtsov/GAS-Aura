@@ -83,12 +83,11 @@ bool AAuraProjectile::OnHit(AActor* OtherActor, const FHitResult* HitResult)
         if (auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
         {
             DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
-            
-            // if (HitResult)
-            // {
-            //     DamageEffectSpecHandle.Data->GetContext().AddHitResult(*HitResult);
-            // }
-            //TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data);
+            DamageEffectParams.DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
+            if (HitResult)
+            {
+                DamageEffectParams.SetHitResult(*HitResult);
+            }
             UAuraBlueprintFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
         }
 
