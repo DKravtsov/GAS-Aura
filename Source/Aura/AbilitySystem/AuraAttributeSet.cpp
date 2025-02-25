@@ -14,9 +14,10 @@
 #include "Characters/AuraCharacterBase.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
 #include "Player/AuraPlayerController.h"
+#include "GameplayEffectComponents/TargetTagsGameplayEffectComponent.h"
+#include "Logs.h"
 
 #include "DebugHelper.h"
-#include "GameplayEffectComponents/TargetTagsGameplayEffectComponent.h"
 
 #pragma region FEffectProperties
 
@@ -301,16 +302,33 @@ void UAuraAttributeSet::HandleDebuff(const FEffectProperties& EffectProps)
     ModInfo.ModifierOp = EGameplayModOp::Additive;
     ModInfo.Attribute = GetIncomingDamageAttribute();
 
-    const FGameplayTag BurnCueTag = FGameplayTagHelper::GetDebuffCueTagByDamageType(DamageType);
-    FGameplayEffectCue Cue(BurnCueTag, DebuffDamage, DebuffDamage);
-    DebuffEffect->GameplayCues.Add(Cue);
-
     if (FGameplayEffectSpec* Spec = new FGameplayEffectSpec(DebuffEffect, DebuffEffectContext, 1.f))
     {
         const auto AuraContext = static_cast<FAuraGameplayEffectContext*>(DebuffEffectContext.Get());
         AuraContext->SetDamageType(DamageType);
 
-        EffectProps.GetTargetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec);
+        const FActiveGameplayEffectHandle ActiveEffectHandle = EffectProps.GetTargetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec);
+
+        // Add a Gameplay Cue. Because the debuff effect is a periodic,
+        // we must control the added cue manually and remove it when the effect is removed
+        const FGameplayTag GameplayCueTag = FGameplayTagHelper::GetDebuffCueTagByDamageType(DamageType);
+        FGameplayCueParameters GameplayCueParams(DebuffEffectContext);
+        GameplayCueParams.TargetAttachComponent = EffectProps.GetTargetCharacter()->GetMesh();
+        GameplayCueParams.RawMagnitude = DebuffDamage;
+        EffectProps.GetTargetAbilitySystemComponent()->AddGameplayCue(GameplayCueTag, GameplayCueParams);
+
+        //UE_LOG(LogMyGame, Warning, TEXT("Adding Gameplay Cue: [%s]"), *GameplayCueTag.ToString());
+        EffectProps.GetTargetAbilitySystemComponent()->OnGameplayEffectRemoved_InfoDelegate(ActiveEffectHandle)->AddLambda(
+            [GameplayCueTag, TargetASC = EffectProps.GetTargetAbilitySystemComponent()](const FGameplayEffectRemovalInfo& )
+            {
+                // Note: we don't need to check TargetASC because it's one who calls this lambda.
+                //   It's wierd, but I didn't find a way to extract the calling ASC from the arg.
+                //   EffectContext.InstigatorASC - is SourceASC in terms of EffectProps
+                
+                //UE_LOG(LogMyGame, Warning, TEXT("Removing Gameplay Cue: [%s]"), *GameplayCueTag.ToString());
+                TargetASC->RemoveGameplayCue(GameplayCueTag);
+            });
+
     }
 }
 

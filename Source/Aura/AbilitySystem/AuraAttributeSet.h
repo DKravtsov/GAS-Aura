@@ -211,8 +211,8 @@ private:
 
     void HandleIncomingDamage(const FEffectProperties& EffectProps);
     void HandleIncomingXP(const FEffectProperties& EffectProps);
-    void HandleDebuff(const FEffectProperties& EffectProps);
-   
+
+    static void HandleDebuff(const FEffectProperties& EffectProps);
     static void ShowFloatingText(const FEffectProperties& EffectProps, const float Damage, bool bBlockedHit, bool bCriticalHit);
     static void SendXPEvent(const FEffectProperties& EffectProps);
 
