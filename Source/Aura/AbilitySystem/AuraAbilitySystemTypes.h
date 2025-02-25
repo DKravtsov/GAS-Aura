@@ -44,7 +44,7 @@ struct FDamageEffectParams
     float DeathImpulseMagnitude = 0.f;
 
     UPROPERTY()
-    FVector DeathImpulse;
+    FVector DeathImpulse = FVector(ForceInitToZero);
 
 protected:
     TSharedPtr<FHitResult> HitResult;
