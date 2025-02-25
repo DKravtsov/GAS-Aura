@@ -73,6 +73,7 @@ public:
     AActor* GetCombatTarget() const;
     
     virtual void Die(const FVector& DeathImpulse) = 0;
+    virtual void KnockBack(const FVector& KnockBackImpulse) = 0;
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     bool IsDead() const;

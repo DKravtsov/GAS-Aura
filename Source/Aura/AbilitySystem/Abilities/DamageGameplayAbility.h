@@ -43,7 +43,19 @@ protected:
 	//FGameplayTag DebuffGameplayCueTag;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
-	float DeathImpulseMagnitude = 60.f;
+	float KnockBackChance = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage", meta = (EditCondition="bKnockBackPitchOverride"))
+	float KnockBackPitch = 45.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float KnockBackImpulseMagnitude = 600.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float DeathImpulseMagnitude = 6000.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage", meta = (InlineEditConditionToggle="true"))
+	uint8 bKnockBackPitchOverride:1 = false;
 
 public:
 
@@ -59,6 +71,7 @@ public:
 	float GetBaseDamage(const int32 InLevel) const;
 	FGameplayTag GetDamageType() const { return DamageType;}
 
+	UFUNCTION(BlueprintPure)
     FDamageEffectParams MakeDamageEffectParams(AActor* TargetActor = nullptr) const;
 
 protected:

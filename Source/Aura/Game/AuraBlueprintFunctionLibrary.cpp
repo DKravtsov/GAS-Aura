@@ -177,6 +177,16 @@ FVector UAuraBlueprintFunctionLibrary::GetDeathImpulse(const FGameplayEffectCont
     return FVector();
 }
 
+FVector UAuraBlueprintFunctionLibrary::GetKnockBackImpulse(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+    // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
+    if (const FAuraGameplayEffectContext* EffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+    {
+        return EffectContext->GetKnockBackImpulse();
+    }
+    return FVector();
+}
+
 void UAuraBlueprintFunctionLibrary::SetIsBlockedHit(FGameplayEffectContextHandle& EffectContextHandle, bool bBlockedHit)
 {
     // Note: we can cast to FAuraGameplayEffectContext because we set this in FAuraAbilitySystemGlobals which is set in DefaultGame.ini
@@ -331,6 +341,7 @@ FGameplayEffectContextHandle UAuraBlueprintFunctionLibrary::ApplyDamageEffect(co
     if (FAuraGameplayEffectContext* EffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
     {
         EffectContext->SetDeathImpulse(Params.DeathImpulse);
+        EffectContext->SetKnockBackImpulse(Params.KnockBackImpulse);
     }
     
     check(Params.TargetAbilitySystemComponent);

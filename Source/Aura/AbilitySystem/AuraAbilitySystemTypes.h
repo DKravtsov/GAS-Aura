@@ -41,10 +41,19 @@ struct FDamageEffectParams
     float DebuffDuration = 0.f;
     
     UPROPERTY()
+    float KnockBackChance;
+
+    UPROPERTY()
+    float KnockBackImpulseMagnitude = 0.f;
+    
+    UPROPERTY()
     float DeathImpulseMagnitude = 0.f;
 
     UPROPERTY()
     FVector DeathImpulse = FVector(ForceInitToZero);
+
+    UPROPERTY()
+    FVector KnockBackImpulse = FVector(ForceInitToZero);
 
 protected:
     TSharedPtr<FHitResult> HitResult;
@@ -86,7 +95,10 @@ protected:
     FGameplayTag DamageType;
 
     UPROPERTY()
-    FVector DeathImpulse = FVector::ZeroVector;
+    FVector DeathImpulse = FVector(ForceInitToZero);
+
+    UPROPERTY()
+    FVector KnockBackImpulse = FVector(ForceInitToZero);
 
 public:
 
@@ -118,6 +130,9 @@ public:
 
     FVector GetDeathImpulse() const { return DeathImpulse; }
     void SetDeathImpulse(const FVector& ImpulseVector) { DeathImpulse = ImpulseVector; }
+
+    FVector GetKnockBackImpulse() const { return  KnockBackImpulse; }
+    void SetKnockBackImpulse(const FVector& ImpulseVector) { KnockBackImpulse = ImpulseVector; }
 
     virtual UScriptStruct* GetScriptStruct() const override
     {

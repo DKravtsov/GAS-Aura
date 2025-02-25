@@ -249,19 +249,24 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& EffectProp
         const float NewHealth = GetHealth() - Damage;
         SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
 
+        const bool bCritHit = UAuraBlueprintFunctionLibrary::IsCriticalHit(EffectProps.GetEffectContextHandle());
         if (NewHealth <= 0.f)
         {
             if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
             {
                 const FVector DeathImpulse = UAuraBlueprintFunctionLibrary::GetDeathImpulse(EffectProps.GetEffectContextHandle());
-                const bool bWasCrit = UAuraBlueprintFunctionLibrary::IsCriticalHit(EffectProps.GetEffectContextHandle());
-                Interface->Die(DeathImpulse * (bWasCrit ? 2.f : 1.f));
+                Interface->Die(DeathImpulse * (bCritHit ? 2.f : 1.f));
             }
             SendXPEvent(EffectProps);
         }
         else
         {
             EffectProps.GetTargetAbilitySystemComponent()->TryActivateAbilitiesByTag(FGameplayTagContainer(AuraGameplayTags::Abilities_HitReact));
+            if (ICombatInterface* Interface = Cast<ICombatInterface>(EffectProps.GetTargetAvatarActor()))
+            {
+                const FVector KnockBackImpulse = UAuraBlueprintFunctionLibrary::GetKnockBackImpulse(EffectProps.GetEffectContextHandle());
+                Interface->KnockBack(KnockBackImpulse * (bCritHit ? 2.f : 1.f));
+            }
         }
 
         const bool bBlocked = UAuraBlueprintFunctionLibrary::IsBlockedHit(EffectProps.GetEffectContextHandle());

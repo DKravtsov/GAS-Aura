@@ -6,15 +6,17 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UDamageGameplayAbility::CauseDamageToActor(AActor* TargetActor)
 {
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-	{
-		const FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
-		SetupDamageTypes(EffectSpecHandle);
-		TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data);
-	}
+	// if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+	// {
+	// 	const FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
+	// 	SetupDamageTypes(EffectSpecHandle);
+	// 	TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data);
+	// }
+	UAuraBlueprintFunctionLibrary::ApplyDamageEffect(MakeDamageEffectParams(TargetActor));
 }
 
 bool UDamageGameplayAbility::CauseDamageToActors(const TArray<AActor*>& TargetActors)
@@ -51,6 +53,23 @@ FDamageEffectParams UDamageGameplayAbility::MakeDamageEffectParams(AActor* Targe
 	Params.DebuffDuration = DebuffDuration.GetValueAtLevel(Params.AbilityLevel);
 	Params.DebuffFrequency = DebuffFrequency.GetValueAtLevel(Params.AbilityLevel);
 	Params.DeathImpulseMagnitude = DeathImpulseMagnitude;
+	Params.KnockBackImpulseMagnitude = KnockBackImpulseMagnitude;
+	Params.KnockBackChance = KnockBackChance;
+
+	if (IsValid(TargetActor) && KnockBackChance > 0.f)
+	{
+		if (FMath::FRand() < KnockBackChance)
+		{
+			FRotator LookARotator = UKismetMathLibrary::FindLookAtRotation(GetAvatarActorFromActorInfo()->GetActorLocation(), TargetActor->GetActorLocation());
+			if (bKnockBackPitchOverride)
+			{
+				LookARotator.Pitch = KnockBackPitch;
+			}
+			const FVector TargetDirection = LookARotator.Vector();
+			Params.DeathImpulse = TargetDirection * DeathImpulseMagnitude;
+			Params.KnockBackImpulse = TargetDirection * KnockBackImpulseMagnitude;
+		}
+	}
 	return Params;
 }
 

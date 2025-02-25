@@ -84,6 +84,12 @@ bool AAuraProjectile::OnHit(AActor* OtherActor, const FHitResult* HitResult)
         {
             DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
             DamageEffectParams.DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
+            if (FMath::FRand() <= DamageEffectParams.KnockBackChance)
+            {
+                FRotator Rotation = GetActorRotation();
+                Rotation.Pitch = 45.f;
+                DamageEffectParams.KnockBackImpulse = Rotation.Vector() * DamageEffectParams.KnockBackImpulseMagnitude;
+            }
             if (HitResult)
             {
                 DamageEffectParams.SetHitResult(*HitResult);

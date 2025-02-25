@@ -119,6 +119,14 @@ void AAuraCharacterBase::Die(const FVector& DeathImpulse)
     }
 }
 
+void AAuraCharacterBase::KnockBack(const FVector& KnockBackImpulse)
+{
+    if (HasAuthority())
+    {
+        LaunchCharacter(KnockBackImpulse, true, true);
+    }
+}
+
 bool AAuraCharacterBase::IsDead_Implementation() const
 {
     return bDead;

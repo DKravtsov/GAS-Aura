@@ -30,7 +30,7 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 {
     Super::NetSerialize(Ar, Map, bOutSuccess);
 
-    uint8 RepBits = 0;
+    uint16 RepBits = 0;
     if (Ar.IsSaving())
     {
         RepBits |= bBlockedHit << 0;
@@ -56,8 +56,12 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
         {
             RepBits |= 1 << 7;
         }
+        if (!KnockBackImpulse.IsZero())
+        {
+            RepBits |= 1 << 8;
+        }
     }
-    Ar.SerializeBits(&RepBits, 8);
+    Ar.SerializeBits(&RepBits, 9);
 
     if (Ar.IsLoading())
     {
@@ -85,6 +89,10 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
     if (RepBits & (1 << 7))
     {
         DeathImpulse.NetSerialize(Ar, Map, bOutSuccess);
+    }
+     if (RepBits & (1 << 8))
+    {
+        KnockBackImpulse.NetSerialize(Ar, Map, bOutSuccess);
     }
     
     bOutSuccess = true;
