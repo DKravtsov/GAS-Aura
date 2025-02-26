@@ -118,4 +118,10 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "GameplayTags")
     static void RemoveGameplayTagFromActor(AActor* Actor, FGameplayTag Tag);
+
+    UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta = (DisplayName = "Add Gameplay Tag to Actor (Replicated)"))
+    static void AddGameplayTagToActor_Replicated(AActor* Actor, FGameplayTag Tag);
+
+    UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta = (DisplayName = "Remove Gameplay Tag from Actor (Replicated)"))
+    static void RemoveGameplayTagFromActor_Replicated(AActor* Actor, FGameplayTag Tag);
 };

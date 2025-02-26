@@ -384,6 +384,10 @@ float UAuraBlueprintFunctionLibrary::RandInRange(const FIntVector2& MinMax)
 
 bool UAuraBlueprintFunctionLibrary::DoesActorHaveAllGameplayTags(AActor* Actor, const FGameplayTagContainer& TagContainer)
 {
+    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+    {
+        return ASC->HasAllMatchingGameplayTags(TagContainer);
+    }
     if (!IsValid(Actor))
     {
         return false;
@@ -392,16 +396,15 @@ bool UAuraBlueprintFunctionLibrary::DoesActorHaveAllGameplayTags(AActor* Actor, 
     {
         return Interface->HasAllMatchingGameplayTags(TagContainer);
     }
-    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
-    {
-        return ASC->HasAllMatchingGameplayTags(TagContainer);
-    }
     return false;
 }
 
-bool UAuraBlueprintFunctionLibrary::DoesActorHaveAnyGameplayTags(AActor* Actor,
-    const FGameplayTagContainer& TagContainer)
+bool UAuraBlueprintFunctionLibrary::DoesActorHaveAnyGameplayTags(AActor* Actor, const FGameplayTagContainer& TagContainer)
 {
+    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+    {
+        return ASC->HasAnyMatchingGameplayTags(TagContainer);
+    }
     if (!IsValid(Actor))
     {
         return false;
@@ -410,15 +413,15 @@ bool UAuraBlueprintFunctionLibrary::DoesActorHaveAnyGameplayTags(AActor* Actor,
     {
         return Interface->HasAnyMatchingGameplayTags(TagContainer);
     }
-    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
-    {
-        return ASC->HasAnyMatchingGameplayTags(TagContainer);
-    }
     return false;
 }
 
 bool UAuraBlueprintFunctionLibrary::DoesActorHaveGameplayTag(AActor* Actor, FGameplayTag Tag)
 {
+    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+    {
+        return ASC->HasMatchingGameplayTag(Tag);
+    }
     if (!IsValid(Actor))
     {
         return false;
@@ -427,19 +430,11 @@ bool UAuraBlueprintFunctionLibrary::DoesActorHaveGameplayTag(AActor* Actor, FGam
     {
         return Interface->HasMatchingGameplayTag(Tag);
     }
-    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
-    {
-        return ASC->HasMatchingGameplayTag(Tag);
-    }
     return false;
 }
 
 void UAuraBlueprintFunctionLibrary::AddGameplayTagToActor(AActor* Actor, FGameplayTag Tag)
 {
-    if (!IsValid(Actor))
-    {
-        return;
-    }
     if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
     {
         if (!ASC->HasMatchingGameplayTag(Tag))
@@ -451,15 +446,35 @@ void UAuraBlueprintFunctionLibrary::AddGameplayTagToActor(AActor* Actor, FGamepl
 
 void UAuraBlueprintFunctionLibrary::RemoveGameplayTagFromActor(AActor* Actor, FGameplayTag Tag)
 {
-    if (!IsValid(Actor))
-    {
-        return;
-    }
     if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
     {
         if (ASC->HasMatchingGameplayTag(Tag))
         {
             ASC->RemoveLooseGameplayTag(Tag);
+        }
+    }
+}
+
+void UAuraBlueprintFunctionLibrary::AddGameplayTagToActor_Replicated(AActor* Actor, FGameplayTag Tag)
+{
+    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+    {
+        if (!ASC->HasMatchingGameplayTag(Tag))
+        {
+            ASC->AddLooseGameplayTag(Tag);
+            ASC->AddReplicatedLooseGameplayTag(Tag);
+        }
+    }
+}
+
+void UAuraBlueprintFunctionLibrary::RemoveGameplayTagFromActor_Replicated(AActor* Actor, FGameplayTag Tag)
+{
+    if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+    {
+        if (ASC->HasMatchingGameplayTag(Tag))
+        {
+            ASC->RemoveLooseGameplayTag(Tag);
+            ASC->RemoveReplicatedLooseGameplayTag(Tag);
         }
     }
 }
