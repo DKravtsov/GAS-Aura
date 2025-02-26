@@ -44,6 +44,9 @@ private:
 
     bool bHit = false;
 
+    UPROPERTY()
+    TObjectPtr<USceneComponent> HomingTargetSceneComponent;
+
 public:
     AAuraProjectile();
 
@@ -60,6 +63,10 @@ public:
     virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 
     virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+
+    void SetHominTargetActor(const AActor* TargetActor, const float HomingAccelerationMagnitude);
+    void SetHomingTargetLocation(const FVector& TargetLocation, const float HomingAccelerationMagnitude);
+    
 protected:
     virtual void BeginPlay() override;
     //~ End of AActor interface

@@ -96,4 +96,11 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Aura|Combat")
     static FGameplayEffectContextHandle ApplyDamageEffect(const struct FDamageEffectParams& Params);
+
+    UFUNCTION(BlueprintPure, Category = "Math")
+    static TArray<FVector> GetUniformSpreadOfDirections(const FVector& Forward, const float SpreadAngle, int32 NumDirections);
+
+    UFUNCTION(BlueprintPure, Category = "Math")
+    static float FRandInRange(const FVector2D& MinMax);
+    static float RandInRange(const FIntVector2& MinMax);
 };

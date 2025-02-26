@@ -148,5 +148,22 @@ void AAuraProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other
     }
 }
 
+void AAuraProjectile::SetHominTargetActor(const AActor* TargetActor, const float HomingAccelerationMagnitude)
+{
+    check(IsValid(TargetActor));
+    GetProjectileMovement()->HomingTargetComponent = TargetActor->GetRootComponent();
+    GetProjectileMovement()->bIsHomingProjectile = true;
+    GetProjectileMovement()->HomingAccelerationMagnitude = HomingAccelerationMagnitude;
+}
+
+void AAuraProjectile::SetHomingTargetLocation(const FVector& TargetLocation, const float HomingAccelerationMagnitude)
+{
+    HomingTargetSceneComponent = NewObject<USceneComponent>(this, USceneComponent::StaticClass());
+    HomingTargetSceneComponent->SetWorldLocation(TargetLocation);
+    GetProjectileMovement()->HomingTargetComponent = HomingTargetSceneComponent;
+    GetProjectileMovement()->bIsHomingProjectile = true;
+    GetProjectileMovement()->HomingAccelerationMagnitude = HomingAccelerationMagnitude;
+}
+
 
 

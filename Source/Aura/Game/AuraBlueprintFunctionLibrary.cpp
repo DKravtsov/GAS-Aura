@@ -350,3 +350,34 @@ FGameplayEffectContextHandle UAuraBlueprintFunctionLibrary::ApplyDamageEffect(co
     return EffectContextHandle;
     
 }
+
+TArray<FVector> UAuraBlueprintFunctionLibrary::GetUniformSpreadOfDirections(const FVector& Forward, const float SpreadAngle, const int32 NumDirections)
+{
+    TArray<FVector> Result;
+    Result.Reserve(FMath::Max(NumDirections, 1));
+    if (NumDirections > 1)
+    {
+        const FVector LeftOfSpread = Forward.RotateAngleAxis(-SpreadAngle/2.f, FVector::UpVector);
+        const float DeltaSpread = SpreadAngle / (NumDirections - 1);
+        for (int32 Index = 0; Index < NumDirections; ++Index)
+        {
+            const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * Index, FVector::UpVector);
+            Result.Add(Direction);
+        }
+    }
+    else
+    {
+        Result.Add(Forward);
+    }
+    return Result;
+}
+
+float UAuraBlueprintFunctionLibrary::FRandInRange(const FVector2D& MinMax)
+{
+    return FMath::FRandRange(MinMax.X, MinMax.Y);
+}
+
+float UAuraBlueprintFunctionLibrary::RandInRange(const FIntVector2& MinMax)
+{
+    return FMath::RandRange(MinMax.X, MinMax.Y);
+}
