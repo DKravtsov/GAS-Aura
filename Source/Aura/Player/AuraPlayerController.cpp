@@ -13,6 +13,7 @@
 #include "CameraOcclusionComponent.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
+#include "NiagaraFunctionLibrary.h"
 #include "UI/Components/DamageTextComponent.h"
 #include "GameFramework/Pawn.h"
 
@@ -173,6 +174,8 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
             if (FollowTime <= ShortPressThreshold)
             {
                 SetPathToDestination();
+
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickFX, CachedDestination);
             }
 
         }

@@ -59,6 +59,8 @@ private:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<class UDamageTextComponent> DamageTextComponentClass;
 
+    UPROPERTY(EditDefaultsOnly)
+    TObjectPtr<class UNiagaraSystem> ClickFX;
 public:
 
     AAuraPlayerController();
