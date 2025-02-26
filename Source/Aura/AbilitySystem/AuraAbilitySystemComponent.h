@@ -37,6 +37,7 @@ public:
     void GrantAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& Abilities, int32 AbilityLevel);
 
     void AbilityInputPressed(const FGameplayTag& InputTag);
+    void AbilityInputHeld(const FGameplayTag& InputTag);
     void AbilityInputReleased(const FGameplayTag& InputTag);
 
     bool AreStartupAbilitiesGiven() const { return bStartupAbilitiesGiven; }

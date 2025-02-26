@@ -161,6 +161,11 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
     {
         bAutoRuning = false;
     }
+    
+    if (auto ASC = GetAuraAbilitySystemComponent())
+    {
+        ASC->AbilityInputPressed(InputTag);
+    }
 }
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
@@ -245,7 +250,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 
     if (auto ASC = GetAuraAbilitySystemComponent())
     {
-        ASC->AbilityInputPressed(InputTag);
+        ASC->AbilityInputHeld(InputTag);
     }
 }
 
