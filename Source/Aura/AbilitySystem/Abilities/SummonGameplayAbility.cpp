@@ -6,31 +6,24 @@
 #include "NavigationSystem.h"
 #include "Algo/Accumulate.h"
 #include "Algo/ForEach.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 
 TArray<FVector> USummonGameplayAbility::GetSpawnLocations() const
 {
 	const FVector Forward = GetAvatarActorFromActorInfo()->GetActorForwardVector();
 	const FVector OwnerLocation = GetAvatarActorFromActorInfo()->GetActorLocation();
-
-	const FVector LeftOfSpread = Forward.RotateAngleAxis(-SpawnSpread/2.f, FVector::UpVector);
-	
+	TArray<FVector> Directions = UAuraBlueprintFunctionLibrary::GetUniformSpreadOfDirections(Forward, SpawnSpread, NumMinions);
 	TArray<FVector> Result;
-	Result.Reserve(NumMinions);
-	const float DeltaSpread = SpawnSpread / NumMinions;
-
+	Result.Reserve(Directions.Num());
 	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
-	
-	for (int Index = 0; Index < NumMinions; ++Index)
+	for (const FVector& Direction : Directions)
 	{
-		const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * Index, FVector::UpVector);
 		const FVector SpawnLocation = OwnerLocation + Direction  * FMath::FRandRange(MinMaxSpawnDistance.X, MinMaxSpawnDistance.Y);
-
 		if (FNavLocation NavLocation; NavSystem->ProjectPointToNavigation(SpawnLocation, NavLocation, FVector(.0f, 0.f, 400.f)))
 		{
 			Result.Add(NavLocation.Location);
 		}
 	}
-	
 	return Result;
 }
 
