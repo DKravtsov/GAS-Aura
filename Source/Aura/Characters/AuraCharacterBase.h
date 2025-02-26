@@ -96,6 +96,7 @@ public:
     virtual void KnockBack(const FVector& KnockBackImpulse) override;
     virtual bool IsDead_Implementation() const override;
     virtual AActor* GetAvatar_Implementation() override;
+    virtual USkeletalMeshComponent* GetWeapon_Implementation() const override;
     virtual UNiagaraSystem* GetBloodEffect_Implementation() const override { return BloodEffect; }
     virtual int32 GetMinionCount_Implementation() const override { return MinionCount; }
     virtual APawn* SummonMinion_Implementation(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation) override;

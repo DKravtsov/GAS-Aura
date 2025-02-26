@@ -137,6 +137,11 @@ AActor* AAuraCharacterBase::GetAvatar_Implementation()
     return this;
 }
 
+USkeletalMeshComponent* AAuraCharacterBase::GetWeapon_Implementation() const
+{
+    return Weapon;
+}
+
 void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& DeathImpulse)
 {
     bDead = true;

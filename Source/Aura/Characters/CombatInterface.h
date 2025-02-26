@@ -82,6 +82,9 @@ public:
     AActor* GetAvatar();
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    USkeletalMeshComponent* GetWeapon() const;
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     TArray<FAttackInfo> GetAttackMontages() const;
 
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
