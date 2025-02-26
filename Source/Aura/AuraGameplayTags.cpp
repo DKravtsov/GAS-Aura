@@ -94,6 +94,9 @@ namespace AuraGameplayTags
 
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cooldown, "Cooldown", "Parent tag for all cooldown tags");
 
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Player_Block_Input, "Player.Block.Input", "Block any player input");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(Player_Block_CursorTrace, "Player.Block.CursorTrace", "Block player cursor traces");
+
     /**  Gameplay Cues  **/
     
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue, "GameplayCue", "");

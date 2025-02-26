@@ -14,6 +14,9 @@
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Components/DamageTextComponent.h"
 #include "GameFramework/Pawn.h"
 
@@ -117,6 +120,12 @@ void AAuraPlayerController::SetupInputComponent()
 
 void AAuraPlayerController::Move(const FInputActionValue& InputValue)
 {
+    auto ASC = GetAuraAbilitySystemComponent();
+    if ( ASC && ASC->HasMatchingGameplayTag (AuraGameplayTags::Player_Block_Input))
+    {
+        return;
+    }
+
     const FVector2D InputVector = InputValue.Get<FVector2D>();
     const FRotator Rotation = GetControlRotation();
     const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -134,6 +143,17 @@ void AAuraPlayerController::Move(const FInputActionValue& InputValue)
 
 void AAuraPlayerController::TraceUnderCursor()
 {
+    auto ASC = GetAuraAbilitySystemComponent();
+    if ( ASC && ASC->HasMatchingGameplayTag (AuraGameplayTags::Player_Block_CursorTrace))
+    {
+        if (CurrentActorUnderCursor != nullptr)
+        {
+            CurrentActorUnderCursor->UnhighlightActor();
+            CurrentActorUnderCursor = nullptr;
+        }
+        return;
+    }
+    
     if (!GetHitResultUnderCursor(ECC_MouseTrace, false, CursorHit))
     {
         return;
@@ -157,12 +177,17 @@ void AAuraPlayerController::TraceUnderCursor()
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
+    auto ASC = GetAuraAbilitySystemComponent();
+    if ( ASC && ASC->HasMatchingGameplayTag (AuraGameplayTags::Player_Block_Input))
+    {
+        return;
+    }
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
         bAutoRuning = false;
     }
     
-    if (auto ASC = GetAuraAbilitySystemComponent())
+    if (ASC)
     {
         ASC->AbilityInputPressed(InputTag);
     }
@@ -170,13 +195,18 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+    auto ASC = GetAuraAbilitySystemComponent();
+    if ( ASC && ASC->HasMatchingGameplayTag (AuraGameplayTags::Player_Block_Input))
+    {
+        return;
+    }
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
         if (CurrentActorUnderCursor == nullptr && bMovementStarted)
         {
             // we are going to run, won't try to activate any ability
 
-            if (FollowTime <= ShortPressThreshold)
+            if (FollowTime <= ShortPressThreshold && GetCharacter()->GetCharacterMovement()->MovementMode != MOVE_None)
             {
                 SetPathToDestination();
 
@@ -188,7 +218,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
         bMovementStarted = false;
     }
 
-    if (auto ASC = GetAuraAbilitySystemComponent())
+    if (ASC)
     {
         ASC->AbilityInputReleased(InputTag);
     }
@@ -222,6 +252,11 @@ void AAuraPlayerController::SetPathToDestination()
 
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
+    auto ASC = GetAuraAbilitySystemComponent();
+    if ( ASC && ASC->HasMatchingGameplayTag (AuraGameplayTags::Player_Block_Input))
+    {
+        return;
+    }
 
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
@@ -248,7 +283,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
         }
     }
 
-    if (auto ASC = GetAuraAbilitySystemComponent())
+    if (ASC)
     {
         ASC->AbilityInputHeld(InputTag);
     }
