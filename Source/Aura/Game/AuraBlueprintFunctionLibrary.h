@@ -103,4 +103,19 @@ public:
     UFUNCTION(BlueprintPure, Category = "Math")
     static float FRandInRange(const FVector2D& MinMax);
     static float RandInRange(const FIntVector2& MinMax);
+
+    UFUNCTION(BlueprintPure, Category = "GameplayTags")
+    static bool DoesActorHaveAllGameplayTags(AActor* Actor, const FGameplayTagContainer& TagContainer);
+
+    UFUNCTION(BlueprintPure, Category = "GameplayTags")
+    static bool DoesActorHaveAnyGameplayTags(AActor* Actor, const FGameplayTagContainer& TagContainer);
+
+    UFUNCTION(BlueprintPure, Category = "GameplayTags")
+    static bool DoesActorHaveGameplayTag(AActor* Actor, FGameplayTag Tag);
+
+    UFUNCTION(BlueprintCallable, Category = "GameplayTags")
+    static void AddGameplayTagToActor(AActor* Actor, FGameplayTag Tag);
+
+    UFUNCTION(BlueprintCallable, Category = "GameplayTags")
+    static void RemoveGameplayTagFromActor(AActor* Actor, FGameplayTag Tag);
 };
