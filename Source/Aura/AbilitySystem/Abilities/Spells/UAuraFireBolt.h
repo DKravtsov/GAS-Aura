@@ -31,4 +31,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnProjectiles(const FVector& TargetLocation, const FGameplayTag& SocketTag, AActor* HomingTargetActor);
+
+	int32 GetNumProjectiles(const int32 InLevel) const;
+	
+protected:
+	
+	virtual void GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const override;
 };

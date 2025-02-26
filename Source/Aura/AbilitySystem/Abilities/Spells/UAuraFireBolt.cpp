@@ -28,7 +28,7 @@ void UUAuraFireBolt::SpawnProjectiles(const FVector& TargetLocation, const FGame
 		UWorld* World = GetAvatarActorFromActorInfo()->GetWorld();
 		//::DrawDebugDirectionalArrow(World, SpawnLocation, SpawnLocation + Forward * 100.f, 5.f, FColor::White, false, 60.f, SDPG_World, 2.f);
 
-		const int32 NumProjectiles = FMath::Min(MaxNumProjectiles, GetAbilityLevel()/2+1);
+		const int32 NumProjectiles = GetNumProjectiles(GetAbilityLevel());
 
 		TArray<FVector> Directions = UAuraBlueprintFunctionLibrary::GetUniformSpreadOfDirections(Forward, ProjectileSpread, NumProjectiles);
 		for (const FVector& Direction : Directions)
@@ -60,5 +60,21 @@ void UUAuraFireBolt::SpawnProjectiles(const FVector& TargetLocation, const FGame
 			Projectile->FinishSpawning(SpawnTransform);
 		}
 
+	}
+}
+
+int32 UUAuraFireBolt::GetNumProjectiles(const int32 InLevel) const
+{
+	return FMath::Min(MaxNumProjectiles, InLevel/2+1);
+}
+
+void UUAuraFireBolt::GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const
+{
+	Super::GetDynamicDescriptionInfo(OutDescriptionInfo, InLevel);
+
+	if (OutDescriptionInfo.bProjectileText)
+	{
+		OutDescriptionInfo.NumProjectiles = GetNumProjectiles(InLevel);
+		OutDescriptionInfo.NextNumProjectiles = GetNumProjectiles(InLevel + 1);
 	}
 }

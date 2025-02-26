@@ -88,4 +88,15 @@ void UDamageGameplayAbility::GetDynamicDescriptionInfo(FDynamicDescriptionInfo& 
 		OutDescriptionInfo.NextDamage = GetBaseDamage(InLevel + 1);
 		OutDescriptionInfo.DamageType = GetDamageType();
 	}
+	if (OutDescriptionInfo.bDebuffText)
+	{
+		OutDescriptionInfo.DebuffDamage = DebuffDamage.GetValueAtLevel(InLevel);
+		OutDescriptionInfo.DebuffChance = DebuffChance.GetValueAtLevel(InLevel);
+		OutDescriptionInfo.DebuffFrequency = DebuffFrequency.GetValueAtLevel(InLevel);
+		OutDescriptionInfo.DebuffDuration = DebuffDuration.GetValueAtLevel(InLevel);
+		OutDescriptionInfo.NextDebuffDamage = DebuffDamage.GetValueAtLevel(InLevel + 1);
+		OutDescriptionInfo.NextDebuffChance = DebuffChance.GetValueAtLevel(InLevel + 1);
+		OutDescriptionInfo.NextDebuffFrequency = DebuffFrequency.GetValueAtLevel(InLevel + 1);
+		OutDescriptionInfo.NextDebuffDuration = DebuffDuration.GetValueAtLevel(InLevel + 1);
+	}
 }

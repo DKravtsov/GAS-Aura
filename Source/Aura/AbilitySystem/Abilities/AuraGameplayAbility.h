@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystem/AuraAbilitySystemTypes.h"
+#include "AbilitySystem/Abilities/SpellDescription.h"
 #include "AuraGameplayAbility.generated.h"
 
 UENUM(BlueprintType)
@@ -83,29 +84,8 @@ public:
 protected:
 
 #pragma region Description Internal
+    friend struct FDynamicDescriptionInfo;
     
-    struct FDynamicDescriptionInfo
-    {
-        uint32 bTextInitialized : 1 = false;
-
-        uint32 bDamageText : 1 = false;
-        uint32 bManaCostText : 1 = false;
-        uint32 bCooldownText : 1 = false;
-
-        float Damage = 0.f;
-        float NextDamage = 0.f;
-        FGameplayTag DamageType;
-
-        float ManaCost = 0.f;
-        float NextManaCost = 0.f;
-
-        float Cooldown = 0.f;
-        float NextCooldown = 0.f;
-        
-        static void AnalyzeDescription(TSubclassOf<UAuraGameplayAbility> AbilityClass);
-        static void UpdateDescriptionPredefinedTextArgs(FFormatNamedArguments& InArgs, const UAuraGameplayAbility* Ability, const int32 InLevel);
-    };
-
     virtual void GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const;
 
     FDynamicDescriptionInfo DynamicDescriptionInfo;
