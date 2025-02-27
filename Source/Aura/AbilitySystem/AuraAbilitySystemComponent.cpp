@@ -215,38 +215,40 @@ bool UAuraAbilitySystemComponent::GetAbilityDescriptionsByTag(const FGameplayTag
         }
     }
     
-    const UAbilityInfoDataAsset* AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor());
-    check(AbilityInfo);
-    const auto Info = AbilityInfo->FindAbilityInfoByTag(AbilityTag);
-    static const FTextFormat LockedTextFormat = LOCTEXT("LockedSpellDesc", "Required level <Level>{0}</> to unlock."); 
-    OutDesc = FText::Format(LockedTextFormat, Info.LevelRequirement);
-    OutNextLevelDesc = FText::GetEmpty();
+    if (const UAbilityInfoDataAsset* AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor()))
+    {
+        const auto Info = AbilityInfo->FindAbilityInfoByTag(AbilityTag);
+        static const FTextFormat LockedTextFormat = LOCTEXT("LockedSpellDesc", "Required level <Level>{0}</> to unlock."); 
+        OutDesc = FText::Format(LockedTextFormat, Info.LevelRequirement);
+        OutNextLevelDesc = FText::GetEmpty();
+    }
     return false;
 }
 
 void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 CharacterLevel)
 {
-    auto AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor());
-
-    for (const auto& Info : AbilityInfo->AbilityInfos)
+    if (const auto AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetAvatarActor()))
     {
-        if (CharacterLevel < Info.LevelRequirement || !Info.AbilityTag.IsValid())
-            continue;;
-        
-        // TArray<FGameplayAbilitySpecHandle> Handles;
-        // FindAllAbilitiesWithTags(Handles, Info.AbilityTag.GetSingleTagContainer());
-
-        if (FindAbilitySpecByAbilityTag(Info.AbilityTag) == nullptr)
+        for (const auto& Info : AbilityInfo->AbilityInfos)
         {
-            constexpr int32 AbilityLevel = 1;
-            auto Spec = FGameplayAbilitySpec(Info.AbilityClass, AbilityLevel);
-            // Changed status Locked -> Eligible
-            Spec.DynamicAbilityTags.AddTag(AuraGameplayTags::Abilities_Status_Eligible);
-            
-            GiveAbility(Spec);
-            MarkAbilitySpecDirty(Spec);
+            if (CharacterLevel < Info.LevelRequirement || !Info.AbilityTag.IsValid())
+                continue;;
+        
+            // TArray<FGameplayAbilitySpecHandle> Handles;
+            // FindAllAbilitiesWithTags(Handles, Info.AbilityTag.GetSingleTagContainer());
 
-            ClientUpdateAbilityStatus(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible, Spec.Level);
+            if (FindAbilitySpecByAbilityTag(Info.AbilityTag) == nullptr)
+            {
+                constexpr int32 AbilityLevel = 1;
+                auto Spec = FGameplayAbilitySpec(Info.AbilityClass, AbilityLevel);
+                // Changed status Locked -> Eligible
+                Spec.DynamicAbilityTags.AddTag(AuraGameplayTags::Abilities_Status_Eligible);
+            
+                GiveAbility(Spec);
+                MarkAbilitySpecDirty(Spec);
+
+                ClientUpdateAbilityStatus(Info.AbilityTag, AuraGameplayTags::Abilities_Status_Eligible, Spec.Level);
+            }
         }
     }
 }

@@ -19,7 +19,4 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "CharacterClassDefaults")
     TObjectPtr<class UCharacterClassInfo> CharacterClassInfo;
 
-    UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-    TObjectPtr<class UAbilityInfoDataAsset> AbilityInfo;
-
 };

@@ -14,4 +14,8 @@ class AURA_API UAuraGameInstance : public UGameInstance
 {
     GENERATED_BODY()
 
+public:
+    
+    UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+    TObjectPtr<class UAbilityInfoDataAsset> AbilityInfo;
 };

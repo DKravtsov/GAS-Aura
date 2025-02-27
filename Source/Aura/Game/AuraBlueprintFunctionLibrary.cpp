@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameInstance.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemTypes.h"
 #include "AbilitySystem/Data/AbilityInfoDataAsset.h"
@@ -69,9 +70,9 @@ UCharacterClassInfo* UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(const 
 
  UAbilityInfoDataAsset* UAuraBlueprintFunctionLibrary::GetAbilityInfo(const UObject* WorldContextObject)
 {
-    if (auto GM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+    if (const auto GameInstance = Cast<UAuraGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject)))
     {
-        return GM->AbilityInfo;
+        return GameInstance->AbilityInfo;
     }
     return nullptr;
 }
