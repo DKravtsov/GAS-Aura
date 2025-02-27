@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 
 #define LOCTEXT_NAMESPACE "AuraGameplayAbility"
@@ -66,6 +67,11 @@ float UAuraGameplayAbility::GetCooldown(const int32 InLevel) const
 		CooldownEffect->DurationMagnitude.GetStaticMagnitudeIfPossible(InLevel, Cooldown);
 	}
 	return Cooldown;
+}
+
+UAuraAbilitySystemComponent* UAuraGameplayAbility::GetAuraAbilitySystemComponent() const
+{
+	return Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 }
 
 #pragma region Description implementation

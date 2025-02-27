@@ -11,6 +11,8 @@ DECLARE_MULTICAST_DELEGATE(FAbilitiesGivenSignature);
 DECLARE_DELEGATE_OneParam(FForEachAbilityDelegate, const FGameplayAbilitySpec&);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChangeDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/, const int32 /*Level*/);
 DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquippedDelegate, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*Status*/, const FGameplayTag& /*Slot*/, const FGameplayTag& /*PrevSlot*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FPassiveAbilityDeactivatedDelegate, const FGameplayTag& /*AbilityTag*/);
+
 
 /**
  *
@@ -26,6 +28,7 @@ public:
     FAbilitiesGivenSignature OnAbilitiesGiven;
     FAbilityStatusChangeDelegate OnAbilityStatusChange;
     FAbilityEquippedDelegate OnAbilityEquipped;
+    FPassiveAbilityDeactivatedDelegate OnPassiveAbilityDeactivated;
     
 public:
 

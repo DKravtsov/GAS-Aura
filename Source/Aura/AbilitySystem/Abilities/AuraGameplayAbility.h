@@ -83,6 +83,8 @@ public:
     
 protected:
 
+    class UAuraAbilitySystemComponent* GetAuraAbilitySystemComponent() const;
+
 #pragma region Description Internal
     friend struct FDynamicDescriptionInfo;
     
