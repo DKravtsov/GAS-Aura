@@ -68,7 +68,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Caombat)
 	bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
 
+	UFUNCTION(BlueprintPure)
 	float GetBaseDamage(const int32 InLevel) const;
+
+	UFUNCTION(BlueprintPure)
 	FGameplayTag GetDamageType() const { return DamageType;}
 
 	UFUNCTION(BlueprintPure)
