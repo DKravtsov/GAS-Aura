@@ -339,6 +339,13 @@ void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGamep
         AbilitySpec->DynamicAbilityTags.RemoveTag(AuraGameplayTags::Abilities_Status_Unlocked);//won't do anything if there's no such tag
         AbilitySpec->DynamicAbilityTags.AddTag(AuraGameplayTags::Abilities_Status_Equipped);//won't add tag if already exists
 
+        static const FGameplayTagContainer PassiveSlots = FGameplayTagContainer::CreateFromArray( 
+            TArray<FGameplayTag>{AuraGameplayTags::InputTag_Passive1, AuraGameplayTags::InputTag_Passive2});
+        if (InInputTag.MatchesAny(PassiveSlots))
+        {
+            TryActivateAbility(AbilitySpec->Handle);
+        }
+        
         MarkAbilitySpecDirty(*AbilitySpec);
 
         ClientEquipAbility(InAbilityTag, InInputTag, Status, PrevSlot);
@@ -360,6 +367,7 @@ void UAuraAbilitySystemComponent::ClearInputSlot(FGameplayAbilitySpec& Spec)
 {
     const FGameplayTag Slot = GetInputTagFromSpec(Spec);
     Spec.DynamicAbilityTags.RemoveTag(Slot);
+    OnPassiveAbilityDeactivated.Broadcast(GetAbilityTagFromSpec(Spec));
     MarkAbilitySpecDirty(Spec);
 }
 

@@ -44,6 +44,8 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action2, "InputTag.Action2", "2");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action3, "InputTag.Action3", "3");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Action4, "InputTag.Action4", "4");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Passive1, "InputTag.Passive1", "Dummy tag for equipped passive ability");
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Passive2, "InputTag.Passive2", "Dummy tag for equipped passive ability");
 
     /**  Combat Tags **/
 

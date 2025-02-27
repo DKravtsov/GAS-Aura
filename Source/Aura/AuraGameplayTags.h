@@ -47,6 +47,8 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action2);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action3);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Action4);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Passive1);
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Passive2);
 
     /**  Combat Tags **/
 
