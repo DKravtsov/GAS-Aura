@@ -57,6 +57,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage", meta = (InlineEditConditionToggle="true"))
 	uint8 bKnockBackPitchOverride:1 = false;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|RadialDamage")
+	uint8 bRadialDamage:1 = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|RadialDamage", meta = (EditCondition="bRadialDamage"))
+	float RadialDamageInnerRadius = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|RadialDamage", meta = (EditCondition="bRadialDamage"))
+	float RadialDamageOuterRadius = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector RadialDamageOrigin = FVector(ForceInitToZero);
+
 public:
 
 

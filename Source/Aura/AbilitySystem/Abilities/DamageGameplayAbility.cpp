@@ -70,6 +70,15 @@ FDamageEffectParams UDamageGameplayAbility::MakeDamageEffectParams(AActor* Targe
 			Params.KnockBackImpulse = TargetDirection * KnockBackImpulseMagnitude;
 		}
 	}
+
+	if (bRadialDamage)
+	{
+		Params.bRadialDamage = true;
+		Params.RadialDamageInnerRadius = RadialDamageInnerRadius;
+		Params.RadialDamageOuterRadius = RadialDamageOuterRadius;
+		Params.RadialDamageOrigin = RadialDamageOrigin;
+	}
+	
 	return Params;
 }
 
