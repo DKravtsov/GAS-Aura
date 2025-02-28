@@ -18,6 +18,7 @@
 #include "Logs.h"
 
 #include "DebugHelper.h"
+#include "Player/PlayerInterface.h"
 
 #pragma region FEffectProperties
 
@@ -347,7 +348,7 @@ void UAuraAttributeSet::HandleIncomingXP(const FEffectProperties& EffectProps)
 
         if (EffectProps.GetSourceAvatarActor() && EffectProps.GetSourceAvatarActor()->Implements<UCombatInterface>())
         {
-            ICombatInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
+            IPlayerInterface::Execute_AddXP(EffectProps.GetSourceAvatarActor(), XP);
         }
     }
 }

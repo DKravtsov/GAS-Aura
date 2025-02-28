@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
+#include "PlayerInterface.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/LevelUpDataAsset.h"
@@ -65,7 +66,7 @@ void AAuraPlayerState::SetPlayerLevel(int32 NewLevel)
 
     GetAuraAbilitySystemComponentChecked()->UpdateAbilityStatuses(Level);
 
-    ICombatInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
+    IPlayerInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
     OnLevelChanged.Broadcast(Level);
 }
 

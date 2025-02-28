@@ -35,12 +35,12 @@ public:
 
     //~ Begin of ICombatInterface interface
     virtual int32 BP_GetCharacterLevel_Implementation() const override;
-    virtual void AddXP_Implementation(int32 Amount) override;
     virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
-    virtual void NotifyLevelUp_Implementation() override;
     //~ End of ICombatInterface interface
 
     //~ Begin of IPlayerInterface interface
+    virtual void AddXP_Implementation(int32 Amount) override;
+    virtual void NotifyLevelUp_Implementation() override;
     virtual void ShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial = nullptr) override;
     virtual void HideMagicCircle_Implementation() override;
     //~ End of IPlayerInterface

@@ -102,11 +102,5 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     int32 GetRewardXP() const;
 
-    UFUNCTION(BlueprintNativeEvent)
-    void AddXP(int32 Amount);
-
-    UFUNCTION(BlueprintNativeEvent)
-    void NotifyLevelUp();
-
     virtual FOnDeathSignature& GetOnDeathDelegate() = 0;
 };

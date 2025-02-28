@@ -22,6 +22,12 @@ class AURA_API IPlayerInterface
 
 public:
 
+	UFUNCTION(BlueprintNativeEvent)
+	void AddXP(int32 Amount);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void NotifyLevelUp();
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ShowMagicCircle(UMaterialInterface* DecalMaterial = nullptr);
 
