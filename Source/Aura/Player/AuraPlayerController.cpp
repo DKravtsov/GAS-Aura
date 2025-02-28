@@ -14,6 +14,7 @@
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Actors/MagicCircle.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -36,6 +37,7 @@ void AAuraPlayerController::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     TraceUnderCursor();
+    UpdateMagicCircleLocation();
 
     if (bAutoRuning)
     {
@@ -300,6 +302,14 @@ void AAuraPlayerController::MakePathSpline(const TArray<FVector>& PathPoints)
     PathSpline->UpdateSpline();
 }
 
+void AAuraPlayerController::UpdateMagicCircleLocation()
+{
+    if (IsValid(MagicCircle))
+    {
+        MagicCircle->SetActorLocation(CursorHit.Location);
+    }
+}
+
 void AAuraPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
@@ -317,5 +327,40 @@ void AAuraPlayerController::OnUnPossess()
     if (CameraOcclusionComponent)
     {
         CameraOcclusionComponent->Deactivate();
+    }
+}
+
+void AAuraPlayerController::ShowMagicCircle(UMaterialInterface* DecalMaterial)
+{
+    ClientShowMagicCircle(DecalMaterial);
+}
+
+void AAuraPlayerController::HideMagicCircle()
+{
+    ClientHideMagicCircle();
+}
+
+void AAuraPlayerController::ClientShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial)
+{
+    if (!IsValid(MagicCircle))
+    {
+        check(MagicCircleClass != nullptr);
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        MagicCircle = GetWorld()->SpawnActor<AMagicCircle>(MagicCircleClass, SpawnParams);
+        MagicCircle->SetReplicates(false);
+        if (DecalMaterial != nullptr)
+        {
+            MagicCircle->SetDecalMaterial(DecalMaterial);
+        }
+    }
+}
+
+void AAuraPlayerController::ClientHideMagicCircle_Implementation()
+{
+    if (IsValid(MagicCircle))
+    {
+        MagicCircle->Destroy();
+        MagicCircle = nullptr;
     }
 }

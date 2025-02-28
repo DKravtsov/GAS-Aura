@@ -10,6 +10,7 @@
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "Player/AuraPlayerController.h"
 #include "UI/HUD/AuraHUD.h"
 
 AAuraPlayerCharacter::AAuraPlayerCharacter()
@@ -115,3 +116,18 @@ void AAuraPlayerCharacter::NotifyLevelUp_Implementation()
     ApplyGameplayEffectToSelf(LevelUpEffect, GetCharacterLevel());
 }
 
+void AAuraPlayerCharacter::ShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial)
+{
+    if (AAuraPlayerController* PC = GetController<AAuraPlayerController>())
+    {
+        PC->ShowMagicCircle(DecalMaterial);
+    }
+}
+
+void AAuraPlayerCharacter::HideMagicCircle_Implementation()
+{
+    if (AAuraPlayerController* PC = GetController<AAuraPlayerController>())
+    {
+        PC->HideMagicCircle();
+    }
+}

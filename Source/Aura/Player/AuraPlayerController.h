@@ -61,6 +61,12 @@ private:
 
     UPROPERTY(EditDefaultsOnly)
     TObjectPtr<class UNiagaraSystem> ClickFX;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<class AMagicCircle> MagicCircleClass;
+
+    UPROPERTY()
+    TObjectPtr<AMagicCircle> MagicCircle;
 public:
 
     AAuraPlayerController();
@@ -80,6 +86,9 @@ public:
     UFUNCTION(Client, Reliable)
     void ClientShowDamageFloatingNumber(class APawn* TargetPawn, float Amount, bool bBlockedHit, bool bCriticalHit);
 
+    void ShowMagicCircle(UMaterialInterface* DecalMaterial = nullptr);
+    void HideMagicCircle();
+    
 protected:
 
     virtual void BeginPlay() override;
@@ -104,4 +113,12 @@ private:
 
     void ShiftPressed() { bShiftKeyPressed = true; }
     void ShiftReleased() { bShiftKeyPressed = false; }
+
+    void UpdateMagicCircleLocation();
+
+    UFUNCTION(Client, Reliable)
+    void ClientShowMagicCircle(UMaterialInterface* DecalMaterial);
+
+    UFUNCTION(Client, Reliable)
+    void ClientHideMagicCircle();
 };

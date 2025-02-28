@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Characters/AuraCharacterBase.h"
+#include "Player/PlayerInterface.h"
 #include "AuraPlayerCharacter.generated.h"
 
 /**
  *
  */
 UCLASS()
-class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase
+class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase, public IPlayerInterface
 {
     GENERATED_BODY()
 
@@ -38,6 +39,11 @@ public:
     virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
     virtual void NotifyLevelUp_Implementation() override;
     //~ End of ICombatInterface interface
+
+    //~ Begin of IPlayerInterface interface
+    virtual void ShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial = nullptr) override;
+    virtual void HideMagicCircle_Implementation() override;
+    //~ End of IPlayerInterface
 
 private:
     void InitAbilitySystemComponent();
