@@ -155,8 +155,10 @@ void AAuraPlayerController::TraceUnderCursor()
         }
         return;
     }
+
+    const auto TraceChannel = MagicCircle ? ECC_MagicCircleTrace : ECC_MouseTrace;
     
-    if (!GetHitResultUnderCursor(ECC_MouseTrace, false, CursorHit))
+    if (!GetHitResultUnderCursor(TraceChannel, false, CursorHit))
     {
         return;
     }
