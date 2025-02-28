@@ -84,7 +84,7 @@ public:
     UFUNCTION(BlueprintPure, Category = "Actor")
     static APawn* FindNearestAlivePawn(FVector Origin, const TArray<APawn*>& ActorsToCheck, float& Distance);
     
-    UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta = (WorldContext = "WorldContextObject"))
+    UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm="IgnoreActors"))
     static void GetAllLivePlayersInRadius(const UObject* WorldContextObject, TArray<AActor*>& LivePlayers, const float Radius, const FVector& Origin, const TArray<AActor*>& IgnoreActors);
 
     UFUNCTION(BlueprintPure, Category = "Aura|Combat")
@@ -94,8 +94,15 @@ public:
     UFUNCTION(Category = "Math|Random", BlueprintPure)
     static int32 RandomIntWithWeights(TArray<float> Weights);
 
-    UFUNCTION(BlueprintCallable, Category = "Aura|Combat")
+    UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta=(ReturnDisplayName="EffectContext"))
     static FGameplayEffectContextHandle ApplyDamageEffect(const struct FDamageEffectParams& Params);
+
+    // UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta=(ReturnDisplayName="EffectContexts", AutoCreateRefTerm="IgnoreActors"))
+    // static TArray<FGameplayEffectContextHandle> ApplyRadialDamageEffect(const FDamageEffectParams& Params,
+    //     const FVector& Origin, float DamageInnerRadius, float DamageOuterRadius, float DamageFalloff, const TArray<AActor*>& IgnoreActors);
+
+    //static void AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params);
+    static void ScaleDamageEffectParams(FDamageEffectParams& Params, const float Scale);
 
     UFUNCTION(BlueprintPure, Category = "Math")
     static TArray<FVector> GetUniformSpreadOfDirections(const FVector& Forward, const float SpreadAngle, int32 NumDirections);

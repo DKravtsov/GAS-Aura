@@ -73,6 +73,8 @@ protected:
     // default value (-1) will be overwritten by class defaults
     UPROPERTY(EditDefaultsOnly, Category=Combat)
     FScalableFloat RewardXP;
+
+    FOnActorTakeDamageDelegate OnActorTakeDamageDelegate;
     
 public:
 
@@ -101,10 +103,12 @@ public:
     virtual int32 GetMinionCount_Implementation() const override { return MinionCount; }
     virtual APawn* SummonMinion_Implementation(TSubclassOf<APawn> MinionClass, FVector Location, FRotator Rotation) override;
     virtual FOnDeathSignature& GetOnDeathDelegate() override { return OnDeath; };
+    virtual FOnActorTakeDamageDelegate& GetActorTakeDamageDelegate() override;
     //~ End of ICombatInterface interface
 
     int32 GetCharacterLevel() const;
-    
+
+    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 protected:
 
     virtual void BeginPlay() override;

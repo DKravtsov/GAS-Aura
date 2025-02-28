@@ -10,6 +10,7 @@
 enum class EAuraCharacterClass : uint8;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeathSignature, AActor*, DeadActor);
+DECLARE_DELEGATE_TwoParams(FOnActorTakeDamageDelegate, AActor*/*Actor*/, float /*Damage*/);
 
 USTRUCT(BlueprintType)
 struct FAttackInfo
@@ -103,4 +104,5 @@ public:
     int32 GetRewardXP() const;
 
     virtual FOnDeathSignature& GetOnDeathDelegate() = 0;
+    virtual FOnActorTakeDamageDelegate& GetActorTakeDamageDelegate() = 0;
 };

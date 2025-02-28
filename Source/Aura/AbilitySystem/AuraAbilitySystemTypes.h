@@ -55,18 +55,6 @@ struct FDamageEffectParams
     UPROPERTY(BlueprintReadWrite)
     FVector KnockBackImpulse = FVector(ForceInitToZero);
 
-    UPROPERTY(BlueprintReadWrite)
-    bool bRadialDamage = false;
-
-    UPROPERTY(BlueprintReadWrite)
-    float RadialDamageInnerRadius = 0.f;
-
-    UPROPERTY(BlueprintReadWrite)
-    float RadialDamageOuterRadius = 0.f;
-
-    UPROPERTY(BlueprintReadWrite)
-    FVector RadialDamageOrigin = FVector(ForceInitToZero);
-
 protected:
     TSharedPtr<FHitResult> HitResult;
 

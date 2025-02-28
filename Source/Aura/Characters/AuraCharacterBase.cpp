@@ -8,6 +8,7 @@
 #include "Aura.h"
 #include "AuraGameplayTags.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -195,7 +196,25 @@ APawn* AAuraCharacterBase::SummonMinion_Implementation(TSubclassOf<APawn> Minion
     return nullptr;
 }
 
+FOnActorTakeDamageDelegate& AAuraCharacterBase::GetActorTakeDamageDelegate()
+{
+    return OnActorTakeDamageDelegate;
+}
+
 int32 AAuraCharacterBase::GetCharacterLevel() const
 {
     return Execute_BP_GetCharacterLevel(this);
+}
+
+float AAuraCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+    AController* EventInstigator, AActor* DamageCauser)
+{
+    if (UAuraBlueprintFunctionLibrary::AreFriendly(this, DamageCauser))
+        return 0.f;
+    
+    const float RealDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    OnActorTakeDamageDelegate.ExecuteIfBound(this, RealDamage);
+
+    return RealDamage;
 }

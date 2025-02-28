@@ -66,19 +66,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|RadialDamage", meta = (EditCondition="bRadialDamage"))
 	float RadialDamageOuterRadius = 0.f;
 
-	UPROPERTY(BlueprintReadWrite)
-	FVector RadialDamageOrigin = FVector(ForceInitToZero);
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage|RadialDamage", meta = (EditCondition="bRadialDamage"))
+	float RadialDamageFalloff = 1.f;
 
 public:
 
 
-	UFUNCTION(BlueprintCallable, Category = Caombat)
+	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void CauseDamageToActor(AActor* TargetActor);
 
 	// Causes damage to the array of the actors, checking if they are not friendly.
 	// Returns true if at least one damage was applied
-	UFUNCTION(BlueprintCallable, Category = Caombat)
+	UFUNCTION(BlueprintCallable, Category = "Combat")
 	bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat", meta=(ReturnDisplayName="EffectContexts", AutoCreateRefTerm="IgnoreActors"))
+	TArray<FGameplayEffectContextHandle> ApplyRadialDamageEffect(const FVector& Origin, const TArray<AActor*>& IgnoreActors);
 
 	UFUNCTION(BlueprintPure)
 	float GetBaseDamage(const int32 InLevel) const;
@@ -89,9 +92,14 @@ public:
 	UFUNCTION(BlueprintPure)
     FDamageEffectParams MakeDamageEffectParams(AActor* TargetActor = nullptr) const;
 
+	UFUNCTION(BlueprintPure)
+	FDamageEffectParams MakeDamageEffectParamsFromRadialDamage(AActor* TargetActor, const FVector& Origin) const; 
+
 protected:
 
     void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle) const;
 
 	virtual void GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const override;
+	
+	void AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params) const;
 };
