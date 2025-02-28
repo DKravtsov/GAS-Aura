@@ -65,10 +65,9 @@ TArray<FTransform> APointCollection::GetGroundPoints(const UObject* WorldContext
 		Params.AddIgnoredActors(IgnoreActors);
 		if (World->LineTraceSingleByProfile(HitResult, RaisedLocation, LoweredLocation, FName("BlockAll"), Params))
 		{
-			Pt.SetLocation(HitResult.ImpactPoint);
-			Pt.SetRotation(UKismetMathLibrary::MakeRotFromZ(HitResult.Normal).Quaternion());
-			Result.Add(Pt);
+			Pt = FTransform(HitResult.ImpactNormal.Rotation(), HitResult.ImpactPoint);
 		}
+		Result.Add(Pt);
 	}
 
 	return Result;
