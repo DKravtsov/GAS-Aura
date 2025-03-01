@@ -3,8 +3,10 @@
 
 #include "Projectile/AuraFireBall.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Aura.h"
 #include "Components/SphereComponent.h"
+#include "Game/AuraBlueprintFunctionLibrary.h"
 
 AAuraFireBall::AAuraFireBall(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -15,6 +17,21 @@ AAuraFireBall::AAuraFireBall(const FObjectInitializer& ObjectInitializer)
 void AAuraFireBall::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	AActor::NotifyActorBeginOverlap(OtherActor);
+
+	if (OtherActor == GetInstigator() || UAuraBlueprintFunctionLibrary::AreFriendly(OtherActor, GetInstigator())) 
+	{
+		return ;
+	}
+
+	if (HasAuthority())
+	{
+		if (auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+		{
+			DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
+			DamageEffectParams.DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
+			UAuraBlueprintFunctionLibrary::ApplyDamageEffect(DamageEffectParams);
+		}
+	}
 }
 
 void AAuraFireBall::NotifyActorEndOverlap(AActor* OtherActor)

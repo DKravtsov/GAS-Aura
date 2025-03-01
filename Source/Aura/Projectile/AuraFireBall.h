@@ -13,7 +13,11 @@ UCLASS()
 class AURA_API AAuraFireBall : public AAuraProjectile
 {
 	GENERATED_BODY()
+public:
 
+	UPROPERTY(BlueprintReadWrite, Category="FireBall")
+	FDamageEffectParams ExplosionDamageParams;
+	
 public:
 
 	AAuraFireBall(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());

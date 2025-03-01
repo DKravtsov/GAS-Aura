@@ -97,12 +97,14 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta=(ReturnDisplayName="EffectContext"))
     static FGameplayEffectContextHandle ApplyDamageEffect(const struct FDamageEffectParams& Params);
 
-    UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aura|Combat", meta=(ReturnDisplayName="EffectContexts", AutoCreateRefTerm="IgnoreActors"))
+    UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Aura|Combat", meta=(ReturnDisplayName="EffectContexts", AutoCreateRefTerm="IgnoreActors", AdvancedDisplay="bKnockBackPitchOverride,KnockBackPitch"))
     static TArray<FGameplayEffectContextHandle> ApplyRadialDamageEffect(const FDamageEffectParams& Params,
         const FVector& Origin, float DamageInnerRadius, float DamageOuterRadius, float DamageFalloff, const TArray<AActor*>& IgnoreActors,
         bool bKnockBackPitchOverride = false, const float KnockBackPitch = 0.f);
 
-    static void AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params, bool bKnockBackPitchOverride = false, const float KnockBackPitch = 0.f);
+    UFUNCTION(BlueprintCallable, Category = "Aura|Combat", meta=(AdvancedDisplay="bKnockBackPitchOverride,KnockBackPitch"))
+    static void AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, UPARAM(ref) FDamageEffectParams& Params, bool bKnockBackPitchOverride = false, const float KnockBackPitch = 0.f);
+
     static void ScaleDamageEffectParams(FDamageEffectParams& Params, const float Scale);
 
     UFUNCTION(BlueprintPure, Category = "Math")

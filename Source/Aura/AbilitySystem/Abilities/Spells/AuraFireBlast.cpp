@@ -8,11 +8,14 @@
 
 TArray<AAuraFireBall*> UAuraFireBlast::SpawnFireBalls() const
 {
+	if (!HasAuthority(&CurrentActivationInfo))
+		return{};
+	
 	TArray<AAuraFireBall*> FireBalls;
 	FireBalls.Reserve(NumFireBalls);
 
 	const FVector Forward = GetAvatarActorFromActorInfo()->GetActorForwardVector();
-	TArray<FVector> FireBallDirections = UAuraBlueprintFunctionLibrary::GetUniformSpreadOfDirections(Forward, 360.f, NumFireBalls);
+	TArray<FVector> FireBallDirections = UAuraBlueprintFunctionLibrary::GetUniformSpreadOfDirections(Forward, 360.f, NumFireBalls + 1);
 
 	APawn* FireBallOwnerPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 	const FVector SpawnLocation = FireBallOwnerPawn->GetActorLocation();
@@ -22,10 +25,14 @@ TArray<AAuraFireBall*> UAuraFireBlast::SpawnFireBalls() const
 			FireBallOwnerPawn, FireBallOwnerPawn, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 		FireBall->DamageEffectParams = MakeDamageEffectParams();
+		FireBall->ExplosionDamageParams = MakeDamageEffectParams();
 
 		FireBall->FinishSpawning(FTransform(SpawnDirection.Rotation(), SpawnLocation));
 
 		FireBalls.Add(FireBall);
+
+		if (FireBalls.Num() >= NumFireBalls)
+			break;
 	}
 	return FireBalls;
 }
