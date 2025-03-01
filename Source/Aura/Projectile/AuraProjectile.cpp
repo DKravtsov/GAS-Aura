@@ -17,7 +17,8 @@
 #include "Logs.h"
 #endif
 
-AAuraProjectile::AAuraProjectile()
+AAuraProjectile::AAuraProjectile(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
 {
     PrimaryActorTick.bCanEverTick = false;
     bReplicates = true;
@@ -33,6 +34,8 @@ AAuraProjectile::AAuraProjectile()
     ProjectileMovement->MaxSpeed = 550.f;
     ProjectileMovement->ProjectileGravityScale = 0.f;
     ProjectileMovement->bRotationFollowsVelocity = true;
+    
+    SetReplicatingMovement(true);
     
     InitialLifeSpan = 5.f;
 }
@@ -148,7 +151,7 @@ void AAuraProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other
     }
 }
 
-void AAuraProjectile::SetHominTargetActor(const AActor* TargetActor, const float HomingAccelerationMagnitude)
+void AAuraProjectile::SetHomingTargetActor(const AActor* TargetActor, const float HomingAccelerationMagnitude)
 {
     check(IsValid(TargetActor));
     GetProjectileMovement()->HomingTargetComponent = TargetActor->GetRootComponent();

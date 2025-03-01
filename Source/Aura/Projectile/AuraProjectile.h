@@ -48,7 +48,7 @@ private:
     TObjectPtr<USceneComponent> HomingTargetSceneComponent;
 
 public:
-    AAuraProjectile();
+    AAuraProjectile(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
     USphereComponent* GetSphereComponent() const { return SphereComponent; }
 
@@ -64,7 +64,7 @@ public:
 
     virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 
-    void SetHominTargetActor(const AActor* TargetActor, const float HomingAccelerationMagnitude);
+    void SetHomingTargetActor(const AActor* TargetActor, const float HomingAccelerationMagnitude);
     void SetHomingTargetLocation(const FVector& TargetLocation, const float HomingAccelerationMagnitude);
     
 protected:

@@ -16,6 +16,14 @@ class AURA_API UAuraFireBlast : public UDamageGameplayAbility
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, Category = "FireBlast")
+	TSubclassOf<class AAuraFireBall> FireBallClass;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FireBlast")
 	int32 NumFireBalls = 12;
+
+public:
+
+	UFUNCTION(BlueprintCallable, BlueprintPure=false)
+	TArray<AAuraFireBall*> SpawnFireBalls() const;
 };

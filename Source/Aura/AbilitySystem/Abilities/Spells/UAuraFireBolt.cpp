@@ -49,7 +49,7 @@ void UUAuraFireBolt::SpawnProjectiles(const FVector& TargetLocation, const FGame
 				const float Magnitude = UAuraBlueprintFunctionLibrary::FRandInRange(HomingAccelerationMinMax);
 				if (bHasValidTarget)
 				{
-					Projectile->SetHominTargetActor(HomingTargetActor, Magnitude);
+					Projectile->SetHomingTargetActor(HomingTargetActor, Magnitude);
 				}
 				else
 				{
