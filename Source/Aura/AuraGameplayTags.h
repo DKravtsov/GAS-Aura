@@ -118,6 +118,8 @@ namespace AuraGameplayTags
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff_Arcane);
     AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Debuff_Physical);
 
+    AURA_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_FireBlast);
+
     
 }
 

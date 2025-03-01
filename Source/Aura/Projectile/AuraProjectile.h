@@ -71,5 +71,5 @@ protected:
     virtual void BeginPlay() override;
     //~ End of AActor interface
 
-    void PlayEffects();
+    virtual void PlayEffects();
 };

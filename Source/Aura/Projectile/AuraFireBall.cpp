@@ -5,6 +5,8 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Aura.h"
+#include "AuraGameplayTags.h"
+#include "GameplayCueManager.h"
 #include "Components/SphereComponent.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
 
@@ -48,4 +50,14 @@ void AAuraFireBall::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, 
 void AAuraFireBall::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AAuraFireBall::PlayEffects()
+{
+	if (IsValid(GetOwner()))
+	{
+		FGameplayCueParameters Params;
+		Params.Location = GetActorLocation();
+		UGameplayCueManager::ExecuteGameplayCue_NonReplicated(GetOwner(), AuraGameplayTags::GameplayCue_FireBlast, Params);
+	}
 }

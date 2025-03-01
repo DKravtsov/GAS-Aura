@@ -107,6 +107,8 @@ namespace AuraGameplayTags
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Shock, "GameplayCue.Debuff.Shock", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Arcane, "GameplayCue.Debuff.Arcane", "");
     UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_Debuff_Physical, "GameplayCue.Debuff.Physical", "");
+
+    UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_FireBlast, "GameplayCue.FireBlast", "FireBlast's explosion FX");
     
 }
 
