@@ -132,4 +132,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta = (DisplayName = "Remove Gameplay Tag from Actor (Replicated)"))
     static void RemoveGameplayTagFromActor_Replicated(AActor* Actor, FGameplayTag Tag);
+
+    UFUNCTION(BlueprintPure)
+    static float GetValueAtLevel(const struct FScalableFloat& InVariable, const int32 InLevel);
 };

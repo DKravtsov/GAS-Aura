@@ -535,3 +535,8 @@ void UAuraBlueprintFunctionLibrary::RemoveGameplayTagFromActor_Replicated(AActor
         }
     }
 }
+
+float UAuraBlueprintFunctionLibrary::GetValueAtLevel(const FScalableFloat& InVariable, const int32 InLevel)
+{
+    return InVariable.GetValueAtLevel(InLevel);
+}

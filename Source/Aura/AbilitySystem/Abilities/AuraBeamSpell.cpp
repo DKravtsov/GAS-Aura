@@ -65,9 +65,9 @@ void UAuraBeamSpell::EnableMovement() const
 	}
 }
 
-int32 UAuraBeamSpell::GetNumSecondaryTargets() const
+int32 UAuraBeamSpell::GetNumSecondaryTargets(const int32 InLevel) const
 {
-	return FMath::Min(GetAbilityLevel() - 1, MaxNumSecondaryTargets);
+	return FMath::Min(InLevel - 1, MaxNumSecondaryTargets);
 }
 
 void UAuraBeamSpell::SetPrimaryTargetActor(AActor* NewPrimaryTarget)

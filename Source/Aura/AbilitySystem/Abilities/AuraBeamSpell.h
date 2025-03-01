@@ -51,7 +51,7 @@ public:
 	void SetSecondaryTargets(const TArray<AActor*>& NewSecondaryTargets);
 
 	UFUNCTION(BlueprintCallable)
-	virtual int32 GetNumSecondaryTargets() const;
+	virtual int32 GetNumSecondaryTargets(const int32 InLevel) const;
 
 	//~ Begin of UGameplayAbility interface
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;

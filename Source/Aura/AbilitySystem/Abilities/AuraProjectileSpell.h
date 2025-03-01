@@ -41,5 +41,7 @@ protected:
     //~ Begin of UGameplayAbility interface
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
     //~ End of UGameplayAbility interface
-    
+
+    UFUNCTION(BlueprintPure)
+    virtual int32 GetNumProjectiles(const int32 InLevel) const { return 1; }
 };

@@ -95,8 +95,5 @@ public:
 protected:
 
     void SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle) const;
-
-	virtual void GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const override;
-	
 	void AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params) const;
 };

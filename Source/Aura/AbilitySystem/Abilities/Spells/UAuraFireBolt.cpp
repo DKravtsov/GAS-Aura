@@ -67,14 +67,3 @@ int32 UUAuraFireBolt::GetNumProjectiles(const int32 InLevel) const
 {
 	return FMath::Min(MaxNumProjectiles, InLevel/2+1);
 }
-
-void UUAuraFireBolt::GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const
-{
-	Super::GetDynamicDescriptionInfo(OutDescriptionInfo, InLevel);
-
-	if (OutDescriptionInfo.bProjectileText)
-	{
-		OutDescriptionInfo.NumProjectiles = GetNumProjectiles(InLevel);
-		OutDescriptionInfo.NextNumProjectiles = GetNumProjectiles(InLevel + 1);
-	}
-}

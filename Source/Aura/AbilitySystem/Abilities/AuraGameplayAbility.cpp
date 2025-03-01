@@ -8,8 +8,6 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 
-#define LOCTEXT_NAMESPACE "AuraGameplayAbility"
-
 void UAuraGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
@@ -21,8 +19,6 @@ void UAuraGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorI
 			ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 		}
 	}
-
-	FDynamicDescriptionInfo::AnalyzeDescription(GetClass());
 }
 
 void UAuraGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -74,50 +70,11 @@ UAuraAbilitySystemComponent* UAuraGameplayAbility::GetAuraAbilitySystemComponent
 	return Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 }
 
-#pragma region Description implementation
-
-void UAuraGameplayAbility::GetDescription(const int32 Level, FText& OutDesc, FText& OutNextLevelDesc) const
+void UAuraGameplayAbility::GetDescription_Implementation(const int32 Level, FText& OutDesc, FText& OutNextLevelDesc) const
 {
-	static auto SelectText = [](const FText& InText, const auto& Default)
-	{
-		return !InText.IsEmpty() ? InText : Default;
-	};
-	static const FTextFormat DefaultTextFormat = LOCTEXT("SpellDefaultDescFmt", "<Title>{Name}</>\r\nLevel <Level>{Level}</>\r\nDescription:\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla condimentum augue id purus porta lacinia. Praesent non lorem posuere, interdum sapien sit amet, efficitur tortor. Duis scelerisque tortor velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Cras auctor ex vel nisl vehicula, convallis euismod.");
-	static const FTextFormat DefaultNextTextFormat = LOCTEXT("SpellDefaultDescNextFmt", "Next level: <Level>{Level}</>\r\nCauses much more <damage>damage</>.");
-	static const FText DefaultSpellName = LOCTEXT("SpellDefaultName", "Default Spell Name");
+	static const FTextFormat DefaultTextFormat = INVTEXT("<Title>DEFAULT SPELL</>\r\nLevel <Level>{0}</>\r\nDescription:\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla condimentum augue id purus porta lacinia. Praesent non lorem posuere, interdum sapien sit amet, efficitur tortor. Duis scelerisque tortor velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Cras auctor ex vel nisl vehicula, convallis euismod.");
+	static const FTextFormat DefaultNextTextFormat = INVTEXT("<Title>Next Level</>Level: <Level>{Level}</>\r\nCauses much more <damage>damage</>.");
 
-	// Replace all "variables" in the description with their values
-
-
-	FFormatNamedArguments Args;
-	Args.Add(TEXT("Name"), SelectText(AbilityName.ToUpper(), DefaultSpellName));
-
-	DynamicDescriptionInfo.UpdateDescriptionPredefinedTextArgs(Args, this, Level);
-	OutDesc = FText::Format(SelectText(Description, DefaultTextFormat), Args);
-	OutNextLevelDesc = FText::Format(SelectText(NextLevelDescription, DefaultNextTextFormat), Args);
+	OutDesc = FText::Format(DefaultTextFormat, Level);
+	OutNextLevelDesc = FText::Format(DefaultNextTextFormat, Level + 1);
 }
-
-void UAuraGameplayAbility::GetDynamicDescriptionInfo(FDynamicDescriptionInfo& OutDescriptionInfo, const int32 InLevel) const
-{
-	UAuraGameplayAbility* CDO = GetClass()->GetDefaultObject<UAuraGameplayAbility>();
-	if (CDO == nullptr)
-		return;
-	OutDescriptionInfo = CDO->DynamicDescriptionInfo;
-	
-	if (DynamicDescriptionInfo.bManaCostText)
-	{
-		OutDescriptionInfo.ManaCost = GetManaCost(InLevel);
-		OutDescriptionInfo.NextManaCost = GetManaCost(InLevel + 1);
-	}
-
-	if (DynamicDescriptionInfo.bCooldownText)
-	{
-		OutDescriptionInfo.Cooldown = GetCooldown(InLevel);
-		OutDescriptionInfo.NextCooldown = GetCooldown(InLevel + 1);
-	}
-}
-
-
-#pragma endregion 
-
-#undef LOCTEXT_NAMESPACE
