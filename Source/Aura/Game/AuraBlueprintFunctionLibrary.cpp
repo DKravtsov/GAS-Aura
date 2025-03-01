@@ -16,6 +16,7 @@
 #include "UI/HUD/AuraHUD.h"
 #include "Game/AuraGameModeBase.h"
 #include "Characters/CombatInterface.h"
+#include "Engine/DamageEvents.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UOverlayWidgetController* UAuraBlueprintFunctionLibrary::GetOverlayWidgetController(const UObject* WorldContextObject)
@@ -354,60 +355,49 @@ FGameplayEffectContextHandle UAuraBlueprintFunctionLibrary::ApplyDamageEffect(co
     
 }
 
-// TArray<FGameplayEffectContextHandle> UAuraBlueprintFunctionLibrary::ApplyRadialDamageEffect(const FDamageEffectParams& Params,
-//         const FVector& Origin, float DamageInnerRadius, float DamageOuterRadius, float DamageFalloff, const TArray<AActor*>& IgnoreActors)
-// {
-//     // bind callbacks
-//     AActor* SourceAvatar = Params.SourceAbilitySystemComponent->GetAvatarActor();
-//     if (!SourceAvatar->HasAuthority())
-//         return {};
-//     
-//     TArray<AActor*> Players;
-//     TArray<FGameplayEffectContextHandle> ReturnHandles;
-//     GetAllLivePlayersInRadius(SourceAvatar, Players, DamageOuterRadius, Origin, IgnoreActors);
-//     for (AActor* Player : Players)
-//     {
-//         if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Player))
-//         {
-//             CombatInterface->GetActorTakeDamageDelegate().BindLambda(
-//                 [&ReturnHandles](AActor* Actor, const float Damage, const FDamageEffectParams& OriginalParams)
-//                 {
-//                     auto RadialDamageParams = OriginalParams;
-//                     ScaleDamageEffectParams(RadialDamageParams, Damage / OriginalParams.BaseDamage);
-//                     ReturnHandles.Add(ApplyDamageEffect(RadialDamageParams));
-//                 }, Params);
-//         }
-//     }
-//     
-//     // apply damage
-//
-//     UGameplayStatics::ApplyRadialDamageWithFalloff(SourceAvatar, Params.BaseDamage, 0.f, Origin,
-//         DamageInnerRadius, DamageOuterRadius, DamageFalloff, nullptr, IgnoreActors, SourceAvatar,
-//         Params.SourceAbilitySystemComponent->AbilityActorInfo->PlayerController.Get());
-//
-//     // unbind callbacks
-//     for (AActor* Player : Players)
-//     {
-//         if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Player))
-//         {
-//             CombatInterface->GetActorTakeDamageDelegate().Unbind();
-//         }
-//     }
-//
-//     return ReturnHandles;
-// }
+TArray<FGameplayEffectContextHandle> UAuraBlueprintFunctionLibrary::ApplyRadialDamageEffect(const FDamageEffectParams& Params,
+        const FVector& Origin, float DamageInnerRadius, float DamageOuterRadius, float DamageFalloff, const TArray<AActor*>& IgnoreActors,
+        bool bKnockBackPitchOverride, const float KnockBackPitch)
+{
+    AActor* SourceAvatar = Params.SourceAbilitySystemComponent->GetAvatarActor();
+    if (!SourceAvatar->HasAuthority())
+        return {};
+    
+    TArray<AActor*> Characters;
+    TArray<FGameplayEffectContextHandle> ReturnHandles;
+    GetAllLivePlayersInRadius(SourceAvatar, Characters, DamageOuterRadius, Origin, IgnoreActors);
+    for (AActor* TargetActor : Characters)
+    {
+        FDamageEffectParams NewParams = Params;
+        NewParams.TargetAbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+        AddKnockBackParams(TargetActor, Origin, NewParams, bKnockBackPitchOverride, KnockBackPitch);
+        
+        constexpr float MinimumDamage = 0.f;
+        FRadialDamageParams RadialDamageParams(Params.BaseDamage, MinimumDamage, DamageInnerRadius, DamageOuterRadius, DamageFalloff);
+        const float DamageScale = RadialDamageParams.GetDamageScale(FVector::DistXY(Origin, TargetActor->GetActorLocation()));
 
-// void UAuraBlueprintFunctionLibrary::AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params)
-// {
-//     FRotator LookARotator = UKismetMathLibrary::FindLookAtRotation(Origin, TargetActor->GetActorLocation());
-//     // if (bKnockBackPitchOverride)
-//     // {
-//     //     LookARotator.Pitch = KnockBackPitch;
-//     // }
-//     const FVector TargetDirection = LookARotator.Vector();
-//     Params.DeathImpulse = TargetDirection * Params.DeathImpulseMagnitude;
-//     Params.KnockBackImpulse = TargetDirection * Params.KnockBackImpulseMagnitude;
-// }
+        ScaleDamageEffectParams(NewParams, DamageScale);
+
+        const FGameplayEffectContextHandle Handle = ApplyDamageEffect(NewParams);
+        
+        ReturnHandles.Add(Handle);
+    }
+    
+    return ReturnHandles;
+}
+
+void UAuraBlueprintFunctionLibrary::AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params,
+    bool bKnockBackPitchOverride, const float KnockBackPitch)
+{
+    FRotator LookARotator = UKismetMathLibrary::FindLookAtRotation(Origin, TargetActor->GetActorLocation());
+    if (bKnockBackPitchOverride)
+    {
+        LookARotator.Pitch = KnockBackPitch;
+    }
+    const FVector TargetDirection = LookARotator.Vector();
+    Params.DeathImpulse = TargetDirection * Params.DeathImpulseMagnitude;
+    Params.KnockBackImpulse = TargetDirection * Params.KnockBackImpulseMagnitude;
+}
 
 void UAuraBlueprintFunctionLibrary::ScaleDamageEffectParams(FDamageEffectParams& Params, const float Scale)
 {

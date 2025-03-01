@@ -72,16 +72,16 @@ protected:
 public:
 
 
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void CauseDamageToActor(AActor* TargetActor);
+	UFUNCTION(BlueprintCallable, Category = "Combat", BlueprintPure = false)
+	void CauseDamageToActor(AActor* TargetActor) const;
 
 	// Causes damage to the array of the actors, checking if they are not friendly.
 	// Returns true if at least one damage was applied
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	bool CauseDamageToActors(const TArray<AActor*>& TargetActors);
+	UFUNCTION(BlueprintCallable, Category = "Combat", BlueprintPure = false)
+	bool CauseDamageToActors(const TArray<AActor*>& TargetActors) const;
 
-	UFUNCTION(BlueprintCallable, Category = "Combat", meta=(ReturnDisplayName="EffectContexts", AutoCreateRefTerm="IgnoreActors"))
-	TArray<FGameplayEffectContextHandle> ApplyRadialDamageEffect(const FVector& Origin, const TArray<AActor*>& IgnoreActors);
+	UFUNCTION(BlueprintCallable, Category = "Combat", BlueprintPure = false, meta=(ReturnDisplayName="EffectContexts", AutoCreateRefTerm="IgnoreActors"))
+	void CauseDamageToActorsInRadius(const FVector& Origin, const TArray<AActor*>& IgnoreActors) const;
 
 	UFUNCTION(BlueprintPure)
 	float GetBaseDamage(const int32 InLevel) const;
@@ -91,9 +91,6 @@ public:
 
 	UFUNCTION(BlueprintPure)
     FDamageEffectParams MakeDamageEffectParams(AActor* TargetActor = nullptr) const;
-
-	UFUNCTION(BlueprintPure)
-	FDamageEffectParams MakeDamageEffectParamsFromRadialDamage(AActor* TargetActor, const FVector& Origin) const; 
 
 protected:
 

@@ -10,12 +10,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
-void UDamageGameplayAbility::CauseDamageToActor(AActor* TargetActor)
+void UDamageGameplayAbility::CauseDamageToActor(AActor* TargetActor) const
 {
 	UAuraBlueprintFunctionLibrary::ApplyDamageEffect(MakeDamageEffectParams(TargetActor));
 }
 
-bool UDamageGameplayAbility::CauseDamageToActors(const TArray<AActor*>& TargetActors)
+bool UDamageGameplayAbility::CauseDamageToActors(const TArray<AActor*>& TargetActors) const
 {
 	const AActor* Avatar = GetAvatarActorFromActorInfo();
 	bool bResult = false;
@@ -30,47 +30,13 @@ bool UDamageGameplayAbility::CauseDamageToActors(const TArray<AActor*>& TargetAc
 	return bResult;
 }
 
-TArray<FGameplayEffectContextHandle> UDamageGameplayAbility::ApplyRadialDamageEffect(const FVector& Origin, const TArray<AActor*>& IgnoreActors)
+void UDamageGameplayAbility::CauseDamageToActorsInRadius(const FVector& Origin, const TArray<AActor*>& IgnoreActors) const
 {
 	if (!HasAuthority(&CurrentActivationInfo))
-		return {};
+		return;
 	
-	// bind callbacks
-	AActor* SourceAvatar = GetAvatarActorFromActorInfo();
-    
-	TArray<AActor*> Players;
-	TArray<FGameplayEffectContextHandle> ReturnHandles;
-	UAuraBlueprintFunctionLibrary::GetAllLivePlayersInRadius(SourceAvatar, Players, RadialDamageOuterRadius, Origin, IgnoreActors);
-	for (AActor* Player : Players)
-	{
-		if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Player))
-		{
-			CombatInterface->GetActorTakeDamageDelegate().BindLambda(
-				[&ReturnHandles, this, Origin](AActor* Actor, const float Damage)
-				{
-					auto Params = MakeDamageEffectParamsFromRadialDamage(Actor, Origin);
-					UAuraBlueprintFunctionLibrary::ScaleDamageEffectParams(Params, Damage / Params.BaseDamage);
-					ReturnHandles.Add(UAuraBlueprintFunctionLibrary::ApplyDamageEffect(Params));
-				});
-		}
-	}
-    
-	// apply damage
-
-	UGameplayStatics::ApplyRadialDamageWithFalloff(SourceAvatar, GetBaseDamage(GetAbilityLevel()), 0.f, Origin,
-		RadialDamageInnerRadius, RadialDamageOuterRadius, RadialDamageFalloff, nullptr, IgnoreActors, SourceAvatar,
-		CurrentActorInfo->PlayerController.Get());
-
-	// unbind callbacks
-	for (AActor* Player : Players)
-	{
-		if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Player))
-		{
-			CombatInterface->GetActorTakeDamageDelegate().Unbind();
-		}
-	}
-
-	return ReturnHandles;
+	UAuraBlueprintFunctionLibrary::ApplyRadialDamageEffect(MakeDamageEffectParams(), Origin,
+		RadialDamageInnerRadius, RadialDamageOuterRadius, RadialDamageFalloff, IgnoreActors, bKnockBackPitchOverride, KnockBackPitch);
 }
 
 float UDamageGameplayAbility::GetBaseDamage(const int32 InLevel) const
@@ -105,30 +71,7 @@ FDamageEffectParams UDamageGameplayAbility::MakeDamageEffectParams(AActor* Targe
 
 void UDamageGameplayAbility::AddKnockBackParams(const AActor* TargetActor, const FVector& Origin, FDamageEffectParams& Params) const
 {
-	FRotator LookARotator = UKismetMathLibrary::FindLookAtRotation(Origin, TargetActor->GetActorLocation());
-	if (bKnockBackPitchOverride)
-	{
-		LookARotator.Pitch = KnockBackPitch;
-	}
-	const FVector TargetDirection = LookARotator.Vector();
-	Params.DeathImpulse = TargetDirection * Params.DeathImpulseMagnitude;
-	Params.KnockBackImpulse = TargetDirection * Params.KnockBackImpulseMagnitude;
-}
-
-FDamageEffectParams UDamageGameplayAbility::MakeDamageEffectParamsFromRadialDamage(AActor* TargetActor, const FVector& Origin) const
-{
-	FDamageEffectParams Params = MakeDamageEffectParams();	
-	
-	if (!IsValid(TargetActor))
-		return Params;
-	
-	Params.TargetAbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-	
-	if (Params.KnockBackChance > 0.f && FMath::FRand() <= Params.KnockBackChance)
-	{
-		AddKnockBackParams(TargetActor, Origin, Params);
-	}
-	return Params;
+	UAuraBlueprintFunctionLibrary::AddKnockBackParams(TargetActor, Origin, Params, bKnockBackPitchOverride, KnockBackPitch);
 }
 
 void UDamageGameplayAbility::SetupDamageTypes(const FGameplayEffectSpecHandle& DamageEffectSpecHandle) const
