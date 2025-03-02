@@ -43,6 +43,15 @@ void UMVVMLoadScreen::NewGameButtonPressed(int32 Slot)
 void UMVVMLoadScreen::SelectSlotButtonPressed(int32 Slot)
 {
 	checkf(Slot >= 0 && Slot < NumLoadSlots, TEXT("Only %d Load slots available in this version"), NumLoadSlots);
+
+	SetSelectedSlotIndex(Slot);
+	
+	OnSlotSelected.Broadcast();
+	
+	for (int Index = 0; Index < NumLoadSlots; ++Index)
+	{
+		LoadSlots[Index]->OnSetEnableSlot.Broadcast(Index != Slot);
+	}
 }
 
 void UMVVMLoadScreen::LoadData()
@@ -55,4 +64,9 @@ void UMVVMLoadScreen::LoadData()
 		LoadSlots[Index]->SlotStatus = SaveObject->SlotStatus;
 		LoadSlots[Index]->InitializeSlot();
 	}
+}
+
+void UMVVMLoadScreen::SetSelectedSlotIndex(const int32 NewSlotIndex)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(SelectedSlotIndex, NewSlotIndex);
 }

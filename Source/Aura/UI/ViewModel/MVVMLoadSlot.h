@@ -9,6 +9,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWidgetSwitcherIndexSignature, int32, WidgetSwitcherIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetEnableSlotSignature, bool, bEnable);
 
 /**
  * 
@@ -22,6 +23,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FSetWidgetSwitcherIndexSignature OnSetWidgetSwitcherIndex;
+
+	UPROPERTY(BlueprintAssignable)
+	FSetEnableSlotSignature OnSetEnableSlot;
 
 	UPROPERTY()
 	int32 SlotIndex = 0;
