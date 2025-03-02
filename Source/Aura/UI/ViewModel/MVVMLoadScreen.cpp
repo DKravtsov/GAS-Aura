@@ -13,7 +13,9 @@ void UMVVMLoadScreen::InitializeLoadSlots()
 	{
 		LoadSlots[Index] = NewObject<UMVVMLoadSlot>(this, LoadSlotViewModelClass);
 		LoadSlots[Index]->SetLoadSlotName(FString::Printf(TEXT("LoadSlot_%d"), Index));
+		LoadSlots[Index]->SlotIndex = Index;
 	}
+	OnSlotSelectionCleared.Broadcast();
 }
 
 UMVVMLoadSlot* UMVVMLoadScreen::GetLoadSlot(int32 Index) const
@@ -27,6 +29,7 @@ void UMVVMLoadScreen::NewSlotButtonPressed(int32 Slot, const FString& EnteredNam
 	checkf(Slot >= 0 && Slot < NumLoadSlots, TEXT("Only %d Load slots available in this version"), NumLoadSlots);
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
 
+	LoadSlots[Slot]->SetMap(AuraGameMode->DefaultMap);
 	LoadSlots[Slot]->SetPlayerName(EnteredName);
 	LoadSlots[Slot]->SlotStatus = ESaveSlotStatus::Taken;
 
@@ -54,6 +57,24 @@ void UMVVMLoadScreen::SelectSlotButtonPressed(int32 Slot)
 	}
 }
 
+void UMVVMLoadScreen::PlayFromSelectedSlot()
+{
+	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+	AuraGameMode->TravelToMap(LoadSlots[SelectedSlotIndex]);
+}
+
+void UMVVMLoadScreen::DeleteSelectedSlot()
+{
+	if (SelectedSlotIndex == INDEX_NONE)
+		return;
+	AAuraGameModeBase::DeleteLoadSlot(LoadSlots[SelectedSlotIndex]->GetLoadSlotName(), SelectedSlotIndex);
+	LoadSlots[SelectedSlotIndex]->SlotStatus = ESaveSlotStatus::Vacant;
+	LoadSlots[SelectedSlotIndex]->InitializeSlot();
+	LoadSlots[SelectedSlotIndex]->OnSetEnableSlot.Broadcast(true);
+	SetSelectedSlotIndex(INDEX_NONE);
+	OnSlotSelectionCleared.Broadcast();
+}
+
 void UMVVMLoadScreen::LoadData()
 {
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
@@ -63,6 +84,7 @@ void UMVVMLoadScreen::LoadData()
 		LoadSlots[Index]->SetPlayerName(SaveObject->PlayerName);
 		LoadSlots[Index]->SlotStatus = SaveObject->SlotStatus;
 		LoadSlots[Index]->InitializeSlot();
+		LoadSlots[Index]->SetMap(TSoftObjectPtr<UWorld>(SaveObject->MapName));
 	}
 }
 

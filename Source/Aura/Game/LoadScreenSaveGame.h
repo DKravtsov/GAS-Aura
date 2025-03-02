@@ -36,4 +36,7 @@ public:
 
 	UPROPERTY()
 	FString PlayerName = TEXT("Default Name");
+
+	UPROPERTY()
+	FString MapName;
 };

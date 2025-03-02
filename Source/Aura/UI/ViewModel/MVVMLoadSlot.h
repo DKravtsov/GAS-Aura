@@ -35,11 +35,15 @@ public:
 
 private:
 
+	UPROPERTY()
+	TSoftObjectPtr<UWorld> BoundMap = nullptr; 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Getter, Setter, meta = (AllowPrivateAccess="true"))
 	FString LoadSlotName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Getter, Setter, meta = (AllowPrivateAccess="true"))
 	FString PlayerName;
+
 public:
 
 	void InitializeSlot();
@@ -49,4 +53,10 @@ public:
 
 	FString GetPlayerName() const { return PlayerName; }
 	void SetPlayerName(FString NewName);
+
+	UFUNCTION(BlueprintPure, FieldNotify)
+	FText GetMapName() const;
+	
+	const TSoftObjectPtr<UWorld>& GetMap() const { return BoundMap; }
+	void SetMap(const TSoftObjectPtr<UWorld>& NewMap);
 };

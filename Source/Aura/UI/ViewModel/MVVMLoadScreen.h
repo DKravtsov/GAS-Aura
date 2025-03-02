@@ -23,6 +23,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FSlotSelectedSignature OnSlotSelected;
+
+	UPROPERTY(BlueprintAssignable)
+	FSlotSelectedSignature OnSlotSelectionCleared;
 	
 private:
 
@@ -49,6 +52,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SelectSlotButtonPressed(int32 Slot);
+
+	UFUNCTION(BlueprintCallable)
+	void PlayFromSelectedSlot();
+
+	UFUNCTION(BlueprintCallable)
+	void DeleteSelectedSlot();
 
 	void LoadData();
 
