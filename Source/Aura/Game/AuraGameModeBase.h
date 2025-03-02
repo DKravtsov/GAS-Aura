@@ -28,6 +28,9 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TMap<TSoftObjectPtr<UWorld>, FText> AvailableMaps;
 
+    UPROPERTY(EditDefaultsOnly)
+    FName DefaultPlayerStartTag = FName("LevelStart");
+
 public:
     
     void SaveSlotData(class UMVVMLoadSlot* LoadSlot, int32 SlotIndex) const;
@@ -40,6 +43,8 @@ public:
 
     void TravelToMap(const UMVVMLoadSlot* SlotInfo) const;
 
+    virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+    
 protected:
 
     void BeginPlay() override;

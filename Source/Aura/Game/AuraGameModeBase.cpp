@@ -2,7 +2,11 @@
 
 
 #include "Game/AuraGameModeBase.h"
+
+#include "AuraGameInstance.h"
+#include "EngineUtils.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/ViewModel/MVVMLoadSlot.h"
 #include "UI/Widgets/LoadScreenWidget.h"
@@ -18,6 +22,8 @@ void AAuraGameModeBase::SaveSlotData(class UMVVMLoadSlot* LoadSlot, int32 SlotIn
 	LoadScreenSaveGame->SlotIndex = SlotIndex;
 	LoadScreenSaveGame->SlotStatus = ESaveSlotStatus::Taken;
 	LoadScreenSaveGame->MapName = LoadSlot->GetMap().ToString();
+	LoadScreenSaveGame->PlayerStartTag = LoadSlot->PlayerStartTag;
+	
 
 	UGameplayStatics::SaveGameToSlot(LoadScreenSaveGame, LoadSlot->GetLoadSlotName(), SlotIndex);
 }
@@ -63,4 +69,25 @@ void AAuraGameModeBase::TravelToMap(const UMVVMLoadSlot* SlotInfo) const
 {
 	check(SlotInfo && !SlotInfo->GetMap().IsNull());
 	UGameplayStatics::OpenLevelBySoftObjectPtr(this, SlotInfo->GetMap());
+}
+
+AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
+{
+	AActor* BestPlayerStart = nullptr;
+	FName PlayerStartTag = GetGameInstance<UAuraGameInstance>()->PlayerStartTag;
+	for (TActorIterator<APlayerStart> It(GetWorld(), APlayerStart::StaticClass()); It; ++It)
+	{
+		APlayerStart* PlayerStart = *It;
+		if (BestPlayerStart == nullptr)
+		{
+			BestPlayerStart = PlayerStart; // just in case we won't find anything
+		}
+
+		if (PlayerStart->PlayerStartTag == PlayerStartTag)
+		{
+			BestPlayerStart = PlayerStart;
+			break;
+		}
+	}
+	return BestPlayerStart;
 }

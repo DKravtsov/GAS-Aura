@@ -18,4 +18,13 @@ public:
     
     UPROPERTY(EditDefaultsOnly, Category = "Abilities")
     TObjectPtr<class UAbilityInfoDataAsset> AbilityInfo;
+
+    UPROPERTY()
+    FName PlayerStartTag;
+
+    UPROPERTY()
+    FString LoadSlotName;
+
+    UPROPERTY()
+    int32 LoadSlotIndex = 0;
 };
