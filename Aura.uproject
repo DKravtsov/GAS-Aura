@@ -14,7 +14,8 @@
 				"UMG",
 				"CoreUObject",
 				"EnhancedInput",
-				"AIModule"
+				"AIModule",
+				"ModelViewViewModel"
 			]
 		}
 	],
@@ -40,6 +41,10 @@
 		},
 		{
 			"Name": "MotionWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "ModelViewViewModel",
 			"Enabled": true
 		}
 	],
