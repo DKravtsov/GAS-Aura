@@ -21,8 +21,10 @@ public:
 
 private:
 
+	static constexpr int32 NumLoadSlots = 3;
+	
 	UPROPERTY()
-	TArray<TObjectPtr<UMVVMLoadSlot>> LoadSlots;
+	TObjectPtr<UMVVMLoadSlot> LoadSlots[NumLoadSlots];
 
 public:
 
@@ -30,4 +32,13 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	UMVVMLoadSlot* GetLoadSlot(int32 Index) const;
+
+	UFUNCTION(BlueprintCallable)
+	void NewSlotButtonPressed(int32 Slot, const FString& EnteredName);
+
+	UFUNCTION(BlueprintCallable)
+	void NewGameButtonPressed(int32 Slot);
+
+	UFUNCTION(BlueprintCallable)
+	void SelectSlotButtonPressed(int32 Slot);
 };
