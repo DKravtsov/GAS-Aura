@@ -43,6 +43,7 @@ public:
     virtual void NotifyLevelUp_Implementation() override;
     virtual void ShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial = nullptr) override;
     virtual void HideMagicCircle_Implementation() override;
+    virtual void SaveProgress_Implementation(FName CheckpointTag) override;
     //~ End of IPlayerInterface
 
 private:

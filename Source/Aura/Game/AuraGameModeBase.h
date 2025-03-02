@@ -35,6 +35,8 @@ public:
     
     void SaveSlotData(class UMVVMLoadSlot* LoadSlot, int32 SlotIndex) const;
     ULoadScreenSaveGame* LoadSlotData(const FString& SlotName, int32 SlotIndex) const;
+    ULoadScreenSaveGame* RetrieveInGameSaveData();
+    void SaveInGameProgressData(ULoadScreenSaveGame* SaveObject) const;
 
     static void DeleteLoadSlot(const FString& SlotName, int32 SlotIndex);
 

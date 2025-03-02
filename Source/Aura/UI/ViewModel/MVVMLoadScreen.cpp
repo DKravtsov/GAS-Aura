@@ -66,7 +66,7 @@ void UMVVMLoadScreen::PlayFromSelectedSlot()
 	UAuraGameInstance* AuraGameInstance = AuraGameMode->GetGameInstance<UAuraGameInstance>();
 	AuraGameInstance->LoadSlotName = LoadSlots[SelectedSlotIndex]->GetLoadSlotName();
 	AuraGameInstance->LoadSlotIndex = SelectedSlotIndex;
-	AuraGameInstance->PlayerStartTag = AuraGameMode->DefaultPlayerStartTag;
+	AuraGameInstance->PlayerStartTag = LoadSlots[SelectedSlotIndex]->PlayerStartTag;
 
 	AuraGameMode->TravelToMap(LoadSlots[SelectedSlotIndex]);
 }

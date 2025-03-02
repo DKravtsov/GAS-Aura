@@ -37,6 +37,22 @@ ULoadScreenSaveGame* AAuraGameModeBase::LoadSlotData(const FString& SlotName, in
 	return Cast<ULoadScreenSaveGame>(UGameplayStatics::CreateSaveGameObject(LoadScreenSaveGameClass));
 }
 
+ULoadScreenSaveGame* AAuraGameModeBase::RetrieveInGameSaveData()
+{
+	UAuraGameInstance* GameInstance = GetWorld()->GetGameInstance<UAuraGameInstance>();
+	check(GameInstance);
+
+	return LoadSlotData(GameInstance->LoadSlotName, GameInstance->LoadSlotIndex);
+}
+
+void AAuraGameModeBase::SaveInGameProgressData(ULoadScreenSaveGame* SaveObject) const
+{
+	UAuraGameInstance* GameInstance = GetWorld()->GetGameInstance<UAuraGameInstance>();
+	check(GameInstance);
+	GameInstance->PlayerStartTag = SaveObject->PlayerStartTag;
+	UGameplayStatics::SaveGameToSlot(SaveObject, GameInstance->LoadSlotName, GameInstance->LoadSlotIndex);
+}
+
 void AAuraGameModeBase::DeleteLoadSlot(const FString& SlotName, int32 SlotIndex)
 {
 	if (UGameplayStatics::DoesSaveGameExist(SlotName, SlotIndex))

@@ -33,4 +33,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void HideMagicCircle();
+
+
+	/*  Saving progress */
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void SaveProgress(FName CheckpointTag);
 };

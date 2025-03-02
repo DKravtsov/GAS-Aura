@@ -10,6 +10,9 @@
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "Game/AuraGameInstance.h"
+#include "Game/AuraGameModeBase.h"
+#include "Game/LoadScreenSaveGame.h"
 #include "Player/AuraPlayerController.h"
 #include "UI/HUD/AuraHUD.h"
 
@@ -131,5 +134,18 @@ void AAuraPlayerCharacter::HideMagicCircle_Implementation()
     {
         PC->HideMagicCircle();
         PC->SetShowMouseCursor(true);
+    }
+}
+
+void AAuraPlayerCharacter::SaveProgress_Implementation(FName CheckpointTag)
+{
+    if (AAuraGameModeBase* AuraGameMode = GetWorld()->GetAuthGameMode<AAuraGameModeBase>())
+    {
+        if (ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData())
+        {
+            SaveData->PlayerStartTag = CheckpointTag;
+
+            AuraGameMode->SaveInGameProgressData(SaveData);
+        }
     }
 }
