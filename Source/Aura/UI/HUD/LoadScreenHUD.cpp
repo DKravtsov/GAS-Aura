@@ -17,6 +17,8 @@ void ALoadScreenHUD::BeginPlay()
 	LoadScreenWidget = CreateWidget<ULoadScreenWidget>(GetWorld(), LoadScreenWidgetClass);
 	LoadScreenWidget->AddToViewport();
 	LoadScreenWidget->InitializeWidget();
+
+	LoadScreenViewModel->LoadData();
 	
 	if (auto PC = GetWorld()->GetFirstPlayerController())
 	{

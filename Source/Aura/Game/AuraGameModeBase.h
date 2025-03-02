@@ -19,4 +19,9 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "CharacterClassDefaults")
     TObjectPtr<class UCharacterClassInfo> CharacterClassInfo;
 
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<class ULoadScreenSaveGame> LoadScreenSaveGameClass;
+
+    void SaveSlotData(class UMVVMLoadSlot* LoadSlot, int32 SlotIndex) const;
+    ULoadScreenSaveGame* LoadSlotData(const FString& SlotName, int32 SlotIndex) const;
 };
