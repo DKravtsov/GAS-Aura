@@ -7,7 +7,7 @@
 #include "SaveGameInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE()
+UINTERFACE(Blueprintable)
 class USaveGameInterface : public UInterface
 {
 	GENERATED_BODY()
