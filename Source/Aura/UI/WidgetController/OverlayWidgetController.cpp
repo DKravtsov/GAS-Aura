@@ -21,7 +21,7 @@ void UOverlayWidgetController::BroadcastInitialValues()
     }
 
     OnXPPercentChanged.Broadcast(AuraPlayerState->GetXP());
-    OnLevelChanged.Broadcast(AuraPlayerState->GetPlayerLevel());
+    OnLevelChanged.Broadcast(AuraPlayerState->GetPlayerLevel(), false);
 }
 
 void UOverlayWidgetController::BindCallbacks()
@@ -53,9 +53,9 @@ void UOverlayWidgetController::BindCallbacks()
             const float PercentXP = AuraPlayerState->LevelUpData->GetLevelPercent(NewXP);
             OnXPPercentChanged.Broadcast(PercentXP); 
         });
-    AuraPlayerState->OnLevelChanged.AddLambda([this](const int32 NewLevel)
+    AuraPlayerState->OnLevelChanged.AddLambda([this](const int32 NewLevel, const bool bLevelUp)
         {
-            OnLevelChanged.Broadcast(NewLevel); 
+            OnLevelChanged.Broadcast(NewLevel, bLevelUp); 
         });
 }
 

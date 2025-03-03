@@ -110,6 +110,9 @@ protected:
     virtual void BeginPlay() override;
 
     virtual void InitializeDefaultAttributes();
+    virtual void InitializeDefaultPrimaryAttributes();
+    virtual void InitializeDefaultDependentAttributes();
+    virtual void InitializeStartupEffects();
 
     virtual void GrantStartupAbilities();
 

@@ -3,6 +3,8 @@
 
 #include "Characters/AuraPlayerCharacter.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AuraGameplayTags.h"
 #include "NiagaraComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -50,7 +52,10 @@ void AAuraPlayerCharacter::PossessedBy(AController* NewController)
 
     // init for the server
     InitAbilitySystemComponent();
-    GrantStartupAbilities();
+    if (GetLocalRole() == ROLE_Authority)
+    {
+        LoadProgress();
+    }
     InitOverlay();
 }
 
@@ -65,9 +70,62 @@ void AAuraPlayerCharacter::InitAbilitySystemComponent()
 
     AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 
-    if (GetLocalRole() == ROLE_Authority)
+}
+
+void AAuraPlayerCharacter::LoadProgress()
+{
+    if (AAuraGameModeBase* AuraGameMode = GetWorld()->GetAuthGameMode<AAuraGameModeBase>(); ensure(AuraGameMode))
     {
-        InitializeDefaultAttributes();
+        ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData();
+        if (!SaveData)
+        {
+            return;
+        }
+        
+        if (SaveData->bFirstTimeLoadIn)
+        {
+            InitializeDefaultAttributes();
+            GrantStartupAbilities();
+        }
+        else
+        {
+            bLoadingFromDisk = true;
+            
+            if (AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(GetPlayerState()))
+            {
+                AuraPlayerState->InitPlayerLevel(SaveData->PlayerLevel);
+                AuraPlayerState->InitXP(SaveData->XP);
+                AuraPlayerState->InitAttributePoints(SaveData->AttributePoints);
+                AuraPlayerState->InitSpellPoints(SaveData->SpellPoints);
+            }
+
+            // Primary Attributes
+            {
+                auto EffectContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+                EffectContextHandle.AddSourceObject(this);
+                auto SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(PrimaryAttributes_SetByCaller, 1.f, EffectContextHandle);
+
+                UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, AuraGameplayTags::Attributes_Primary_Strength, SaveData->Strength);
+                UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, AuraGameplayTags::Attributes_Primary_Intelligence, SaveData->Intelligence);
+                UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, AuraGameplayTags::Attributes_Primary_Resilience, SaveData->Resilience);
+                UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, AuraGameplayTags::Attributes_Primary_Vigor, SaveData->Vigor);
+        
+                GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+            }
+            InitializeDefaultAttributes();
+        }
+    }
+}
+
+void AAuraPlayerCharacter::InitializeDefaultPrimaryAttributes()
+{
+    if (bLoadingFromDisk)
+    {
+        // skip, we have done this already in LoadProgress()
+    }
+    else
+    {
+        Super::InitializeDefaultPrimaryAttributes();
     }
 }
 
@@ -144,7 +202,20 @@ void AAuraPlayerCharacter::SaveProgress_Implementation(FName CheckpointTag)
         if (ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData())
         {
             SaveData->PlayerStartTag = CheckpointTag;
+            SaveData->bFirstTimeLoadIn = false;
 
+            const AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(GetPlayerState());
+            SaveData->PlayerLevel = AuraPlayerState->GetPlayerLevel();
+            SaveData->XP = AuraPlayerState->GetXP();
+            SaveData->AttributePoints = AuraPlayerState->GetAttributePoints();
+            SaveData->SpellPoints = AuraPlayerState->GetSpellPoints();
+
+            const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(GetAttributeSet());
+            SaveData->Strength = AuraAttributeSet->GetStrength();
+            SaveData->Intelligence = AuraAttributeSet->GetIntelligence();
+            SaveData->Resilience = AuraAttributeSet->GetResilience();
+            SaveData->Vigor = AuraAttributeSet->GetVigor();
+            
             AuraGameMode->SaveInGameProgressData(SaveData);
         }
     }

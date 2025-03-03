@@ -26,7 +26,7 @@ struct FUIWidgetRow : public FTableRowBase
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveUIMessageSignature, const FUIWidgetRow&, UIWidgetRow);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerLevelChangedSignature, const int32, NewValue, const bool, bLevelUp);
 
 
 
@@ -50,7 +50,7 @@ public:
     FOnFloatStatChangedSignature OnXPPercentChanged;
 
     UPROPERTY(BlueprintAssignable, Category="GAS|Player Stats")
-    FOnIntStatChangedSignature OnLevelChanged;
+    FOnPlayerLevelChangedSignature OnLevelChanged;
 
 protected:
 

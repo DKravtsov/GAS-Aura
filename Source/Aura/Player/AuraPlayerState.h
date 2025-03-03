@@ -9,6 +9,7 @@
 #include "AuraPlayerState.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedDelegate, const int32 /*Value*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnPlayerLevelChangedDelegate, const int32 /*Value*/, bool /*bLevelUp*/);
 
 /**
  *
@@ -23,7 +24,7 @@ public:
     TObjectPtr<class ULevelUpDataAsset> LevelUpData;
 
     FOnPlayerStatChangedDelegate OnXPChanged;
-    FOnPlayerStatChangedDelegate OnLevelChanged;
+    FOnPlayerLevelChangedDelegate OnLevelChanged;
     FOnPlayerStatChangedDelegate OnAttributePointsChanged;
     FOnPlayerStatChangedDelegate OnSpellPointsChanged;
     
@@ -66,18 +67,22 @@ public:
     FORCEINLINE int32 GetPlayerLevel() const { return Level; }
     void SetPlayerLevel(int32 NewLevel);
     void AddPlayerLevel(int32 NumLevels = 1);
+    void InitPlayerLevel(int32 NewLevel);
 
     FORCEINLINE int32 GetXP() const { return CurrentXP; }
     void SetXP(int32 NewValue);
     void AddXP(int32 Value);
+    void InitXP(int32 NewValue);
 
     FORCEINLINE int32 GetAttributePoints() const {return AttributePoints; }
     void SetAttributePoints(int32 NewValue);
     void AddAttributePoints(int32 Amount);
+    void InitAttributePoints(int32 NewValue);
 
     FORCEINLINE int32 GetSpellPoints() const { return SpellPoints; }
     void SetSpellPoints(int32 NewValue);
     void AddSpellPoints(int32 Amount);
+    void InitSpellPoints(int32 NewValue);
 
     void UpgradeAttribute(const struct FGameplayTag& AttributeTag, const int32 Points = 1);
 

@@ -15,15 +15,21 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase, public IPlayerI
 {
     GENERATED_BODY()
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class USpringArmComponent> CameraBoom;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UCameraComponent> CameraComponent;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Effects, meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects", meta = (AllowPrivateAccess = "true"))
     TSubclassOf<UGameplayEffect> LevelUpEffect;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Effects")
+    TSubclassOf<UGameplayEffect> PrimaryAttributes_SetByCaller;
+
+private:
+    uint8 bLoadingFromDisk:1 = false;
+    
 public:
 
     AAuraPlayerCharacter();
@@ -46,6 +52,12 @@ public:
     virtual void SaveProgress_Implementation(FName CheckpointTag) override;
     //~ End of IPlayerInterface
 
+protected:
+
+    void LoadProgress();
+
+    virtual void InitializeDefaultPrimaryAttributes() override;
+    
 private:
     void InitAbilitySystemComponent();
     void InitOverlay();

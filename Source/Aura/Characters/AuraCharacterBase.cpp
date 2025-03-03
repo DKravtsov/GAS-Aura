@@ -29,6 +29,14 @@ void AAuraCharacterBase::BeginPlay()
 
 void AAuraCharacterBase::InitializeDefaultAttributes()
 {
+    InitializeDefaultPrimaryAttributes();
+    InitializeDefaultDependentAttributes();
+    InitializeStartupEffects();
+}
+
+void AAuraCharacterBase::InitializeDefaultPrimaryAttributes()
+{
+#if WITH_EDITOR
     if (DefaultPrimaryAttributes == nullptr)
     {
         FString Msg = FString::Printf(TEXT("ERROR: DefaultPrimaryAttributes is not specified for %s"), *GetNameSafe(this));
@@ -36,9 +44,15 @@ void AAuraCharacterBase::InitializeDefaultAttributes()
         UE_LOG(LogTemp, Error, TEXT("%s"), *Msg);
         return;
     }
-
+#else
+    checkf(DefaultPrimaryAttributes != nullptr, TEXT("ERROR: DefaultPrimaryAttributes is not specified for %s"), *GetNameSafe(this));
+#endif
+    
     ApplyGameplayEffectToSelf(DefaultPrimaryAttributes, GetCharacterLevel());
+}
 
+void AAuraCharacterBase::InitializeDefaultDependentAttributes()
+{
     if (DefaultSecondaryAttributes)
     {
         ApplyGameplayEffectToSelf(DefaultSecondaryAttributes, GetCharacterLevel());
@@ -56,9 +70,10 @@ void AAuraCharacterBase::InitializeDefaultAttributes()
     {
         UE_LOG(LogTemp, Warning, TEXT("DefaultVitalAttributes is not specified for %s"), *GetNameSafe(this));
     }
+}
 
-    // Initialize other sturtup effects
-
+void AAuraCharacterBase::InitializeStartupEffects()
+{
     for (const auto Effect : StartupGameplayEffects)
     {
         ApplyGameplayEffectToSelf(Effect, GetCharacterLevel());

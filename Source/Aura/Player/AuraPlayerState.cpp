@@ -4,12 +4,10 @@
 #include "Player/AuraPlayerState.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
-#include "AuraGameplayTags.h"
 #include "PlayerInterface.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/LevelUpDataAsset.h"
-#include "Characters/CombatInterface.h"
 #include "Net/UnrealNetwork.h"
 
 AAuraPlayerState::AAuraPlayerState()
@@ -67,12 +65,18 @@ void AAuraPlayerState::SetPlayerLevel(int32 NewLevel)
     GetAuraAbilitySystemComponentChecked()->UpdateAbilityStatuses(Level);
 
     IPlayerInterface::Execute_NotifyLevelUp(AbilitySystemComponent->GetAvatarActor());
-    OnLevelChanged.Broadcast(Level);
+    OnLevelChanged.Broadcast(Level, true);
 }
 
 void AAuraPlayerState::AddPlayerLevel(int32 NumLevels)
 {
     SetPlayerLevel(Level + NumLevels);
+}
+
+void AAuraPlayerState::InitPlayerLevel(int32 NewLevel)
+{
+    Level = NewLevel;
+    OnLevelChanged.Broadcast(Level, false);
 }
 
 void AAuraPlayerState::SetXP(int32 NewValue)
@@ -94,6 +98,12 @@ void AAuraPlayerState::AddXP(int32 Value)
     SetXP(CurrentXP + Value);
 }
 
+void AAuraPlayerState::InitXP(int32 NewValue)
+{
+    CurrentXP = NewValue;
+    OnXPChanged.Broadcast(CurrentXP);
+}
+
 void AAuraPlayerState::SetAttributePoints(int32 NewValue)
 {
     if (AttributePoints == NewValue)
@@ -108,6 +118,12 @@ void AAuraPlayerState::AddAttributePoints(int32 Amount)
     SetAttributePoints(AttributePoints + Amount);
 }
 
+void AAuraPlayerState::InitAttributePoints(int32 NewValue)
+{
+    AttributePoints = NewValue;
+    OnAttributePointsChanged.Broadcast(NewValue);
+}
+
 void AAuraPlayerState::SetSpellPoints(int32 NewValue)
 {
     if (SpellPoints == NewValue)
@@ -119,6 +135,12 @@ void AAuraPlayerState::SetSpellPoints(int32 NewValue)
 void AAuraPlayerState::AddSpellPoints(int32 Amount)
 {
     SetSpellPoints(SpellPoints + Amount);
+}
+
+void AAuraPlayerState::InitSpellPoints(int32 NewValue)
+{
+    SpellPoints = NewValue;
+    OnSpellPointsChanged.Broadcast(NewValue);
 }
 
 void AAuraPlayerState::UpgradeAttribute(const FGameplayTag& AttributeTag, const int32 Points)
@@ -155,7 +177,8 @@ bool AAuraPlayerState::ServerUpgradeAttribute_Validate(const FGameplayTag& Attri
 
 void AAuraPlayerState::OnRep_Level(int32 OldValue)
 {
-    OnLevelChanged.Broadcast(Level);
+    /*is broken in multiplayer*/
+    OnLevelChanged.Broadcast(Level, true);
 }
 
 void AAuraPlayerState::OnRep_CurrentXP(int32 OldValue)
