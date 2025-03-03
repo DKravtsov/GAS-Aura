@@ -5,6 +5,7 @@
 
 #include "AuraGameInstance.h"
 #include "EngineUtils.h"
+#include "Logs.h"
 #include "SaveGameInterface.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "GameFramework/PlayerStart.h"
@@ -110,9 +111,8 @@ AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 	return BestPlayerStart;
 }
 
-void AAuraGameModeBase::SaveWorldState(UWorld* World)
+void AAuraGameModeBase::SaveWorldState(UWorld* World) const
 {
-
 	FString WorldName = World->GetMapName();
 	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
 
@@ -148,4 +148,59 @@ void AAuraGameModeBase::SaveWorldState(UWorld* World)
 
 		UGameplayStatics::SaveGameToSlot(SaveGame, AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex);
 	}
+}
+
+void AAuraGameModeBase::LoadWorldState(UWorld* World) const
+{
+	FString WorldName = World->GetMapName();
+	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
+
+	UAuraGameInstance* AuraGameInstance = CastChecked<UAuraGameInstance>(GetGameInstance());
+
+	if (UGameplayStatics::DoesSaveGameExist(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
+	{
+		auto SaveGame = Cast<ULoadScreenSaveGame>(UGameplayStatics::LoadGameFromSlot(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex));
+		if (SaveGame == nullptr)
+		{
+			UE_LOG(LogMyGame, Error, TEXT("Fail to load from game slot [%s]"), *AuraGameInstance->LoadSlotName);
+			return;
+		}
+		if (!SaveGame->HasMap(WorldName))
+		{
+			return;
+		}
+		const auto& SavedMap = SaveGame->GetSavedMap(WorldName);
+		
+		for (FActorIterator It(World); It; ++It)
+		{
+			AActor* Actor = *It;
+			if (!IsValid(Actor) || !Actor->Implements<USaveGameInterface>())
+				continue;
+
+			for (const auto& SavedActor : SavedMap.SavedActors)
+			{
+				if (SavedActor.ActorName == Actor->GetFName())
+				{
+					if (ISaveGameInterface::Execute_ShouldLoadTransform(Actor))
+					{
+						Actor->SetActorTransform(SavedActor.Transform);
+					}
+
+					FMemoryReader Reader(SavedActor.SerializedData);
+					FObjectAndNameAsStringProxyArchive Ar(Reader, true);
+					Ar.ArIsSaveGame = true;
+					Actor->Serialize(Ar);
+
+					ISaveGameInterface::Execute_LoadedFromSaveGame(Actor);
+				}
+			}
+		}
+	}
+}
+
+void AAuraGameModeBase::RestartPlayer(AController* NewPlayer)
+{
+	Super::RestartPlayer(NewPlayer);
+
+	LoadWorldState(GetWorld());
 }

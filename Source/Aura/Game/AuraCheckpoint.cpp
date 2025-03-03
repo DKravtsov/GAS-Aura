@@ -3,6 +3,7 @@
 
 #include "AuraCheckpoint.h"
 
+#include "AuraGameModeBase.h"
 #include "Components/SphereComponent.h"
 #include "Player/PlayerInterface.h"
 
@@ -24,6 +25,36 @@ AAuraCheckpoint::AAuraCheckpoint(const FObjectInitializer& ObjectInitializer)
 	CheckpointMesh->SetCollisionProfileName(FName("BlockAll"));
 }
 
+void AAuraCheckpoint::LoadedFromSaveGame_Implementation()
+{
+	if (bCheckpointReached)
+	{
+		CheckpointReached();
+	}
+}
+
+void AAuraCheckpoint::SetCheckpointReached(bool bNewValue)
+{
+	if (bCheckpointReached != bNewValue)
+	{
+		bCheckpointReached = bNewValue;
+		CheckpointReached();
+	}
+}
+
+void AAuraCheckpoint::CheckpointReached()
+{
+	if (bCheckpointReached)
+	{
+		CheckpointSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else
+	{
+		CheckpointSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+	ReceivedCheckpointReached();
+}
+
 void AAuraCheckpoint::BeginPlay()
 {
 	Super::BeginPlay();
@@ -36,8 +67,13 @@ void AAuraCheckpoint::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 {
 	if (OtherActor->Implements<UPlayerInterface>())
 	{
-		CheckpointSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		CheckpointReached(OtherActor);
+		SetCheckpointReached(true);
+
+		if (const auto* GM = GetWorld()->GetAuthGameMode<AAuraGameModeBase>())
+		{
+			GM->SaveWorldState(GetWorld());
+		}
+		
 		IPlayerInterface::Execute_SaveProgress(OtherActor, PlayerStartTag);
 	}
 }

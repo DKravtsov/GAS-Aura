@@ -21,4 +21,10 @@ class AURA_API ISaveGameInterface
 	GENERATED_BODY()
 
 public:
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool ShouldLoadTransform() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void LoadedFromSaveGame();
 };
