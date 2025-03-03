@@ -55,8 +55,8 @@ public:
     AAuraEnemyCharacter();
 
     //~ Begin of IInteractableInterface interface
-    virtual void HighlightActor() override;
-    virtual void UnhighlightActor() override;
+    virtual void HighlightActor_Implementation() override;
+    virtual void UnhighlightActor_Implementation() override;
     //~ End of IInteractableInterface interface
 
     //~ Begin of ICombatInterface interface

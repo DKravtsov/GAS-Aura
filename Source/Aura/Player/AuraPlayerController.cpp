@@ -11,10 +11,12 @@
 #include "Components/SplineComponent.h"
 #include "AuraGameplayTags.h"
 #include "CameraOcclusionComponent.h"
+#include "DebugHelper.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Actors/MagicCircle.h"
+#include "Characters/CombatInterface.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Components/DamageTextComponent.h"
@@ -38,7 +40,7 @@ void AAuraPlayerController::Tick(float DeltaTime)
     TraceUnderCursor();
     UpdateMagicCircleLocation();
 
-    if (bAutoRuning)
+    if (bAutoRunning)
     {
         AutoRun();
     }
@@ -57,7 +59,7 @@ void AAuraPlayerController::AutoRun()
         const float DistanceToDestination = FVector::DistXY(LocationOnSpline, CachedDestination);
         if (DistanceToDestination <= AutoRunAcceptanceRadius)
         {
-            bAutoRuning = false;
+            bAutoRunning = false;
         }
     }
 }
@@ -147,8 +149,9 @@ void AAuraPlayerController::TraceUnderCursor()
     {
         if (CurrentActorUnderCursor != nullptr)
         {
-            CurrentActorUnderCursor->UnhighlightActor();
+            IInteractableInterface::Execute_UnhighlightActor(CurrentActorUnderCursor);
             CurrentActorUnderCursor = nullptr;
+            TargetingStatus = ETargetingStatus::None;
         }
         return;
     }
@@ -160,18 +163,34 @@ void AAuraPlayerController::TraceUnderCursor()
         return;
     }
 
-    auto LastActorUnderCursor = CurrentActorUnderCursor;
-    CurrentActorUnderCursor = CursorHit.GetActor();
+    AActor* LastActorUnderCursor = CurrentActorUnderCursor;
+    {
+        auto HitActor = CursorHit.GetActor();
+        CurrentActorUnderCursor = (HitActor && HitActor->Implements<UInteractableInterface>()) ? HitActor : nullptr;
+    }
 
-    if (LastActorUnderCursor.GetInterface() != CurrentActorUnderCursor.GetInterface())
+    if (LastActorUnderCursor != CurrentActorUnderCursor)
     {
         if (LastActorUnderCursor != nullptr)
         {
-            LastActorUnderCursor->UnhighlightActor();
+            IInteractableInterface::Execute_UnhighlightActor(LastActorUnderCursor);
         }
         if (CurrentActorUnderCursor != nullptr)
         {
-            CurrentActorUnderCursor->HighlightActor();
+            IInteractableInterface::Execute_HighlightActor(CurrentActorUnderCursor);
+
+            if (CurrentActorUnderCursor->Implements<UCombatInterface>())
+            {
+                TargetingStatus = ETargetingStatus::Enemy;
+            }
+            else
+            {
+                TargetingStatus = ETargetingStatus::Interactable;
+            }
+        }
+        else
+        {
+            TargetingStatus = ETargetingStatus::None;
         }
     }
 }
@@ -185,7 +204,7 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
     }
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
-        bAutoRuning = false;
+        bAutoRunning = false;
     }
     
     if (ASC)
@@ -203,7 +222,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
     }
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
-        if (CurrentActorUnderCursor == nullptr && bMovementStarted)
+        if (TargetingStatus != ETargetingStatus::Enemy && bMovementStarted)
         {
             // we are going to run, won't try to activate any ability
 
@@ -241,12 +260,12 @@ void AAuraPlayerController::SetPathToDestination()
 
                 MakePathSpline(NavPath->PathPoints);
                 CachedDestination = NavPath->PathPoints.Last();
-                bAutoRuning = true;
+                bAutoRunning = true;
             }
         }
         else
         {
-            bAutoRuning = false;
+            bAutoRunning = false;
         }
     }
 }
@@ -261,7 +280,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 
     if (InputTag.MatchesTagExact(AuraGameplayTags::InputTag_PrimaryAction))
     {
-        if (CurrentActorUnderCursor == nullptr && !bShiftKeyPressed)
+        if (TargetingStatus != ETargetingStatus::Enemy && !bShiftKeyPressed)
         {
             // we are going to run, won't try to activate any ability
 

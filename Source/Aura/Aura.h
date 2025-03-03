@@ -6,6 +6,8 @@
 #include "Logs.h"
 
 constexpr int32 CUSTOM_DEPTH_STENCIL_RED = 250;
+constexpr int32 CUSTOM_DEPTH_STENCIL_BLUE = 251;
+constexpr int32 CUSTOM_DEPTH_STENCIL_TAN = 252;
 
 const FName CollisionProfile_Projectile = FName("Projectile");
 const FName CollisionProfile_FireBall = FName("FireBall");

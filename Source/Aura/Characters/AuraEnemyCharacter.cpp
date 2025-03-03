@@ -31,12 +31,12 @@ AAuraEnemyCharacter::AAuraEnemyCharacter()
     RewardXP = -1;
 }
 
-void AAuraEnemyCharacter::HighlightActor()
+void AAuraEnemyCharacter::HighlightActor_Implementation()
 {
     if (USkeletalMeshComponent* MyMesh = GetMesh())
     {
         MyMesh->SetRenderCustomDepth(true);
-        MyMesh->SetCustomDepthStencilValue(250);
+        MyMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENCIL_RED);
     }
     if (Weapon)
     {
@@ -45,7 +45,7 @@ void AAuraEnemyCharacter::HighlightActor()
     }
 }
 
-void AAuraEnemyCharacter::UnhighlightActor()
+void AAuraEnemyCharacter::UnhighlightActor_Implementation()
 {
     if (USkeletalMeshComponent* MyMesh = GetMesh())
     {

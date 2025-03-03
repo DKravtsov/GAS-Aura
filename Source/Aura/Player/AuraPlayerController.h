@@ -17,6 +17,13 @@ class AURA_API AAuraPlayerController : public APlayerController
 {
     GENERATED_BODY()
 
+    enum class ETargetingStatus : uint8
+    {
+        None,
+        Enemy,
+        Interactable,
+    };
+    
 private:
 
     UPROPERTY(EditAnywhere, Category = "Input")
@@ -32,7 +39,7 @@ private:
     TObjectPtr<class UAuraInputConfig> InputConfig;
 
     UPROPERTY()
-    TScriptInterface<IInteractableInterface> CurrentActorUnderCursor;
+    TObjectPtr<AActor> CurrentActorUnderCursor;
     FHitResult CursorHit;
 
     UPROPERTY()
@@ -43,9 +50,11 @@ private:
 
     FVector CachedDestination = {};
     float FollowTime = 0.f;
-    bool bAutoRuning = false;
+    bool bAutoRunning = false;
     bool bMovementStarted = false;
     bool bShiftKeyPressed = false;
+
+    ETargetingStatus TargetingStatus = ETargetingStatus::None;
 
     UPROPERTY(EditDefaultsOnly)
     float ShortPressThreshold = 0.15f;

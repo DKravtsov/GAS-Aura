@@ -7,7 +7,7 @@
 #include "InteractableInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, Blueprintable)
 class UInteractableInterface : public UInterface
 {
     GENERATED_BODY()
@@ -22,6 +22,9 @@ class AURA_API IInteractableInterface
 
 public:
 
-    virtual void HighlightActor() = 0;
-    virtual void UnhighlightActor() = 0;
+    UFUNCTION(BlueprintNativeEvent)
+    void HighlightActor();
+
+    UFUNCTION(BlueprintNativeEvent)
+    void UnhighlightActor();
 };
