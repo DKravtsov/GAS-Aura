@@ -248,6 +248,12 @@ void AAuraPlayerController::SetPathToDestination()
 {
     if (const APawn* ControlledPawn = GetPawn())
     {
+        if (TargetingStatus == ETargetingStatus::Interactable)
+        {
+            check(CurrentActorUnderCursor);
+            IInteractableInterface::Execute_GetMoveToDestination(CurrentActorUnderCursor, CachedDestination);
+        }
+        
         UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
         FNavLocation NavLocation;
         if (NavSystem->ProjectPointToNavigation(CachedDestination, NavLocation, FVector(0.f)))

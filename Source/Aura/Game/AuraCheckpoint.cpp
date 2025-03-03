@@ -3,6 +3,7 @@
 
 #include "AuraCheckpoint.h"
 
+#include "Aura.h"
 #include "AuraGameModeBase.h"
 #include "Components/SphereComponent.h"
 #include "Player/PlayerInterface.h"
@@ -23,6 +24,11 @@ AAuraCheckpoint::AAuraCheckpoint(const FObjectInitializer& ObjectInitializer)
 	CheckpointMesh = CreateDefaultSubobject<UStaticMeshComponent>("CheckpointMesh");
 	CheckpointMesh->SetupAttachment(GetRootComponent());
 	CheckpointMesh->SetCollisionProfileName(FName("BlockAll"));
+	CheckpointMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENCIL_TAN);//for highlighting
+
+	TargetDestinationComponent = CreateDefaultSubobject<USceneComponent>("TargetDestinationComponent");
+	TargetDestinationComponent->SetupAttachment(GetRootComponent());
+
 }
 
 void AAuraCheckpoint::LoadedFromSaveGame_Implementation()
@@ -31,6 +37,21 @@ void AAuraCheckpoint::LoadedFromSaveGame_Implementation()
 	{
 		CheckpointReached();
 	}
+}
+
+void AAuraCheckpoint::HighlightActor_Implementation()
+{
+	CheckpointMesh->SetRenderCustomDepth(true);
+}
+
+void AAuraCheckpoint::UnhighlightActor_Implementation()
+{
+	CheckpointMesh->SetRenderCustomDepth(false);
+}
+
+void AAuraCheckpoint::GetMoveToDestination_Implementation(FVector& OutDestination) const
+{
+	OutDestination = TargetDestinationComponent->GetComponentLocation();
 }
 
 void AAuraCheckpoint::SetCheckpointReached(bool bNewValue)

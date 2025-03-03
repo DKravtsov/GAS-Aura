@@ -27,4 +27,11 @@ public:
 
     UFUNCTION(BlueprintNativeEvent)
     void UnhighlightActor();
+
+    UFUNCTION(BlueprintNativeEvent)
+    void GetMoveToDestination(FVector& OutDestination) const;
+
+protected:
+
+    virtual void GetMoveToDestination_Implementation(FVector& OutDestination) const;
 };
