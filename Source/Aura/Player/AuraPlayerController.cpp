@@ -15,7 +15,6 @@
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Actors/MagicCircle.h"
-#include "Game/AuraBlueprintFunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Components/DamageTextComponent.h"
@@ -127,17 +126,15 @@ void AAuraPlayerController::Move(const FInputActionValue& InputValue)
     {
         return;
     }
-
-    const FVector2D InputVector = InputValue.Get<FVector2D>();
-    const FRotator Rotation = GetControlRotation();
-    const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-    const FRotationMatrix RotationMatrix(YawRotation);
-
-    const FVector Forward = RotationMatrix.GetUnitAxis(EAxis::X);
-    const FVector Right = RotationMatrix.GetUnitAxis(EAxis::Y);
-
-    if (auto ControlledPawn = GetPawn())
+    if (const auto ControlledPawn = GetPawn())
     {
+        const FVector2D InputVector = InputValue.Get<FVector2D>();
+        const FRotator Rotation = ControlledPawn->GetBaseAimRotation();
+        const FRotationMatrix RotationMatrix(FRotator(0.f, Rotation.Yaw, 0.f));
+
+        const FVector Forward = RotationMatrix.GetUnitAxis(EAxis::X);
+        const FVector Right = RotationMatrix.GetUnitAxis(EAxis::Y);
+
         ControlledPawn->AddMovementInput(Forward, InputVector.Y);
         ControlledPawn->AddMovementInput(Right, InputVector.X);
     }

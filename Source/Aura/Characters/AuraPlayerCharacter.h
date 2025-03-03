@@ -34,6 +34,9 @@ public:
 
     AAuraPlayerCharacter();
 
+    USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+    UCameraComponent* GetCameraComponent() const { return CameraComponent; }
+
     //~ Begin APawn Interface
     virtual void PossessedBy(AController* NewController) override;
     virtual void OnRep_PlayerState() override;
