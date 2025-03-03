@@ -5,9 +5,11 @@
 
 #include "AuraGameInstance.h"
 #include "EngineUtils.h"
+#include "SaveGameInterface.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UI/ViewModel/MVVMLoadSlot.h"
 #include "UI/Widgets/LoadScreenWidget.h"
 
@@ -106,4 +108,44 @@ AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 		}
 	}
 	return BestPlayerStart;
+}
+
+void AAuraGameModeBase::SaveWorldState(UWorld* World)
+{
+
+	FString WorldName = World->GetMapName();
+	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
+
+	UAuraGameInstance* AuraGameInstance = CastChecked<UAuraGameInstance>(GetGameInstance());
+
+	if (auto SaveGame = LoadSlotData(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
+	{
+		if (!SaveGame->HasMap(WorldName))
+		{
+			SaveGame->SavedMaps.Emplace(WorldName);
+		}
+
+		FMapSavedData& SavedMap = SaveGame->GetSavedMapMutable(WorldName);
+		SavedMap.SavedActors.Reset(); // clear it out, we'll fill it in with actors
+
+		for (FActorIterator It(World); It; ++It)
+		{
+			AActor* Actor = *It;
+			if (!IsValid(Actor) || !Actor->Implements<USaveGameInterface>())
+				continue;
+
+			FActorSavedData& SavedActor = SavedMap.SavedActors.Emplace_GetRef(Actor->GetFName());
+			if (Actor->IsRootComponentMovable())
+			{
+				SavedActor.Transform = Actor->GetActorTransform();
+			}
+
+			FMemoryWriter Writer(SavedActor.SerializedData);
+			FObjectAndNameAsStringProxyArchive Ar(Writer, true);
+			Ar.ArIsSaveGame = true;
+			Actor->Serialize(Ar);
+		}
+
+		UGameplayStatics::SaveGameToSlot(SaveGame, AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex);
+	}
 }

@@ -17,7 +17,7 @@ enum class ESaveSlotStatus : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FAbilitySavedInfo
+struct FAbilitySavedData
 {
 	GENERATED_BODY()
 
@@ -32,6 +32,50 @@ struct FAbilitySavedInfo
 
 	UPROPERTY(BlueprintReadWrite)
 	int32 AbilityLevel;
+};
+
+USTRUCT(BlueprintType)
+struct FActorSavedData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName ActorName;
+
+	UPROPERTY()
+	FTransform Transform;
+
+	// Serialized properties of the Actor marked as UPROPERTY(SaveGame)
+	UPROPERTY()
+	TArray<uint8> SerializedData;
+
+	
+	FActorSavedData(FName InActorName = NAME_None) : ActorName(InActorName) {}
+
+	bool operator==(const FActorSavedData& Other) const
+	{
+		return ActorName == Other.ActorName;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FMapSavedData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString MapAssetName;
+
+	UPROPERTY()
+	TArray<FActorSavedData> SavedActors;
+
+	
+	FMapSavedData(const FString& InMapName = FString()) : MapAssetName(InMapName) {}
+
+	bool operator==(const FMapSavedData& Other) const
+	{
+		return Other.MapAssetName.Equals(MapAssetName, ESearchCase::IgnoreCase);
+	}
 };
 
 /**
@@ -94,5 +138,12 @@ public:
 	/* Abilities */
 
 	UPROPERTY()
-	TArray<FAbilitySavedInfo> Abilities;
+	TArray<FAbilitySavedData> Abilities;
+
+	UPROPERTY()
+	TArray<FMapSavedData> SavedMaps;
+
+	bool HasMap(const FString& InMapName) const;
+	const FMapSavedData& GetSavedMap(const FString& InMapName) const;
+	FMapSavedData& GetSavedMapMutable(const FString& InMapName);
 };

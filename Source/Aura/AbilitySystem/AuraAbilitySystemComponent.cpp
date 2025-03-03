@@ -57,7 +57,7 @@ void UAuraAbilitySystemComponent::GrantAbilitiesFromSaveData(class ULoadScreenSa
 {
     const UAbilityInfoDataAsset* AbilityInfoDataAsset = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetOwner());
     checkf(AbilityInfoDataAsset, TEXT("AbilityInfo must be specified in AuraGameInstance"));
-    for (const FAbilitySavedInfo& Data : SaveData->Abilities)
+    for (const FAbilitySavedData& Data : SaveData->Abilities)
     {
         FAuraAbilityInfo AbilityInfo = AbilityInfoDataAsset->FindAbilityInfoByTag(Data.AbilityTag);
         const TSubclassOf<UGameplayAbility> AbilityClass = AbilityInfo.AbilityClass;

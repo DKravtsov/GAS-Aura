@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SaveGameInterface.h"
 #include "GameFramework/PlayerStart.h"
 #include "AuraCheckpoint.generated.h"
 
 UCLASS()
-class AURA_API AAuraCheckpoint : public APlayerStart
+class AURA_API AAuraCheckpoint : public APlayerStart, public ISaveGameInterface
 {
 	GENERATED_BODY()
 
@@ -16,6 +17,11 @@ class AURA_API AAuraCheckpoint : public APlayerStart
 
 	UPROPERTY(VisibleAnywhere)
  	TObjectPtr<class USphereComponent> CheckpointSphere;
+	
+protected:
+	
+	UPROPERTY(SaveGame, BlueprintReadOnly, Category="Checkpoint")
+	bool bActivated = false;
 	
 public:
 	AAuraCheckpoint(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());

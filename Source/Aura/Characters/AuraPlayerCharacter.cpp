@@ -224,7 +224,7 @@ void AAuraPlayerCharacter::SaveProgress_Implementation(FName CheckpointTag)
             const auto SaveAbilitiesDelegate = FForEachAbilityDelegate::CreateLambda(
                 [SaveData](const FGameplayAbilitySpec& Spec)
                 {
-                    FAbilitySavedInfo Info;
+                    FAbilitySavedData Info;
                     Info.AbilityTag = UAuraAbilitySystemComponent::GetAbilityTagFromSpec(Spec);
                     Info.StatusTag = UAuraAbilitySystemComponent::GetStatusTagFromSpec(Spec);
                     Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(Spec);

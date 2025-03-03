@@ -46,6 +46,8 @@ public:
     void TravelToMap(const UMVVMLoadSlot* SlotInfo) const;
 
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+    void SaveWorldState(UWorld* World);
     
 protected:
 
