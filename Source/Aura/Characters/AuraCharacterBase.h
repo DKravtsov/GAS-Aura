@@ -53,6 +53,8 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
 
+    // Abilities which are not increase in their level, they just always active on the owning ASC
+    // (usually, they should have activation policy "OnGiven")
     UPROPERTY(EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<class UGameplayAbility>> StartupPassiveAbilities;
 

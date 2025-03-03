@@ -10,6 +10,7 @@
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Data/AbilityInfoDataAsset.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
+#include "Game/LoadScreenSaveGame.h"
 
 #define LOCTEXT_NAMESPACE "AuraGameplayAbility"
 
@@ -47,6 +48,45 @@ void UAuraAbilitySystemComponent::GrantAbilities(const TArray<TSubclassOf<class 
         }
         Spec.DynamicAbilityTags.AddTag(AuraGameplayTags::Abilities_Status_Equipped);
         GiveAbility(Spec);
+    }
+    bStartupAbilitiesGiven = true;
+    OnAbilitiesGiven.Broadcast();
+}
+
+void UAuraAbilitySystemComponent::GrantAbilitiesFromSaveData(class ULoadScreenSaveGame* SaveData)
+{
+    const UAbilityInfoDataAsset* AbilityInfoDataAsset = UAuraBlueprintFunctionLibrary::GetAbilityInfo(GetOwner());
+    checkf(AbilityInfoDataAsset, TEXT("AbilityInfo must be specified in AuraGameInstance"));
+    for (const FAbilitySavedInfo& Data : SaveData->Abilities)
+    {
+        FAuraAbilityInfo AbilityInfo = AbilityInfoDataAsset->FindAbilityInfoByTag(Data.AbilityTag);
+        const TSubclassOf<UGameplayAbility> AbilityClass = AbilityInfo.AbilityClass;
+        if (AbilityClass == nullptr)
+        {
+            // it might be a passive ability, see StartupPassiveAbilities
+            continue;
+        }
+        
+        FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, Data.AbilityLevel);
+
+        if (Data.InputTag.IsValid())
+        {
+            AbilitySpec.DynamicAbilityTags.AddTag(Data.InputTag);
+        }
+        if (Data.StatusTag.IsValid())
+        {
+            AbilitySpec.DynamicAbilityTags.AddTag(Data.StatusTag);
+        }
+        
+        const FGameplayTag& AbilityType = AbilityInfo.AbilityTypeTag;
+        if (AbilityType == AuraGameplayTags::Abilities_Type_Passive && Data.StatusTag == AuraGameplayTags::Abilities_Status_Equipped)
+        {
+            GiveAbilityAndActivateOnce(AbilitySpec);
+        }
+        else 
+        {
+            GiveAbility(AbilitySpec);
+        }
     }
     bStartupAbilitiesGiven = true;
     OnAbilitiesGiven.Broadcast();

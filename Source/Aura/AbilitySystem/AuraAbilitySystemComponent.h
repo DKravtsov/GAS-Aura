@@ -38,6 +38,7 @@ public:
     //~ End of UAbilitySystemComponent interface
 
     void GrantAbilities(const TArray<TSubclassOf<class UGameplayAbility>>& Abilities, int32 AbilityLevel);
+    void GrantAbilitiesFromSaveData(class ULoadScreenSaveGame* SaveData);
 
     void AbilityInputPressed(const FGameplayTag& InputTag);
     void AbilityInputHeld(const FGameplayTag& InputTag);

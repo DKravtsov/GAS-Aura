@@ -106,6 +106,7 @@ void AAuraCharacterBase::GrantStartupAbilities()
     if (!HasAuthority())
         return;
     GetAuraAbilitySystemComponent()->GrantAbilities(StartupAbilities, GetCharacterLevel());
+    GetAuraAbilitySystemComponent()->GrantAbilities(StartupPassiveAbilities, GetCharacterLevel());
 }
 
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(FGameplayTag CombatSocketTag) const

@@ -5,14 +5,14 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
-#include "NiagaraComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
-#include "Game/AuraGameInstance.h"
 #include "Game/AuraGameModeBase.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "Player/AuraPlayerController.h"
@@ -113,6 +113,9 @@ void AAuraPlayerCharacter::LoadProgress()
                 GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
             }
             InitializeDefaultAttributes();
+
+            GetAuraAbilitySystemComponent()->GrantAbilitiesFromSaveData(SaveData);
+            GetAuraAbilitySystemComponent()->GrantAbilities(StartupPassiveAbilities, GetCharacterLevel());
         }
     }
 }
@@ -131,9 +134,9 @@ void AAuraPlayerCharacter::InitializeDefaultPrimaryAttributes()
 
 void AAuraPlayerCharacter::InitOverlay()
 {
-    if (auto PC = Cast<APlayerController>(GetController()))
+    if (const auto PC = Cast<APlayerController>(GetController()))
     {
-        if (auto HUD = PC->GetHUD<AAuraHUD>())
+        if (const auto HUD = PC->GetHUD<AAuraHUD>())
         {
             HUD->InitOverlay();
         }
@@ -215,6 +218,20 @@ void AAuraPlayerCharacter::SaveProgress_Implementation(FName CheckpointTag)
             SaveData->Intelligence = AuraAttributeSet->GetIntelligence();
             SaveData->Resilience = AuraAttributeSet->GetResilience();
             SaveData->Vigor = AuraAttributeSet->GetVigor();
+
+            //UAbilityInfoDataAsset* AbilityInfo = UAuraBlueprintFunctionLibrary::GetAbilityInfo(this);
+            SaveData->Abilities.Reset();
+            const auto SaveAbilitiesDelegate = FForEachAbilityDelegate::CreateLambda(
+                [SaveData](const FGameplayAbilitySpec& Spec)
+                {
+                    FAbilitySavedInfo Info;
+                    Info.AbilityTag = UAuraAbilitySystemComponent::GetAbilityTagFromSpec(Spec);
+                    Info.StatusTag = UAuraAbilitySystemComponent::GetStatusTagFromSpec(Spec);
+                    Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(Spec);
+                    Info.AbilityLevel = Spec.Level;
+                    SaveData->Abilities.Add(Info);
+                });
+            GetAuraAbilitySystemComponent()->ForEachAbility(SaveAbilitiesDelegate);
             
             AuraGameMode->SaveInGameProgressData(SaveData);
         }
