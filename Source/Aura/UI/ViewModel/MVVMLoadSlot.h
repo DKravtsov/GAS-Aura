@@ -47,6 +47,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Getter, Setter, meta = (AllowPrivateAccess="true"))
 	FString PlayerName;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Getter, Setter, meta = (AllowPrivateAccess="true"))
+	int32 PlayerLevel;
+
 public:
 
 	void InitializeSlot();
@@ -62,4 +65,7 @@ public:
 	
 	const TSoftObjectPtr<UWorld>& GetMap() const { return BoundMap; }
 	void SetMap(const TSoftObjectPtr<UWorld>& NewMap);
+
+	int32 GetPlayerLevel() const { return PlayerLevel; }
+	void SetPlayerLevel(const int32 NewValue);
 };

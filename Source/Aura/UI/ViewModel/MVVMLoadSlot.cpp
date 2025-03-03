@@ -36,3 +36,8 @@ void UMVVMLoadSlot::SetMap(const TSoftObjectPtr<UWorld>& NewMap)
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetMapName);
 	}
 }
+
+void UMVVMLoadSlot::SetPlayerLevel(const int32 NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(PlayerLevel, NewValue);
+}
