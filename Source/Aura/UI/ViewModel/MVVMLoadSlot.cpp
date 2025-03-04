@@ -25,16 +25,22 @@ void UMVVMLoadSlot::SetPlayerName(FString NewName)
 FText UMVVMLoadSlot::GetMapName() const
 {
 	AAuraGameModeBase* AuraGameMode = CastChecked<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
-	return AuraGameMode->GetMapDisplayName(BoundMap);
+	return AuraGameMode->GetMapDisplayNameByAssetName(MapAssetName);
 }
 
 void UMVVMLoadSlot::SetMap(const TSoftObjectPtr<UWorld>& NewMap)
 {
-	if (BoundMap != NewMap)
+	if (MapAssetName != NewMap.ToSoftObjectPath().GetAssetName())
 	{
-		BoundMap = NewMap;
+		MapAssetName = NewMap.ToSoftObjectPath().GetAssetName();
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetMapName);
 	}
+}
+
+void UMVVMLoadSlot::SetMapAssetName(const FString& NewMapAssetName)
+{
+	MapAssetName = NewMapAssetName;
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(GetMapName);
 }
 
 void UMVVMLoadSlot::SetPlayerLevel(const int32 NewValue)

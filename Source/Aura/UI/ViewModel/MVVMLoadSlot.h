@@ -39,7 +39,7 @@ public:
 private:
 
 	UPROPERTY()
-	TSoftObjectPtr<UWorld> BoundMap = nullptr; 
+	FString MapAssetName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Getter, Setter, meta = (AllowPrivateAccess="true"))
 	FString LoadSlotName;
@@ -63,8 +63,9 @@ public:
 	UFUNCTION(BlueprintPure, FieldNotify)
 	FText GetMapName() const;
 	
-	const TSoftObjectPtr<UWorld>& GetMap() const { return BoundMap; }
 	void SetMap(const TSoftObjectPtr<UWorld>& NewMap);
+	const FString& GetMapAssetName() const { return MapAssetName; }
+	void SetMapAssetName(const FString& NewMapAssetName);
 
 	int32 GetPlayerLevel() const { return PlayerLevel; }
 	void SetPlayerLevel(const int32 NewValue);

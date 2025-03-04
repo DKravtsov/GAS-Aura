@@ -42,12 +42,14 @@ public:
 
     FText GetDefaultMapDisplayName() const;
     FText GetMapDisplayName(const TSoftObjectPtr<UWorld>& Map);
+    FText GetMapDisplayNameByAssetName(const FString& MapAssetName);
+    TSoftObjectPtr<UWorld> GetWorldByName(const FString& MapAssetName) const;
 
     void TravelToMap(const UMVVMLoadSlot* SlotInfo) const;
 
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
-    void SaveWorldState(UWorld* World) const;
+    void SaveWorldState(UWorld* World, const TSoftObjectPtr<UWorld>& DestinationMap = nullptr) const;
     void LoadWorldState(UWorld* World) const;
 
     virtual void RestartPlayer(AController* NewPlayer) override;

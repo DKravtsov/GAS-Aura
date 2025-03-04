@@ -100,6 +100,7 @@ public:
 	UPROPERTY()
 	FString PlayerName = TEXT("Default Name");
 
+	// map asset name (without prefixes)
 	UPROPERTY()
 	FString MapName;
 

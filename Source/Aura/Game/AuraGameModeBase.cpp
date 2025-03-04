@@ -24,7 +24,7 @@ void AAuraGameModeBase::SaveSlotData(class UMVVMLoadSlot* LoadSlot, int32 SlotIn
 	LoadScreenSaveGame->SlotName = LoadSlot->GetLoadSlotName();
 	LoadScreenSaveGame->SlotIndex = SlotIndex;
 	LoadScreenSaveGame->SlotStatus = ESaveSlotStatus::Taken;
-	LoadScreenSaveGame->MapName = LoadSlot->GetMap().ToString();
+	LoadScreenSaveGame->MapName = LoadSlot->GetMapAssetName();
 	LoadScreenSaveGame->PlayerStartTag = LoadSlot->PlayerStartTag;
 	
 
@@ -78,6 +78,30 @@ FText AAuraGameModeBase::GetMapDisplayName(const TSoftObjectPtr<UWorld>& Map)
 	return FText::GetEmpty();
 }
 
+FText AAuraGameModeBase::GetMapDisplayNameByAssetName(const FString& MapAssetName)
+{
+	for (const auto& [Map, MapDisplayName] : AvailableMaps)
+	{
+		if (Map.ToSoftObjectPath().GetAssetName() == MapAssetName)
+		{
+			return MapDisplayName;
+		}
+	}
+	return FText::GetEmpty();
+}
+
+TSoftObjectPtr<UWorld> AAuraGameModeBase::GetWorldByName(const FString& MapAssetName) const
+{
+	for (const auto& [Map, Unused] : AvailableMaps)
+	{
+		if (Map.ToSoftObjectPath().GetAssetName() == MapAssetName)
+		{
+			return Map;
+		}
+	}
+	return nullptr;
+}
+
 void AAuraGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -86,8 +110,11 @@ void AAuraGameModeBase::BeginPlay()
 
 void AAuraGameModeBase::TravelToMap(const UMVVMLoadSlot* SlotInfo) const
 {
-	check(SlotInfo && !SlotInfo->GetMap().IsNull());
-	UGameplayStatics::OpenLevelBySoftObjectPtr(this, SlotInfo->GetMap());
+	check(SlotInfo && !SlotInfo->GetMapAssetName().IsEmpty());
+	if (const auto NewMap = GetWorldByName(SlotInfo->GetMapAssetName()); !NewMap.IsNull())
+	{
+		UGameplayStatics::OpenLevelBySoftObjectPtr(this, NewMap);
+	}
 }
 
 AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
@@ -111,7 +138,7 @@ AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 	return BestPlayerStart;
 }
 
-void AAuraGameModeBase::SaveWorldState(UWorld* World) const
+void AAuraGameModeBase::SaveWorldState(UWorld* World, const TSoftObjectPtr<UWorld>& DestinationMap) const
 {
 	FString WorldName = World->GetMapName();
 	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
@@ -120,6 +147,11 @@ void AAuraGameModeBase::SaveWorldState(UWorld* World) const
 
 	if (auto SaveGame = LoadSlotData(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
 	{
+		if (!DestinationMap.IsNull())
+		{
+			SaveGame->MapName = DestinationMap.ToSoftObjectPath().GetAssetName();
+		}
+		
 		if (!SaveGame->HasMap(WorldName))
 		{
 			SaveGame->SavedMaps.Emplace(WorldName);

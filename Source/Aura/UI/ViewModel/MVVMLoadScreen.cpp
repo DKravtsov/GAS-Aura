@@ -93,7 +93,7 @@ void UMVVMLoadScreen::LoadData()
 		LoadSlots[Index]->SetPlayerName(SaveObject->PlayerName);
 		LoadSlots[Index]->SlotStatus = SaveObject->SlotStatus;
 		LoadSlots[Index]->InitializeSlot();
-		LoadSlots[Index]->SetMap(TSoftObjectPtr<UWorld>(SaveObject->MapName));
+		LoadSlots[Index]->SetMapAssetName(SaveObject->MapName);
 		LoadSlots[Index]->PlayerStartTag = SaveObject->PlayerStartTag;
 		LoadSlots[Index]->SetPlayerLevel(SaveObject->PlayerLevel);
 	}
