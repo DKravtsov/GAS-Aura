@@ -72,6 +72,9 @@ public:
 
     void HitReactTagChanged(const FGameplayTag Tag, int32 Count);
 
+    void SetCharacterLevel(const int32 NewLevel) { CharacterLevel = NewLevel; }
+    // Note: GetCharacterLevel() implemented in the base class
+
 protected:
 
     virtual void BeginPlay() override;
