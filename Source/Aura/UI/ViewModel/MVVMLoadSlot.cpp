@@ -24,8 +24,11 @@ void UMVVMLoadSlot::SetPlayerName(FString NewName)
 
 FText UMVVMLoadSlot::GetMapName() const
 {
-	AAuraGameModeBase* AuraGameMode = CastChecked<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
-	return AuraGameMode->GetMapDisplayNameByAssetName(MapAssetName);
+	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		return AuraGameMode->GetMapDisplayNameByAssetName(MapAssetName);
+	}
+	return FText::GetEmpty();
 }
 
 void UMVVMLoadSlot::SetMap(const TSoftObjectPtr<UWorld>& NewMap)

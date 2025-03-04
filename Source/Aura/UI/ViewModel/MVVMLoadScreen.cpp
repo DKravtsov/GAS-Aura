@@ -3,6 +3,7 @@
 
 #include "UI/ViewModel/MVVMLoadScreen.h"
 
+#include "DebugHelper.h"
 #include "MVVMLoadSlot.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/AuraGameModeBase.h"
@@ -29,6 +30,11 @@ void UMVVMLoadScreen::NewSlotButtonPressed(int32 Slot, const FString& EnteredNam
 {
 	checkf(Slot >= 0 && Slot < NumLoadSlots, TEXT("Only %d Load slots available in this version"), NumLoadSlots);
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (!AuraGameMode)
+	{
+		Debug::Print(FString(TEXT("Please switch to single player.")), FColor::Magenta, 133221);
+		return;
+	}
 
 	LoadSlots[Slot]->SetMap(AuraGameMode->DefaultMap);
 	LoadSlots[Slot]->SetPlayerName(EnteredName);
@@ -87,6 +93,10 @@ void UMVVMLoadScreen::DeleteSelectedSlot()
 void UMVVMLoadScreen::LoadData()
 {
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (!AuraGameMode)
+	{
+		return;
+	}
 	for (int Index = 0; Index < NumLoadSlots; ++Index)
 	{
 		auto SaveObject = AuraGameMode->LoadSlotData(LoadSlots[Index]->GetLoadSlotName(), LoadSlots[Index]->SlotIndex);
