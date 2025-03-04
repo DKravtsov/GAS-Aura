@@ -94,7 +94,7 @@ public:
     //~ Begin of ICombatInterface interface
     virtual FVector GetCombatSocketLocation_Implementation(FGameplayTag CombatSocketTag) const override;
     virtual UAnimMontage* GetHitReactAnimMontage_Implementation() const override { return HitReactMontage; }
-    virtual void Die(const FVector& DeathImpulse) override;
+    virtual void Die(AActor* KillerActor, const FVector& DeathImpulse) override;
     virtual void KnockBack(const FVector& KnockBackImpulse) override;
     virtual bool IsDead_Implementation() const override;
     virtual AActor* GetAvatar_Implementation() override;

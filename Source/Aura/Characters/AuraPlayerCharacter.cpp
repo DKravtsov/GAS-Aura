@@ -175,6 +175,26 @@ EAuraCharacterClass AAuraPlayerCharacter::GetCharacterClass_Implementation() con
     return EAuraCharacterClass::Elementalist;
 }
 
+void AAuraPlayerCharacter::Die(AActor* KillerActor, const FVector& DeathImpulse)
+{
+    APlayerController* PC = Cast<APlayerController>(GetController());
+
+    const auto DeathTimerDelegate = FTimerDelegate::CreateLambda(
+        [this, KillerActor, PC]()
+        {
+            if (AAuraGameModeBase* GameMode = GetWorld()->GetAuthGameMode<AAuraGameModeBase>())
+            {
+                GameMode->PlayerDied(this, PC, KillerActor);
+            }
+        });
+    GetWorldTimerManager().SetTimer(DeathTimer, DeathTimerDelegate, DeathTime, false);
+    //CameraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+    
+    Super::Die(KillerActor, DeathImpulse);
+    
+    PC->SetViewTarget(this);
+}
+
 void AAuraPlayerCharacter::NotifyLevelUp_Implementation()
 {
     ApplyGameplayEffectToSelf(LevelUpEffect, GetCharacterLevel());

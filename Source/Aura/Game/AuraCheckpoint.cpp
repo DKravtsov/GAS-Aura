@@ -90,9 +90,10 @@ void AAuraCheckpoint::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		SetCheckpointReached(true);
 
+		UWorld* World = GetWorld();
 		if (const auto* GM = GetWorld()->GetAuthGameMode<AAuraGameModeBase>())
 		{
-			GM->SaveWorldState(GetWorld());
+			GM->SaveWorldState(World, World);
 		}
 		
 		IPlayerInterface::Execute_SaveProgress(OtherActor, PlayerStartTag);

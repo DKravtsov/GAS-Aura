@@ -27,7 +27,15 @@ class AURA_API AAuraPlayerCharacter : public AAuraCharacterBase, public IPlayerI
     UPROPERTY(EditDefaultsOnly, Category = "Effects")
     TSubclassOf<UGameplayEffect> PrimaryAttributes_SetByCaller;
 
+protected:
+
+    UPROPERTY(EditDefaultsOnly)
+    float DeathTime = 5.f;
+    
 private:
+    
+    FTimerHandle DeathTimer;
+    
     uint8 bLoadingFromDisk:1 = false;
     
 public:
@@ -45,6 +53,7 @@ public:
     //~ Begin of ICombatInterface interface
     virtual int32 BP_GetCharacterLevel_Implementation() const override;
     virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
+    virtual void Die(AActor* KillerActor, const FVector& DeathImpulse) override;
     //~ End of ICombatInterface interface
 
     //~ Begin of IPlayerInterface interface

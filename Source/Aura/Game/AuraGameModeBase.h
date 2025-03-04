@@ -53,6 +53,8 @@ public:
     void LoadWorldState(UWorld* World) const;
 
     virtual void RestartPlayer(AController* NewPlayer) override;
+
+    void PlayerDied(ACharacter* DeadCharacter, APlayerController* VictimPC, const AActor* KillerActor);
     
 protected:
 

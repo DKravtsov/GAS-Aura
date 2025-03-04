@@ -8,6 +8,7 @@
 #include "Logs.h"
 #include "SaveGameInterface.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
@@ -235,4 +236,23 @@ void AAuraGameModeBase::RestartPlayer(AController* NewPlayer)
 	Super::RestartPlayer(NewPlayer);
 
 	LoadWorldState(GetWorld());
+}
+
+void AAuraGameModeBase::PlayerDied(ACharacter* DeadCharacter, APlayerController* VictimPC, const AActor* KillerActor)
+{
+	if (IsValid(VictimPC))
+	{
+		if (GetNetMode() == NM_Standalone)
+		{
+			VictimPC->RestartLevel();
+		}
+		else
+		{
+			VictimPC->ServerRestartPlayer();
+			if (IsValid(DeadCharacter))
+			{
+				DeadCharacter->Destroy();
+			}
+		}
+	}
 }

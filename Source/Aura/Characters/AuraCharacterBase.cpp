@@ -126,7 +126,7 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(FGameplayTag 
     return GetActorLocation();
 }
 
-void AAuraCharacterBase::Die(const FVector& DeathImpulse)
+void AAuraCharacterBase::Die(AActor* KillerActor, const FVector& DeathImpulse)
 {
     if (HasAuthority())
     {

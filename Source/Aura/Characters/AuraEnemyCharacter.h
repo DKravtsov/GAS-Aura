@@ -64,7 +64,7 @@ public:
     virtual EAuraCharacterClass GetCharacterClass_Implementation() const override;
     virtual void SetCombatTarget_Implementation(AActor* TargetActor) override { CombatTarget = TargetActor; }
     virtual AActor* GetCombatTarget_Implementation() const override { return CombatTarget; }
-    virtual void Die(const FVector& DeathImpulse) override;
+    virtual void Die(AActor* KillerActor, const FVector& DeathImpulse) override;
     virtual TArray<FAttackInfo> GetAttackMontages_Implementation() const override { return AttackMontages;}
     virtual FAttackInfo GetTaggedMontageByTag_Implementation(FGameplayTag MontageTag) override;
     virtual int32 GetRewardXP_Implementation() const override;
