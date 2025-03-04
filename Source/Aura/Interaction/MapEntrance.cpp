@@ -15,25 +15,6 @@ AMapEntrance::AMapEntrance(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	TargetDestinationComponent = CreateDefaultSubobject<USceneComponent>("TargetDestinationComponent");
-	TargetDestinationComponent->SetupAttachment(GetRootComponent());
-
-	CollisionBox = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
-	CollisionBox->SetupAttachment(TargetDestinationComponent);
-	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionBox->SetCollisionObjectType(ECC_WorldStatic);
-	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-	GetStaticMeshComponent()->SetCollisionProfileName(FName("BlockAll"));
-	GetStaticMeshComponent()->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENCIL_TAN);//for highlighting
-}
-
-void AMapEntrance::BeginPlay()
-{
-	Super::BeginPlay();
-
-	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
 }
 
 void AMapEntrance::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -54,26 +35,5 @@ void AMapEntrance::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	}
 }
 
-void AMapEntrance::CheckpointReached()
-{
-	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ReceivedCheckpointReached();
-
-}
-
-void AMapEntrance::HighlightActor_Implementation()
-{
-	GetStaticMeshComponent()->SetRenderCustomDepth(true);
-}
-
-void AMapEntrance::UnhighlightActor_Implementation()
-{
-	GetStaticMeshComponent()->SetRenderCustomDepth(false);
-}
-
-void AMapEntrance::GetMoveToDestination_Implementation(FVector& OutDestination) const
-{
-	OutDestination = TargetDestinationComponent->GetComponentLocation();
-}
 
 

@@ -14,8 +14,11 @@ AAuraCheckpoint::AAuraCheckpoint(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	TargetDestinationComponent = CreateDefaultSubobject<USceneComponent>("TargetDestinationComponent");
+	TargetDestinationComponent->SetupAttachment(GetRootComponent());
+
 	CheckpointSphere = CreateDefaultSubobject<USphereComponent>("CheckpointSphere");
-	CheckpointSphere->SetupAttachment(GetRootComponent());
+	CheckpointSphere->SetupAttachment(TargetDestinationComponent);
 	CheckpointSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CheckpointSphere->SetCollisionObjectType(ECC_WorldStatic);
 	CheckpointSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
@@ -25,9 +28,6 @@ AAuraCheckpoint::AAuraCheckpoint(const FObjectInitializer& ObjectInitializer)
 	CheckpointMesh->SetupAttachment(GetRootComponent());
 	CheckpointMesh->SetCollisionProfileName(FName("BlockAll"));
 	CheckpointMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENCIL_TAN);//for highlighting
-
-	TargetDestinationComponent = CreateDefaultSubobject<USceneComponent>("TargetDestinationComponent");
-	TargetDestinationComponent->SetupAttachment(GetRootComponent());
 
 }
 
