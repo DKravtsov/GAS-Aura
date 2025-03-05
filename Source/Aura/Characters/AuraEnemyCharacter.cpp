@@ -105,7 +105,7 @@ void AAuraEnemyCharacter::Die(AActor* KillerActor, const FVector& DeathImpulse)
     {
         AuraAIController->GetBlackboardComponent()->SetValueAsBool("bDead", true);
     }
-    SpawnLoot();
+    SpawnLoot(KillerActor);
     Super::Die(KillerActor, DeathImpulse);
 }
 

@@ -117,6 +117,10 @@ public:
     static float FRandInRange(const FVector2D& MinMax);
     static float RandInRange(const FIntVector2& MinMax);
 
+    
+    UFUNCTION(BlueprintPure, Category = "GameplayTags")
+    static void GetActorOwnedGameplayTagContainer(AActor* Actor, FGameplayTagContainer& OutTagContainer);
+    
     UFUNCTION(BlueprintPure, Category = "GameplayTags")
     static bool DoesActorHaveAllGameplayTags(AActor* Actor, const FGameplayTagContainer& TagContainer);
 

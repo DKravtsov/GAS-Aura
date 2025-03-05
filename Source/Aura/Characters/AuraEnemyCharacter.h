@@ -96,5 +96,5 @@ protected:
     virtual void RemovedMinion(APawn* Minion) override;
 
     UFUNCTION(BlueprintImplementableEvent)
-    void SpawnLoot() const;
+    void SpawnLoot(AActor* KillerActor) const;
 };

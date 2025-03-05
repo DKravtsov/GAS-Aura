@@ -90,7 +90,7 @@ ULootTiersDataAsset* UAuraBlueprintFunctionLibrary::GetLootTiers(const UObject* 
 
 int32 UAuraBlueprintFunctionLibrary::GetCharacterLevel(const AActor* Actor)
 {
-    if (ensureAlways(Actor) && Actor->Implements<UCombatInterface>())
+    if (Actor && Actor->Implements<UCombatInterface>())
     {
         return ICombatInterface::Execute_BP_GetCharacterLevel(Actor);
     }
@@ -497,6 +497,18 @@ bool UAuraBlueprintFunctionLibrary::DoesActorHaveGameplayTag(AActor* Actor, FGam
         return Interface->HasMatchingGameplayTag(Tag);
     }
     return false;
+}
+
+void UAuraBlueprintFunctionLibrary::GetActorOwnedGameplayTagContainer(AActor* Actor, FGameplayTagContainer& OutTagContainer)
+{
+    if (const IGameplayTagAssetInterface* Interface = Cast<IGameplayTagAssetInterface>(Actor))
+    {
+        Interface->GetOwnedGameplayTags(OutTagContainer);
+    }
+    if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+    {
+        ASC->GetOwnedGameplayTags(OutTagContainer);
+    }
 }
 
 void UAuraBlueprintFunctionLibrary::AddGameplayTagToActor(AActor* Actor, FGameplayTag Tag)
