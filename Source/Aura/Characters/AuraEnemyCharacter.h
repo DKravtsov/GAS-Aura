@@ -94,4 +94,7 @@ protected:
 
     virtual void AddedMinion(APawn* NewMinion) override;
     virtual void RemovedMinion(APawn* Minion) override;
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void SpawnLoot() const;
 };

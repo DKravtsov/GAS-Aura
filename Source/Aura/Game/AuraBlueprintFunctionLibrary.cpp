@@ -79,6 +79,15 @@ UCharacterClassInfo* UAuraBlueprintFunctionLibrary::GetCharacterClassInfo(const 
     return nullptr;
 }
 
+ULootTiersDataAsset* UAuraBlueprintFunctionLibrary::GetLootTiers(const UObject* WorldContextObject)
+{
+    if (auto GM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+    {
+        return GM->LootTiers;
+    }
+    return nullptr;
+}
+
 int32 UAuraBlueprintFunctionLibrary::GetCharacterLevel(const AActor* Actor)
 {
     if (ensureAlways(Actor) && Actor->Implements<UCombatInterface>())

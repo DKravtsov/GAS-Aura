@@ -32,6 +32,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterClassDefaults", meta = (WorldContext = "WorldContextObject"))
     static class UAbilityInfoDataAsset* GetAbilityInfo(const UObject* WorldContextObject);
 
+    UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|LootTiers", meta = (WorldContext = "WorldContextObject"))
+    static class ULootTiersDataAsset* GetLootTiers(const UObject* WorldContextObject);
+
 
 
     UFUNCTION(BlueprintPure, Category = "AuraAbilitySystem|CharacterInfo")

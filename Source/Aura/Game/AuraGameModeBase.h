@@ -19,6 +19,9 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "CharacterClassDefaults")
     TObjectPtr<class UCharacterClassInfo> CharacterClassInfo;
 
+    UPROPERTY(EditDefaultsOnly, Category = "LootTiers")
+    TObjectPtr<class ULootTiersDataAsset> LootTiers;
+
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<class ULoadScreenSaveGame> LoadScreenSaveGameClass;
 

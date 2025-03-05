@@ -40,7 +40,7 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
     EEffectRemovalPolicy EffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
 
-    UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadWrite)
     float GameplayEffectLevel = 1.f;
 
     UPROPERTY(EditAnywhere, Category = "Effects", BlueprintReadOnly)
