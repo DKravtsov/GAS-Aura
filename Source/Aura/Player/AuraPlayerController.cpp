@@ -5,13 +5,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "Interaction/InteractableInterface.h"
 #include "Player/Input/AuraInputComponent.h"
+#include "Player/InventoryPlayerControllerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Aura.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
 #include "AuraGameplayTags.h"
 #include "CameraOcclusionComponent.h"
-#include "DebugHelper.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
@@ -31,6 +31,8 @@ AAuraPlayerController::AAuraPlayerController()
     CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>("CameraOcclusionAwarenessComponent");
     CameraOcclusionComponent->SetAutoActivate(false);
     CameraOcclusionComponent->SetIsReplicated(true);
+
+    InventoryComponent = CreateDefaultSubobject<UInventoryPlayerControllerComponent>("InventoryComp");
 }
 
 void AAuraPlayerController::Tick(float DeltaTime)
@@ -119,6 +121,8 @@ void AAuraPlayerController::SetupInputComponent()
         &AAuraPlayerController::AbilityInputTagPressed, 
         &AAuraPlayerController::AbilityInputTagReleased,
         &AAuraPlayerController::AbilityInputTagHeld);
+
+    InventoryComponent->SetupInputComponent(AuraInputComponent);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputValue)

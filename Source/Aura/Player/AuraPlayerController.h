@@ -24,7 +24,9 @@ class AURA_API AAuraPlayerController : public APlayerController
         Interactable,
     };
     
-private:
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta=(AllowPrivateAccess=true))
+    TObjectPtr<class UInventoryPlayerControllerComponent> InventoryComponent;
 
     UPROPERTY(EditAnywhere, Category = "Input")
     TObjectPtr<class UInputMappingContext> InputContext;
