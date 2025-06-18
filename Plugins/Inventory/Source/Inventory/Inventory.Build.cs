@@ -34,6 +34,7 @@ public class Inventory : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"EnhancedInput",
+				"UMG",
 			}
 			);
 		
