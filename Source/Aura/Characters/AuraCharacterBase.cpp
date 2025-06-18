@@ -216,3 +216,20 @@ int32 AAuraCharacterBase::GetCharacterLevel() const
 {
     return Execute_BP_GetCharacterLevel(this);
 }
+
+#if WITH_EDITOR
+void AAuraCharacterBase::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    static const FName NAME_WeaponSocketName = FName(TEXT("WeaponSocketName"));
+
+    if (PropertyChangedEvent.Property != nullptr && PropertyChangedEvent.Property->GetFName() == NAME_WeaponSocketName)
+    {
+        if (Weapon)
+        {
+            Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocketName);
+        }
+    }
+}
+#endif //WITH_EDITOR
