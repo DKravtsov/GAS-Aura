@@ -3,6 +3,7 @@
 
 #include "Player/InventoryPlayerControllerComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/HUD/InventoryHUDWidget.h"
 
 UInventoryPlayerControllerComponent::UInventoryPlayerControllerComponent()
@@ -10,6 +11,34 @@ UInventoryPlayerControllerComponent::UInventoryPlayerControllerComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+
+void UInventoryPlayerControllerComponent::UpdateInteractionTrace(AActor* InteractableActor)
+{
+	AActor* LastActor = CurrentInteractableActor.Get();
+
+	if (LastActor != InteractableActor)
+	{
+		if (!IsValid(InteractableActor))
+		{
+			if (IsValid(HUDWidget))
+			{
+				HUDWidget->HidePickupMessage();
+			}
+		}
+		else
+		{
+			if (UInventoryItemComponent* ItemComponent = InteractableActor->FindComponentByClass<UInventoryItemComponent>(); IsValid(ItemComponent))
+			{
+				if (IsValid(HUDWidget))
+				{
+					HUDWidget->ShowPickupMessage(ItemComponent->GetPickupMessage());
+				}
+			}
+		}
+
+		CurrentInteractableActor = InteractableActor;
+	}
+}
 
 void UInventoryPlayerControllerComponent::BeginPlay()
 {

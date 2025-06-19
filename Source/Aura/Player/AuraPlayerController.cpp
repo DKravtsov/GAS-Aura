@@ -164,6 +164,7 @@ void AAuraPlayerController::TraceUnderCursor()
     
     if (!GetHitResultUnderCursor(TraceChannel, false, CursorHit))
     {
+        InventoryComponent->UpdateInteractionTrace(nullptr);
         return;
     }
 
@@ -197,6 +198,8 @@ void AAuraPlayerController::TraceUnderCursor()
             TargetingStatus = ETargetingStatus::None;
         }
     }
+
+    InventoryComponent->UpdateInteractionTrace(CurrentActorUnderCursor);
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)

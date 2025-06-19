@@ -21,6 +21,9 @@ class UInventoryPlayerControllerComponent : public UActorComponent
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryHUDWidget> HUDWidget;
+
+	TWeakObjectPtr<AActor> CurrentInteractableActor;
+	
 public:
 
 	INVENTORY_API UInventoryPlayerControllerComponent();
@@ -30,7 +33,7 @@ public:
 	template <class TController>
 	TController* GetOwningController() const {return Cast<TController>(GetOwner());}
 
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	UFUNCTION(BlueprintCallable)
 	APlayerController* GetOwningPlayerController() const {return Cast<APlayerController>(GetOwner());}
 
 	FORCEINLINE_DEBUGGABLE
@@ -42,6 +45,8 @@ public:
 		}
 		return false;
 	}
+
+	INVENTORY_API virtual void UpdateInteractionTrace(AActor* InteractableActor);
 
 protected:
 
