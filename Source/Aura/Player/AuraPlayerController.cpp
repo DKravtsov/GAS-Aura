@@ -32,7 +32,7 @@ AAuraPlayerController::AAuraPlayerController()
     CameraOcclusionComponent->SetAutoActivate(false);
     CameraOcclusionComponent->SetIsReplicated(true);
 
-    InventoryComponent = CreateDefaultSubobject<UInventoryPlayerControllerComponent>("InventoryComp");
+    InventoryControllerComponent = CreateDefaultSubobject<UInventoryPlayerControllerComponent>("InventoryControllerComponent");
 }
 
 void AAuraPlayerController::Tick(float DeltaTime)
@@ -122,7 +122,7 @@ void AAuraPlayerController::SetupInputComponent()
         &AAuraPlayerController::AbilityInputTagReleased,
         &AAuraPlayerController::AbilityInputTagHeld);
 
-    InventoryComponent->SetupInputComponent(AuraInputComponent);
+    InventoryControllerComponent->SetupInputComponent(AuraInputComponent);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputValue)
@@ -164,7 +164,7 @@ void AAuraPlayerController::TraceUnderCursor()
     
     if (!GetHitResultUnderCursor(TraceChannel, false, CursorHit))
     {
-        InventoryComponent->UpdateInteractionTraceResult(nullptr);
+        InventoryControllerComponent->UpdateInteractionTraceResult(nullptr);
         return;
     }
 
@@ -200,7 +200,7 @@ void AAuraPlayerController::TraceUnderCursor()
     }
 
     // Note: This requires that interactable items also implement IInteractableInterface
-    InventoryComponent->UpdateInteractionTraceResult(CurrentActorUnderCursor);
+    InventoryControllerComponent->UpdateInteractionTraceResult(CurrentActorUnderCursor);
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
