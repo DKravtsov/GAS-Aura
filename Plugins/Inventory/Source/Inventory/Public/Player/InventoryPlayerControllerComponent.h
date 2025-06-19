@@ -23,6 +23,12 @@ class UInventoryPlayerControllerComponent : public UActorComponent
 	TObjectPtr<UInventoryHUDWidget> HUDWidget;
 
 	TWeakObjectPtr<AActor> CurrentInteractableActor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	float InteractionTraceDistance;
 	
 public:
 
@@ -46,7 +52,14 @@ public:
 		return false;
 	}
 
-	INVENTORY_API virtual void UpdateInteractionTrace(AActor* InteractableActor);
+	// Performs a single line trace from the center of the current camera, and calls UpdateInteractionTraceResult()
+	INVENTORY_API virtual void PerformInteractionTraceFromCamera();
+	
+	// Performs a single line trace under the mouse cursor, and calls UpdateInteractionTraceResult()
+	INVENTORY_API virtual void PerformInteractionTraceUnderMouse();
+
+	// Update interactable actor. Will be called from PerformInteractionTraceXXX() methods or can be called directly instead if applicable
+	INVENTORY_API virtual void UpdateInteractionTraceResult(AActor* InteractableActor);
 
 protected:
 

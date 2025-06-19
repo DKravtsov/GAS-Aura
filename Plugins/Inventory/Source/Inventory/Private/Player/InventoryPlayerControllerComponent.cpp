@@ -13,7 +13,21 @@ UInventoryPlayerControllerComponent::UInventoryPlayerControllerComponent()
 }
 
 
-void UInventoryPlayerControllerComponent::UpdateInteractionTrace(AActor* InteractableActor)
+void UInventoryPlayerControllerComponent::PerformInteractionTraceFromCamera()
+{
+	// TODO: need to implement
+	unimplemented();
+}
+
+void UInventoryPlayerControllerComponent::PerformInteractionTraceUnderMouse()
+{
+	const APlayerController* PC = GetOwningPlayerController();
+	FHitResult CursorHit;
+	PC->GetHitResultUnderCursor(InteractionTraceChannel, false, CursorHit);
+	UpdateInteractionTraceResult(CursorHit.bBlockingHit ? CursorHit.GetActor() : nullptr);
+}
+
+void UInventoryPlayerControllerComponent::UpdateInteractionTraceResult(AActor* InteractableActor)
 {
 	const AActor* LastActor = CurrentInteractableActor.Get();
 

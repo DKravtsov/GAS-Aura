@@ -164,7 +164,7 @@ void AAuraPlayerController::TraceUnderCursor()
     
     if (!GetHitResultUnderCursor(TraceChannel, false, CursorHit))
     {
-        InventoryComponent->UpdateInteractionTrace(nullptr);
+        InventoryComponent->UpdateInteractionTraceResult(nullptr);
         return;
     }
 
@@ -199,7 +199,8 @@ void AAuraPlayerController::TraceUnderCursor()
         }
     }
 
-    InventoryComponent->UpdateInteractionTrace(CursorHit.GetActor());
+    // Note: This requires that interactable items also implement IInteractableInterface
+    InventoryComponent->UpdateInteractionTraceResult(CurrentActorUnderCursor);
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
