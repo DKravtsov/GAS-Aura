@@ -35,6 +35,7 @@ public class Inventory : ModuleRules
 				"Engine",
 				"EnhancedInput",
 				"UMG",
+				"GameplayTags",
 			}
 			);
 		
