@@ -28,6 +28,8 @@ class AURA_API AAuraPlayerController : public APlayerController
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta=(AllowPrivateAccess=true))
     TObjectPtr<class UInventoryPlayerControllerComponent> InventoryControllerComponent;
 
+    TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+
     UPROPERTY(EditAnywhere, Category = "Input")
     TObjectPtr<class UInputMappingContext> InputContext;
 
@@ -99,6 +101,9 @@ public:
 
     void ShowMagicCircle(UMaterialInterface* DecalMaterial = nullptr);
     void HideMagicCircle();
+
+    UFUNCTION(BlueprintCallable, Category="inventory")
+    void ToggleInventory();
     
 protected:
 

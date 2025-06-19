@@ -21,6 +21,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Components/DamageTextComponent.h"
 #include "GameFramework/Pawn.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
+#include "Player/InventoryPlayerControllerComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -97,6 +99,8 @@ void AAuraPlayerController::BeginPlay()
     {
         InputSubsystem->AddMappingContext(InputContext, 0);
     }
+
+    InventoryComponent = FindComponentByClass<UInventoryComponent>();
 
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
@@ -370,6 +374,14 @@ void AAuraPlayerController::ShowMagicCircle(UMaterialInterface* DecalMaterial)
 void AAuraPlayerController::HideMagicCircle()
 {
     ClientHideMagicCircle();
+}
+
+void AAuraPlayerController::ToggleInventory()
+{
+    if (InventoryComponent.IsValid())
+    {
+        InventoryComponent->ToggleInventoryMenu();
+    }
 }
 
 void AAuraPlayerController::ClientShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial)

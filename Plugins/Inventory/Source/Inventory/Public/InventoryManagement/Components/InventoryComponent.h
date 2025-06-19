@@ -28,6 +28,7 @@ class UInventoryComponent : public UActorComponent
 public:
 	INVENTORY_API UInventoryComponent();
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
 
 protected:

@@ -65,8 +65,7 @@ public:
 	// Update interactable actor. Will be called from PerformInteractionTraceXXX() methods or can be called directly instead if applicable
 	INVENTORY_API virtual void UpdateInteractionTraceResult(AActor* InteractableActor);
 
-	UFUNCTION(BlueprintCallable, Category="inventory")
-	INVENTORY_API void ToggleInventory();
+	UInventoryComponent* GetInventoryComponent() const {return InventoryComponent.Get();}
 
 protected:
 
@@ -75,4 +74,5 @@ protected:
 private:
 	void PrimaryInteract();
 	void CreateHUDWidget();
+	void ToggleInventory();
 };
