@@ -199,7 +199,7 @@ void AAuraPlayerController::TraceUnderCursor()
         }
     }
 
-    InventoryComponent->UpdateInteractionTrace(CurrentActorUnderCursor);
+    InventoryComponent->UpdateInteractionTrace(CursorHit.GetActor());
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)

@@ -3,6 +3,7 @@
 
 #include "Player/InventoryPlayerControllerComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Interfaces/InventoryHighlightableInterface.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/HUD/InventoryHUDWidget.h"
 
@@ -14,10 +15,19 @@ UInventoryPlayerControllerComponent::UInventoryPlayerControllerComponent()
 
 void UInventoryPlayerControllerComponent::UpdateInteractionTrace(AActor* InteractableActor)
 {
-	AActor* LastActor = CurrentInteractableActor.Get();
+	const AActor* LastActor = CurrentInteractableActor.Get();
 
 	if (LastActor != InteractableActor)
 	{
+		if (LastActor)
+		{
+			const TArray<UActorComponent*> Highlightables = LastActor->GetComponentsByInterface(UInventoryHighlightableInterface::StaticClass());
+			for (UActorComponent* Highlightable : Highlightables)
+			{
+				IInventoryHighlightableInterface::Execute_UnHighlight(Highlightable);
+			}
+		}
+		
 		if (!IsValid(InteractableActor))
 		{
 			if (IsValid(HUDWidget))
@@ -33,6 +43,11 @@ void UInventoryPlayerControllerComponent::UpdateInteractionTrace(AActor* Interac
 				{
 					HUDWidget->ShowPickupMessage(ItemComponent->GetPickupMessage());
 				}
+			}
+			const TArray<UActorComponent*> Highlightables = InteractableActor->GetComponentsByInterface(UInventoryHighlightableInterface::StaticClass());
+			for (UActorComponent* Highlightable : Highlightables)
+			{
+				IInventoryHighlightableInterface::Execute_Highlight(Highlightable);
 			}
 		}
 
