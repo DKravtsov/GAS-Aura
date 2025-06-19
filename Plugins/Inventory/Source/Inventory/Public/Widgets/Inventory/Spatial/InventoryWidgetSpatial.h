@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
-#include "InventoryWidgetSpecial.generated.h"
+#include "InventoryWidgetSpatial.generated.h"
 
 /**
  * 
  */
 UCLASS(MinimalAPI, Abstract)
-class UInventoryWidgetSpecial : public UInventoryWidgetBase
+class UInventoryWidgetSpatial : public UInventoryWidgetBase
 {
 	GENERATED_BODY()
 };
