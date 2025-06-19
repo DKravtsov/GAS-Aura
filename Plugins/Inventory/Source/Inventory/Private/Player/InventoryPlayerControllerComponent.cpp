@@ -4,6 +4,7 @@
 #include "Player/InventoryPlayerControllerComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Interfaces/InventoryHighlightableInterface.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/HUD/InventoryHUDWidget.h"
 
@@ -73,6 +74,8 @@ void UInventoryPlayerControllerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InventoryComponent = GetOwner()->GetComponentByClass<UInventoryComponent>();
+
 	// TODO: need to take into account that add the widget to the viewport can break the target's UI rules
 	// Consider adding callback or something like this
 	CreateHUDWidget();
@@ -83,7 +86,8 @@ void UInventoryPlayerControllerComponent::SetupInputComponent(UEnhancedInputComp
 	check(InputComponent);
 	if (IsValid(PrimaryInteractionAction))
 	{
-		InputComponent->BindAction(PrimaryInteractionAction, ETriggerEvent::Triggered, this, &UInventoryPlayerControllerComponent::PrimaryInteract);
+		InputComponent->BindAction(PrimaryInteractionAction, ETriggerEvent::Started, this, &UInventoryPlayerControllerComponent::PrimaryInteract);
+		InputComponent->BindAction(ToggleInventoryAction, ETriggerEvent::Started, this, &UInventoryPlayerControllerComponent::ToggleInventory);
 	}
 }
 
@@ -106,3 +110,12 @@ void UInventoryPlayerControllerComponent::CreateHUDWidget()
 		}
 	}
 }
+
+void UInventoryPlayerControllerComponent::ToggleInventory()
+{
+	if (InventoryComponent.IsValid())
+	{
+		InventoryComponent->ToggleInventoryMenu();
+	}
+}
+

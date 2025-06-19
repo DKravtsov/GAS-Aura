@@ -21,9 +21,14 @@ class UInventoryComponent : public UActorComponent
 	TObjectPtr<UInventoryWidgetBase> InventoryMenu;
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
+	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
+
+	bool bInventoryMenuOpen = false;
 	
 public:
 	INVENTORY_API UInventoryComponent();
+
+	INVENTORY_API void ToggleInventoryMenu();
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -31,4 +36,6 @@ protected:
 private:
 
 	void ConstructInventory();
+	void OpenInventoryMenu();
+	void CloseInventoryMenu();
 };

@@ -17,12 +17,16 @@ class UInventoryPlayerControllerComponent : public UActorComponent
 	TObjectPtr<UInputAction> PrimaryInteractionAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TObjectPtr<UInputAction> ToggleInventoryAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TSubclassOf<class UInventoryHUDWidget> HUDWidgetClass;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryHUDWidget> HUDWidget;
 
 	TWeakObjectPtr<AActor> CurrentInteractableActor;
+	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
@@ -60,6 +64,9 @@ public:
 
 	// Update interactable actor. Will be called from PerformInteractionTraceXXX() methods or can be called directly instead if applicable
 	INVENTORY_API virtual void UpdateInteractionTraceResult(AActor* InteractableActor);
+
+	UFUNCTION(BlueprintCallable, Category="inventory")
+	INVENTORY_API void ToggleInventory();
 
 protected:
 
