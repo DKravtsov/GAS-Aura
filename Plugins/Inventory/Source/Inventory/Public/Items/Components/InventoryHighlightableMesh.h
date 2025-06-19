@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(MinimalAPI)
 class UInventoryHighlightableMesh : public UStaticMeshComponent, public IInventoryHighlightableInterface
 {
 	GENERATED_BODY()

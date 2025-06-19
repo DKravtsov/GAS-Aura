@@ -7,7 +7,7 @@
 #include "InventoryHighlightableInterface.generated.h"
 
 
-UINTERFACE()
+UINTERFACE(MinimalAPI)
 class UInventoryHighlightableInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -16,15 +16,15 @@ class UInventoryHighlightableInterface : public UInterface
 /**
  * 
  */
-class INVENTORY_API IInventoryHighlightableInterface
+class IInventoryHighlightableInterface
 {
 	GENERATED_BODY()
 
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
-	void Highlight();
+	INVENTORY_API void Highlight();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Inventory")
-	void UnHighlight();
+	INVENTORY_API void UnHighlight();
 };
