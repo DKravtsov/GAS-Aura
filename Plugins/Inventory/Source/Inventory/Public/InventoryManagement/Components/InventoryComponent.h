@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "InventoryComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 
 class UInventoryWidgetBase;
 
@@ -13,6 +14,13 @@ UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, meta=(Bluepr
 class UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
+
+public:
+
+	FInventoryItemChangeSignature OnItemAdded;
+	FInventoryItemChangeSignature OnItemRemoved;
+
+private:
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSoftClassPtr<UInventoryWidgetBase> InventoryMenuClass;

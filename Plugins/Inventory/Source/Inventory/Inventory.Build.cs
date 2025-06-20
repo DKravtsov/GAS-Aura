@@ -24,6 +24,7 @@ public class Inventory : ModuleRules
 			new string[]
 			{
 				"Core",
+				"NetCore",
 			}
 			);
 			
