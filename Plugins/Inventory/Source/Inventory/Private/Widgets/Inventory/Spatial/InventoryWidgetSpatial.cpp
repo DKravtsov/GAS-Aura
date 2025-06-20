@@ -18,6 +18,11 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	ShowEquipmentGrid();
 }
 
+FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInventoryItemComponent* ItemComponent) const
+{
+	return Super::HasRoomForItem(ItemComponent);
+}
+
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
 {
 	SetActiveGrid(InventoryGrid_Equipment, Button_Equipment);

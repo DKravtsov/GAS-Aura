@@ -14,3 +14,7 @@ namespace InventoryTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_ItemCategory_Crafting, "Inventory.ItemCategory.Crafting", "");
 	
 }
+
+FInventorySlotAvailabilityResult::FInventorySlotAvailabilityResult()
+{
+}

@@ -38,8 +38,13 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 
 public:
 
+	//~ Begin of UUserWidget interface
 	INVENTORY_API virtual void NativeOnInitialized() override;
+	//~ End of UUserWidget interface
 
+	//~ Begin of UInventoryWidgetBase interface
+	virtual FInventorySlotAvailabilityResult HasRoomForItem(class UInventoryItemComponent* ItemComponent) const override;
+	//~ End of UInventoryWidgetBase interface
 private:
 
 	UFUNCTION()
