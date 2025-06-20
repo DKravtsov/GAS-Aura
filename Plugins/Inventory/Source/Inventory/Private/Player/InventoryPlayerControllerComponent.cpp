@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "Interfaces/InventoryHighlightableInterface.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/HUD/InventoryHUDWidget.h"
 
@@ -93,7 +94,13 @@ void UInventoryPlayerControllerComponent::SetupInputComponent(UEnhancedInputComp
 
 void UInventoryPlayerControllerComponent::PrimaryInteract()
 {
-	UE_LOG(LogTemp, Log, TEXT("UInventoryPlayerControllerComponent::PrimaryInteract"));
+	if (!CurrentInteractableActor.IsValid() || !InventoryComponent.IsValid())
+		return;
+
+	if (const auto ItemComponent = UInventoryStatics::GetInventoryItemComponent(CurrentInteractableActor.Get()))
+	{
+		InventoryComponent->TryAddItem(ItemComponent);
+	}
 }
 
 void UInventoryPlayerControllerComponent::CreateHUDWidget()

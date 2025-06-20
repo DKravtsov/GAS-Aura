@@ -6,7 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "InventoryComponent.generated.h"
 
+class UInventoryItemComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
 
 class UInventoryWidgetBase;
 
@@ -19,6 +21,7 @@ public:
 
 	FInventoryItemChangeSignature OnItemAdded;
 	FInventoryItemChangeSignature OnItemRemoved;
+	FInventoryHasNoRoomSignature OnNoRoomInInventory;
 
 private:
 	
@@ -38,6 +41,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
+	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
