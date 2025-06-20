@@ -60,12 +60,22 @@ void UInventoryComponent::OpenInventoryMenu()
 	InventoryMenu->SetVisibility(ESlateVisibility::Visible);
 	bInventoryMenuOpen = true;
 
+	// TODO Consider to choose input mode by parent project
+
+	// For 3dr person template
 	// if (OwningPlayerController.IsValid())
 	// {
 	// 	FInputModeGameAndUI InputMode;
 	// 	OwningPlayerController->SetInputMode(InputMode);
 	// 	OwningPlayerController->SetShowMouseCursor(true);
 	// }
+
+	// specific to Aura project
+	if (OwningPlayerController.IsValid())
+	{
+		FInputModeUIOnly InputMode;
+		OwningPlayerController->SetInputMode(InputMode);
+	}
 }
 
 void UInventoryComponent::CloseInventoryMenu()
@@ -75,10 +85,20 @@ void UInventoryComponent::CloseInventoryMenu()
 	InventoryMenu->SetVisibility(ESlateVisibility::Collapsed);
 	bInventoryMenuOpen = false;
 
+	// TODO Consider to choose input mode by parent project
+	
+	// For 3dr person template
 	// if (OwningPlayerController.IsValid())
 	// {
 	// 	FInputModeGameOnly InputMode;
 	// 	OwningPlayerController->SetInputMode(InputMode);
 	// 	OwningPlayerController->SetShowMouseCursor(false);
 	// }
+
+	// specific to Aura project
+	if (OwningPlayerController.IsValid())
+	{
+		FInputModeGameAndUI InputMode;
+		OwningPlayerController->SetInputMode(InputMode);
+	}
 }
