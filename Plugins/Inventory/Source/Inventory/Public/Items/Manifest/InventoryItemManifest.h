@@ -7,6 +7,7 @@
 #include "StructUtils/InstancedStruct.h"
 #include "InventoryItemManifest.generated.h"
 
+struct FInventoryItemFragment;
 /**
  * Contains all the necessary data for creating a new Inventory item
  */
@@ -22,6 +23,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems"))
 	FGameplayTag ItemType;
+
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FInventoryItemFragment>> Fragments;
 	
 public:
 	INVENTORY_API FInventoryItemManifest();
