@@ -88,4 +88,6 @@ private:
 	                         const FInventoryItemImageFragment& ImageFragment) const;
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
+
+	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index);
 };
