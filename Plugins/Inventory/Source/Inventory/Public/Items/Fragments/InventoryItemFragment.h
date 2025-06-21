@@ -72,8 +72,32 @@ public:
 	TSoftObjectPtr<UTexture2D>& GetIconMutable() {return Icon;}
 };
 
+USTRUCT(BlueprintType)
+struct FInventoryItemStackableFragment: public FInventoryItemFragment
+{
+	GENERATED_BODY()
+private:
+
+	// How many stacks can one space in the inventory hold
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MaxStackSize = 1;
+
+	// How many stacks should I get when I pick this item up
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 StackCount = 1;
+
+public:
+
+	FInventoryItemStackableFragment();
+
+	int32 GetMaxStackSize() const {return MaxStackSize;}
+	int32 GetStackCount() const {return StackCount;}
+
+};
+
 namespace InventoryFragmentTags
 {
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Grid);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Image);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Stackable);
 }

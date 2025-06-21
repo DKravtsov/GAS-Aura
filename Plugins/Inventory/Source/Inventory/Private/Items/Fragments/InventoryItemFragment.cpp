@@ -9,6 +9,7 @@ namespace InventoryFragmentTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_Grid, "FragmentTag.Grid");
 	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_Image, "FragmentTag.Image");
+	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_Stackable, "FragmentTag.Stackable");
 }
 
 FInventoryItemGridFragment::FInventoryItemGridFragment()
@@ -19,4 +20,9 @@ FInventoryItemGridFragment::FInventoryItemGridFragment()
 FInventoryItemImageFragment::FInventoryItemImageFragment()
 {
 	SetFragmentTag(InventoryFragmentTags::FragmentTag_Image);
+}
+
+FInventoryItemStackableFragment::FInventoryItemStackableFragment()
+{
+	SetFragmentTag(InventoryFragmentTags::FragmentTag_Stackable);
 }
