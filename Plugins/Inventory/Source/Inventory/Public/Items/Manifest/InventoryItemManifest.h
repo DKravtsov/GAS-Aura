@@ -34,4 +34,20 @@ public:
 	FGameplayTag GetItemType() const {return ItemType;}
 
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
+
+	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
+	const TFragment* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const
+	{
+		for (const auto& Fragment : Fragments)
+		{
+			if (const TFragment* FragmentPtr = Fragment.GetPtr<TFragment>())
+			{
+				if (FragmentPtr->GetFragmentTag().MatchesTag(FragmentTag))
+				{
+					return FragmentPtr;
+				}
+			}
+		}
+		return nullptr;
+	}
 };

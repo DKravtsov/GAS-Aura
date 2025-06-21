@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "NativeGameplayTags.h"
 #include "InventoryItemFragment.generated.h"
 
 
@@ -19,7 +20,7 @@ struct FInventoryItemFragment
 	FInventoryItemFragment& operator=(FInventoryItemFragment&&) = default;
 	virtual ~FInventoryItemFragment() {}
 
-	FGameplayTag GetFragmentTag() const {return FragmentTag;}
+	const FGameplayTag& GetFragmentTag() const {return FragmentTag;}
 	void SetFragmentTag(const FGameplayTag& NewFragmentTag) {FragmentTag = NewFragmentTag;}
 
 private:
@@ -70,3 +71,9 @@ public:
 	const TSoftObjectPtr<UTexture2D>& GetIcon() const {return Icon;}
 	TSoftObjectPtr<UTexture2D>& GetIconMutable() {return Icon;}
 };
+
+namespace InventoryFragmentTags
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Grid);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Image);
+}

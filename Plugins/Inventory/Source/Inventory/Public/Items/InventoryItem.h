@@ -28,4 +28,15 @@ public:
 	virtual bool IsSupportedForNetworking() const override {return true;}
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	//~ End of UObject interface
+
+	template<typename TFragment>
+	static const TFragment* GetFragment(UInventoryItem* Item, const FGameplayTag& FragmentTag)
+	{
+		if (Item != nullptr)
+		{
+			const FInventoryItemManifest& Manifest = Item->GetItemManifest();
+			return Manifest.GetFragmentOfTypeWithTag<TFragment>(FragmentTag);
+		}
+		return nullptr;
+	}
 };
