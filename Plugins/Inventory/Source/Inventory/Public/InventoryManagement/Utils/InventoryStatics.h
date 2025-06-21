@@ -31,7 +31,7 @@ public:
 
 	template<typename T>
 	static void ForEach2D(TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
-		TFunctionRef<void (const typename TArray<T>::ElementType&)> Callback)
+		TFunctionRef<bool (typename TArray<T>::ElementType&)> Callback)
 	{
 		const FIntPoint StartPos = UInventoryWidgetUtils::GetPositionFromIndex(StartIndex, GridColumns); 
 		for (int32 RowIndex = 0; RowIndex < Range2D.Y; ++RowIndex)
@@ -42,7 +42,28 @@ public:
 				const int32 TileIndex = UInventoryWidgetUtils::GetIndexFromPosition(Pos, GridColumns);
 				if (Array.IsValidIndex(TileIndex))
 				{
-					Callback(Array[TileIndex]);
+					if (!Callback(Array[TileIndex]))
+						return; // early exit
+				}
+			}
+		}
+	}
+
+	template<typename T>
+	static void ForEach2D(const TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
+		TFunctionRef<bool (const typename TArray<T>::ElementType&)> Callback)
+	{
+		const FIntPoint StartPos = UInventoryWidgetUtils::GetPositionFromIndex(StartIndex, GridColumns); 
+		for (int32 RowIndex = 0; RowIndex < Range2D.Y; ++RowIndex)
+		{
+			for (int32 ColIndex = 0; ColIndex < Range2D.X; ++ColIndex)
+			{
+				const FIntPoint Pos = StartPos + FIntPoint(ColIndex, RowIndex);
+				const int32 TileIndex = UInventoryWidgetUtils::GetIndexFromPosition(Pos, GridColumns);
+				if (Array.IsValidIndex(TileIndex))
+				{
+					if (!Callback(Array[TileIndex]))
+						return; // early exit
 				}
 			}
 		}
