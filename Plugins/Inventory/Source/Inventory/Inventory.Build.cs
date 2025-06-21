@@ -37,6 +37,7 @@ public class Inventory : ModuleRules
 				"Engine",
 				"EnhancedInput",
 				"UMG",
+				"SlateCore",
 			}
 			);
 		

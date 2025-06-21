@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "InventoryGridTypes.h"
+#include "Items/Fragments/InventoryItemFragment.h"
 #include "InventoryGrid.generated.h"
 
 
@@ -24,6 +25,9 @@ class UInventoryGrid : public UUserWidget
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<UInventoryGridSlot> GridSlotClass;
+
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 0;
@@ -63,4 +67,14 @@ private:
 	bool MatchesCategory(const UInventoryItem* Item) const;
 
 	FInventorySlotAvailabilityResult HasRoomForItemInternal(const struct FInventoryItemManifest& ItemManifest) const;
+
+	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
+	UInventorySlottedItemWidget* CreateSlottedItemWidget(UInventoryItem* Item, int32 Index,
+	                                                     const FInventoryItemGridFragment& GridFragment,
+	                                                     const FInventoryItemImageFragment& ImageFragment);
+	void AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount);
+
+	FVector2D GetDrawSize(const struct FInventoryItemGridFragment& GridFragment) const;
+	void SetSlottedItemImage(const UInventorySlottedItemWidget* SlottedItem, const FInventoryItemGridFragment& GridFragment,
+	                         const FInventoryItemImageFragment& ImageFragment) const;
 };
