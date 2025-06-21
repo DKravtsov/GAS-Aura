@@ -4,6 +4,8 @@
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 
 #include "Components/UniformGridPanel.h"
+#include "Components/GridPanel.h"
+#include "Components/GridSlot.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
@@ -74,8 +76,8 @@ void UInventoryGrid::AddItemAtIndex(UInventoryItem* Item, const int32 Index, con
 		return;
 
 	UInventorySlottedItemWidget* SlottedItem = CreateSlottedItemWidget(Item, Index, *GridFragment, *ImageFragment);
-
-	
+	AddSlottedItemToGrid(Index, *GridFragment, SlottedItem);
+	SlottedItems.Add(Index, SlottedItem);
 }
 
 UInventorySlottedItemWidget* UInventoryGrid::CreateSlottedItemWidget(UInventoryItem* Item, const int32 Index,
@@ -107,6 +109,17 @@ void UInventoryGrid::SetSlottedItemImage(const UInventorySlottedItemWidget* Slot
 	SlottedItem->SetImageBrush(ImageBrush);
 }
 
+void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment,
+	UInventorySlottedItemWidget* SlottedItem) const
+{
+	FIntPoint Pos = GetPositionFromIndex(Index);
+	if (auto GridSlot = GridWidget->AddChildToGrid(SlottedItem, Pos.X, Pos.Y))
+	{
+		GridSlot->SetColumnSpan(GridFragment.GetGridSize().X);
+		GridSlot->SetRowSpan(GridFragment.GetGridSize().Y);
+	}
+}
+
 void UInventoryGrid::ConstructGrid()
 {
 	check(Rows > 0 && Columns > 0 && TileSize > 0.f);
@@ -114,8 +127,6 @@ void UInventoryGrid::ConstructGrid()
 	GridSlots.Reserve(Rows * Columns);
 
 	GridWidget->ClearChildren();
-	GridWidget->SetMinDesiredSlotWidth(TileSize);
-	GridWidget->SetMinDesiredSlotHeight(TileSize);
 
 	for (int RowIndex = 0; RowIndex < Rows; RowIndex++)
 	{
@@ -123,7 +134,7 @@ void UInventoryGrid::ConstructGrid()
 		{
 			UInventoryGridSlot* InventoryGridSlot = CreateWidget<UInventoryGridSlot>(this, GridSlotClass);
 			
-			GridWidget->AddChildToUniformGrid(InventoryGridSlot, RowIndex, ColumnIndex);
+			GridWidget->AddChildToGrid(InventoryGridSlot, RowIndex, ColumnIndex);
 			
 			const int32 AddedIndex = GridSlots.Add(InventoryGridSlot);
 			check(AddedIndex == GetIndexFromPosition(FIntPoint(ColumnIndex, RowIndex)));

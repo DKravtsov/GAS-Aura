@@ -11,6 +11,7 @@
 
 class UInventoryGridSlot;
 class UUniformGridPanel;
+class UGridPanel;
 
 UCLASS()
 class UInventoryGrid : public UUserWidget
@@ -39,7 +40,10 @@ class UInventoryGrid : public UUserWidget
 	float TileSize = 0.f;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UUniformGridPanel> GridWidget;
+	TObjectPtr<UGridPanel> GridWidget;
+
+	UPROPERTY()
+	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
 
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	
@@ -54,6 +58,11 @@ public:
 	int32 GetIndexFromPosition(const FIntPoint& Position) const
 	{
 		return Position.X + Position.Y * Columns;
+	}
+
+	FIntPoint GetPositionFromIndex(int32 Index) const
+	{
+		return FIntPoint(Index % Columns, Index / Columns);
 	}
 
 	UFUNCTION()
@@ -77,4 +86,6 @@ private:
 	FVector2D GetDrawSize(const struct FInventoryItemGridFragment& GridFragment) const;
 	void SetSlottedItemImage(const UInventorySlottedItemWidget* SlottedItem, const FInventoryItemGridFragment& GridFragment,
 	                         const FInventoryItemImageFragment& ImageFragment) const;
+
+	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
 };
