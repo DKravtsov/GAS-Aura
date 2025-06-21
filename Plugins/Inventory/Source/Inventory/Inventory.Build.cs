@@ -25,6 +25,7 @@ public class Inventory : ModuleRules
 			{
 				"Core",
 				"NetCore",
+				"GameplayTags",
 			}
 			);
 			
@@ -36,7 +37,6 @@ public class Inventory : ModuleRules
 				"Engine",
 				"EnhancedInput",
 				"UMG",
-				"GameplayTags",
 			}
 			);
 		

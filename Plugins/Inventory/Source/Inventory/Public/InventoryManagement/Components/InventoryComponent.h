@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "InventoryComponent.generated.h"
 
 class UInventoryItemComponent;
@@ -34,6 +35,9 @@ private:
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
 
+	UPROPERTY(Replicated)
+	FInventoryFastArray InventoryList;
+
 	bool bInventoryMenuOpen = false;
 	
 public:
@@ -50,6 +54,8 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
+
+	void AddRepSubObj(UObject* SubObj);
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;

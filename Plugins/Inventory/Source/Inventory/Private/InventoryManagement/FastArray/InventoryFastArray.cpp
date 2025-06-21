@@ -5,6 +5,7 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
+#include "Items/Components/InventoryItemComponent.h"
 
 
 FInventoryEntry::FInventoryEntry()
@@ -49,9 +50,20 @@ void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndice
 	}
 }
 
-UInventoryItem* FInventoryFastArray::AddItem(UInventoryComponent* ItemComponent)
+UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemComponent)
 {
-	// TODO: implement this
+	check(OwnerComponent != nullptr);
+	AActor* OwningActor = OwnerComponent->GetOwner();
+	check(OwningActor->HasAuthority());
+
+	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	{
+		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
+		NewEntry.Item = ItemComponent->GetItemManifest().Manifest(OwningActor);
+		InventoryComponent->AddRepSubObj(NewEntry.Item);
+		MarkItemDirty(NewEntry);
+		return NewEntry.Item;
+	}
 	return nullptr;
 }
 

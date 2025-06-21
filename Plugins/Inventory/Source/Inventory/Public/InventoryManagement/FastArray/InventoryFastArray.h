@@ -60,7 +60,7 @@ public:
 		return FFastArraySerializer::FastArrayDeltaSerialize<FInventoryEntry, FInventoryFastArray>( Entries, DeltaParms, *this );
 	}
 
-	UInventoryItem* AddItem(UInventoryComponent* ItemComponent);
+	UInventoryItem* AddItem(class UInventoryItemComponent* ItemComponent);
 	UInventoryItem* AddItem(UInventoryItem* Item);
 	void RemoveItem(UInventoryItem* Item);
 };
