@@ -24,3 +24,11 @@ UInventoryItemComponent* UInventoryStatics::GetInventoryItemComponent(const AAct
 	}
 	return nullptr;
 }
+
+FGameplayTag UInventoryStatics::GetItemCategory(UInventoryItemComponent* ItemComponent)
+{
+	if (!IsValid(ItemComponent))
+		return FGameplayTag();
+
+	return ItemComponent->GetItemManifest().GetItemCategory();
+}

@@ -3,8 +3,11 @@
 
 #include "Widgets/Inventory/Spatial/InventoryWidgetSpatial.h"
 
+#include "Inventory.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
@@ -20,10 +23,12 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 
 FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInventoryItemComponent* ItemComponent) const
 {
-	// TODO: implement this properly
-	FInventorySlotAvailabilityResult Result;
-	Result.TotalRoomToFill = 1;
-	return Result;
+	 if (const UInventoryGrid* Grid = GetInventoryGridByCategory(UInventoryStatics::GetItemCategory(ItemComponent)))
+	 {
+		 return Grid->HasRoomForItem(ItemComponent);
+	 }
+	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
+	return FInventorySlotAvailabilityResult();
 }
 
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
@@ -53,4 +58,15 @@ void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGrid* Grid, UButton* Butto
 {
 	DisableButton(Button);
 	GridSwitcher->SetActiveWidget(Grid);
+}
+
+UInventoryGrid* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const
+{
+	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Equipment))
+		return InventoryGrid_Equipment;
+	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Consumable))
+		return InventoryGrid_Consumable;
+	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Crafting))
+		return InventoryGrid_Crafting;
+	return nullptr;
 }

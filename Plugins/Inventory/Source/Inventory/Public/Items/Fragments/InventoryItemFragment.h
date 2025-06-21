@@ -42,9 +42,31 @@ private:
 
 public:
 
+	FInventoryItemGridFragment();
+
 	FIntPoint GetGridSize() const {return GridSize;}
 	void SetGridSize(const FIntPoint& NewGridSize) {GridSize = NewGridSize;}
 
 	float GetGridPadding() const {return GridPadding;}
 	void SetGridPadding(float NewGridPadding) {GridPadding = NewGridPadding;}
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemImageFragment: public FInventoryItemFragment
+{
+	GENERATED_BODY()
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSoftObjectPtr<UTexture2D> Icon;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FVector2D IconDimensions{32,32};
+
+public:
+
+	FInventoryItemImageFragment();
+
+	const TSoftObjectPtr<UTexture2D>& GetIcon() const {return Icon;}
+	TSoftObjectPtr<UTexture2D>& GetIconMutable() {return Icon;}
 };

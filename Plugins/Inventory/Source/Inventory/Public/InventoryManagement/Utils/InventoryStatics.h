@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "InventoryStatics.generated.h"
 
@@ -23,4 +24,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API UInventoryItemComponent* GetInventoryItemComponent(const AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static INVENTORY_API FGameplayTag GetItemCategory(UInventoryItemComponent* ItemComponent);
 };

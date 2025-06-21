@@ -58,4 +58,6 @@ private:
 
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);
+
+	UInventoryGrid* GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const;
 };

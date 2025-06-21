@@ -53,10 +53,14 @@ public:
 	}
 
 	UFUNCTION()
-	void AddItem(UInventoryItem* Item);
+	INVENTORY_API void AddItem(UInventoryItem* Item);
+
+	INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const class UInventoryItemComponent* ItemComponent) const;
 	
 private:
 
 	void ConstructGrid();
 	bool MatchesCategory(const UInventoryItem* Item) const;
+
+	FInventorySlotAvailabilityResult HasRoomForItemInternal(const struct FInventoryItemManifest& ItemManifest) const;
 };
