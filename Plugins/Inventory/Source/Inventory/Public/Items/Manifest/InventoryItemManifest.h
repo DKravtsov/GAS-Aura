@@ -36,6 +36,19 @@ public:
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
 
 	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
+	const TFragment* GetFragmentOfType() const
+	{
+		for (const auto& Fragment : Fragments)
+		{
+			if (const TFragment* FragmentPtr = Fragment.GetPtr<TFragment>())
+			{
+				return FragmentPtr;
+			}
+		}
+		return nullptr;
+	}
+
+	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
 	const TFragment* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const
 	{
 		for (const auto& Fragment : Fragments)
