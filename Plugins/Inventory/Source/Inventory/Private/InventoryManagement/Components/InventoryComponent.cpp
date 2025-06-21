@@ -8,6 +8,7 @@
 #include "Player/InventoryPlayerControllerComponent.h"
 
 UInventoryComponent::UInventoryComponent()
+	: InventoryList(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
@@ -51,6 +52,11 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount)
 {
 	auto NewItem = InventoryList.AddItem(ItemComponent);
+
+	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
+	{
+		OnItemAdded.Broadcast(NewItem);
+	}
 
 	// TODO: tell the item component to destroy its owning actor
 }

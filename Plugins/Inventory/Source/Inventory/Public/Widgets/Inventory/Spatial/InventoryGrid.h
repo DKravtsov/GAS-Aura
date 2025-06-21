@@ -36,6 +36,8 @@ class UInventoryGrid : public UUserWidget
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UUniformGridPanel> GridWidget;
+
+	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	
 public:
 
@@ -49,8 +51,12 @@ public:
 	{
 		return Position.X + Position.Y * Columns;
 	}
+
+	UFUNCTION()
+	void AddItem(UInventoryItem* Item);
+	
 private:
 
 	void ConstructGrid();
-
+	bool MatchesCategory(const UInventoryItem* Item) const;
 };

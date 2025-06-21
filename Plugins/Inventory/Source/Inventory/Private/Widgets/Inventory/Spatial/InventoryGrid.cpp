@@ -4,6 +4,9 @@
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 
 #include "Components/UniformGridPanel.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Items/InventoryItem.h"
 #include "Widgets/Inventory/GridSlot/InventoryGridSlot.h"
 
 void UInventoryGrid::NativeOnInitialized()
@@ -11,6 +14,17 @@ void UInventoryGrid::NativeOnInitialized()
 	Super::NativeOnInitialized();
 
 	ConstructGrid();
+
+	InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	InventoryComponent->OnItemAdded.AddDynamic(this, &UInventoryGrid::AddItem);
+}
+
+void UInventoryGrid::AddItem(UInventoryItem* Item)
+{
+	if (!MatchesCategory(Item))
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Adding item: [%s]"), *GetNameSafe(Item));
 }
 
 void UInventoryGrid::ConstructGrid()
@@ -36,4 +50,9 @@ void UInventoryGrid::ConstructGrid()
 			InventoryGridSlot->SetTileIndex(AddedIndex);
 		}
 	}
+}
+
+bool UInventoryGrid::MatchesCategory(const UInventoryItem* Item) const
+{
+	return Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
 }

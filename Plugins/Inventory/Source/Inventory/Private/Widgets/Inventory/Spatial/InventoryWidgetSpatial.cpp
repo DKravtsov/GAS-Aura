@@ -20,7 +20,10 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 
 FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInventoryItemComponent* ItemComponent) const
 {
-	return Super::HasRoomForItem(ItemComponent);
+	// TODO: implement this properly
+	FInventorySlotAvailabilityResult Result;
+	Result.TotalRoomToFill = 1;
+	return Result;
 }
 
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
