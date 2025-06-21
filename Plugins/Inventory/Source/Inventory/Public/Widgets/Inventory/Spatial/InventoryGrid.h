@@ -80,7 +80,7 @@ private:
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	UInventorySlottedItemWidget* CreateSlottedItemWidget(UInventoryItem* Item, int32 Index,
 	                                                     const FInventoryItemGridFragment& GridFragment,
-	                                                     const FInventoryItemImageFragment& ImageFragment);
+	                                                     const FInventoryItemImageFragment& ImageFragment, bool bStackable, int32 StackAmount);
 	void AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount);
 
 	FVector2D GetDrawSize(const struct FInventoryItemGridFragment& GridFragment) const;

@@ -36,13 +36,17 @@ FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItemInternal(const FI
 	
 	FInventorySlotAvailabilityResult Result;
 	Result.TotalRoomToFill = 1;
+	Result.bStackable = true;
 
 	FInventorySlotAvailability SlotAvailability;
 	SlotAvailability.Index = 0;
-	SlotAvailability.Amount = 1;
-	SlotAvailability.bItemAtIndex = false;
-
+	SlotAvailability.Amount = 2;
 	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability));
+
+	FInventorySlotAvailability SlotAvailability2;
+	SlotAvailability2.Index = 3;
+	SlotAvailability2.Amount = 5;
+	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability2));
 	
 	return Result;
 }
@@ -76,20 +80,25 @@ void UInventoryGrid::AddItemAtIndex(UInventoryItem* Item, const int32 Index, con
 	if (ImageFragment == nullptr)
 		return;
 
-	UInventorySlottedItemWidget* SlottedItem = CreateSlottedItemWidget(Item, Index, *GridFragment, *ImageFragment);
+	UInventorySlottedItemWidget* SlottedItem = CreateSlottedItemWidget(Item, Index, *GridFragment, *ImageFragment, bStackable, StackAmount);
 	AddSlottedItemToGrid(Index, *GridFragment, SlottedItem);
 	SlottedItems.Add(Index, SlottedItem);
 }
 
 UInventorySlottedItemWidget* UInventoryGrid::CreateSlottedItemWidget(UInventoryItem* Item, const int32 Index,
                                                                      const FInventoryItemGridFragment& GridFragment,
-                                                                     const FInventoryItemImageFragment& ImageFragment)
+                                                                     const FInventoryItemImageFragment& ImageFragment,
+                                                                     bool bStackable, const int32 StackAmount)
 {
 	UInventorySlottedItemWidget* SlottedItem =
 		CreateWidget<UInventorySlottedItemWidget>(GetOwningPlayer(), SlottedItemClass);
 	SlottedItem->SetInventoryItem(Item);
 	SetSlottedItemImage(SlottedItem, GridFragment, ImageFragment);
 	SlottedItem->SetGridIndex(Index);
+	SlottedItem->SetIsStackable(bStackable);
+	const int32 NewStackAmount = bStackable ? StackAmount : 0;
+	SlottedItem->UpdateStackCount(NewStackAmount);
+	
 	return SlottedItem;
 }
 
@@ -114,7 +123,7 @@ void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryIte
 	UInventorySlottedItemWidget* SlottedItem) const
 {
 	const FIntPoint Pos = GetPositionFromIndex(Index);
-	if (const auto GridSlot = GridWidget->AddChildToGrid(SlottedItem, Pos.X, Pos.Y))
+	if (const auto GridSlot = GridWidget->AddChildToGrid(SlottedItem, Pos.Y, Pos.X))
 	{
 		GridSlot->SetColumnSpan(GridFragment.GetGridSize().X);
 		GridSlot->SetRowSpan(GridFragment.GetGridSize().Y);
