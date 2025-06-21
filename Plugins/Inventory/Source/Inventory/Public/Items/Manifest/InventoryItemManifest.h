@@ -19,11 +19,15 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"))
 	FGameplayTag ItemCategory;
+
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems"))
+	FGameplayTag ItemType;
 	
 public:
 	INVENTORY_API FInventoryItemManifest();
 
 	FGameplayTag GetItemCategory() const {return ItemCategory;}
+	FGameplayTag GetItemType() const {return ItemType;}
 
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
 };
