@@ -67,7 +67,7 @@ void UInventoryGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Re
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
 		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.Amount);
-		UpdateGridSlots(NewItem, Availability.Index);
+		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availability.Amount);
 	}
 }
 
@@ -130,17 +130,25 @@ void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryIte
 	}
 }
 
-void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index)
+void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
 {
 	check(GridSlots.IsValidIndex(Index));
+
+	if (bStackable)
+	{
+		GridSlots[Index]->SetStackCount(StackAmount);
+	}
 
 	const FInventoryItemGridFragment* GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(NewItem, InventoryFragmentTags::FragmentTag_Grid);
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
 
 	UInventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns,
-		[](UInventoryGridSlot* GridSlot)
+		[&](UInventoryGridSlot* GridSlot)
 		{
+			GridSlot->SetInventoryItem(NewItem);
+			GridSlot->SetStartIndex(Index);
 			GridSlot->SetOccupiedTexture();
+			GridSlot->SetIsAvailable(false);
 		});
 }
 

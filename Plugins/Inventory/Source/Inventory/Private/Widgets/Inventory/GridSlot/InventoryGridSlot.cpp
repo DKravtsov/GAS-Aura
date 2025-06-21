@@ -2,29 +2,35 @@
 
 
 #include "Widgets/Inventory/GridSlot/InventoryGridSlot.h"
-
+#include "Items/InventoryItem.h"
 #include "Components/Image.h"
 
 void UInventoryGridSlot::SetDefaultTexture()
 {
-	GridSlotState = EInventoryGridSlotState::Default;
+	GridSlotState = EInventoryGridSlotVisualState::Default;
 	Image_GridSlot->SetBrush(DefaultBrush);
 }
 
 void UInventoryGridSlot::SetOccupiedTexture()
 {
-	GridSlotState = EInventoryGridSlotState::Occupied;
+	GridSlotState = EInventoryGridSlotVisualState::Occupied;
 	Image_GridSlot->SetBrush(OccupiedBrush);
 }
 
 void UInventoryGridSlot::SetSelectedTexture()
 {
-	GridSlotState = EInventoryGridSlotState::Selected;
+	GridSlotState = EInventoryGridSlotVisualState::Selected;
 	Image_GridSlot->SetBrush(SelectedBrush);
 }
 
 void UInventoryGridSlot::SetGrayedOutTexture()
 {
-	GridSlotState = EInventoryGridSlotState::GrayedOut;
+	GridSlotState = EInventoryGridSlotVisualState::GrayedOut;
 	Image_GridSlot->SetBrush(GrayedOutBrush);
 }
+
+void UInventoryGridSlot::SetInventoryItem(UInventoryItem* Item)
+{
+	InventoryItem = Item;
+}
+

@@ -89,5 +89,5 @@ private:
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
 
-	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index);
+	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
 };
