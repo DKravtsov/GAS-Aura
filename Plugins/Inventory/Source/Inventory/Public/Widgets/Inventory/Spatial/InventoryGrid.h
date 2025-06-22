@@ -59,6 +59,9 @@ class UInventoryGrid : public UUserWidget
 	// Index where an item would be placed if we click on the grid at a valid location
 	int32 ItemDropIndex = INDEX_NONE;
 	FInventorySpaceQueryResult CurrentQueryResult;
+
+	uint8 bMouseWithinCanvas:1 = false;
+	uint8 bMouseWasWithinCanvas:1 = false;
 	
 public:
 
@@ -139,6 +142,7 @@ private:
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
 	void OnTileParametersUpdated(const FInventoryTileParameters& Parameters);
+	bool CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location);
 	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
 	EInventoryTileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
 	FIntPoint CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const;

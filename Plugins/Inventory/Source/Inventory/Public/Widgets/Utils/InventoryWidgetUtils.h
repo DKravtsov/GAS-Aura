@@ -22,4 +22,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	static FVector2D GetWidgetPosition(class UWidget* Widget);
+
+	UFUNCTION(BlueprintPure, Category = "Inventory")
+	static FVector2D GetWidgetSize(const UWidget* Widget);
+
+	UFUNCTION(BlueprintPure, Category = "Inventory")
+	static bool IsWithinBounds(const FVector2D& WidgetPosition, const FVector2D& WidgetSize, const FVector2D& MousePosition);
 };

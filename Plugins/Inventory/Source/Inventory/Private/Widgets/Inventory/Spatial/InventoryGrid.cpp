@@ -35,7 +35,24 @@ void UInventoryGrid::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	const FVector2D CanvasPos = UInventoryWidgetUtils::GetWidgetPosition(GridWidget);
 	const FVector2D MousePos = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
 
+	const FVector2D CanvasSize = UInventoryWidgetUtils::GetWidgetSize(GridWidget);
+	if (CursorExitedCanvas(CanvasPos, CanvasSize, MousePos))
+	{
+		return;
+	}
 	UpdateTileParameters(CanvasPos, MousePos);
+}
+
+bool UInventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location)
+{
+	bMouseWasWithinCanvas = bMouseWithinCanvas;
+	bMouseWithinCanvas = UInventoryWidgetUtils::IsWithinBounds(BoundaryPos, BoundarySize, Location);
+	if (!bMouseWithinCanvas && bMouseWasWithinCanvas)
+	{
+		// unhighlight slot
+		return true;
+	}
+	return false;
 }
 
 void UInventoryGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition)

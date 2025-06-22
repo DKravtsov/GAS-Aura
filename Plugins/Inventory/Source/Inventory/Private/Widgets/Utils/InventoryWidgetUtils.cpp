@@ -27,3 +27,15 @@ FVector2D UInventoryWidgetUtils::GetWidgetPosition(UWidget* Widget)
 
 	return ViewportPosition;
 }
+
+FVector2D UInventoryWidgetUtils::GetWidgetSize(const UWidget* Widget)
+{
+	const FGeometry& Geometry = Widget->GetCachedGeometry();
+	return Geometry.GetLocalSize();
+}
+
+bool UInventoryWidgetUtils::IsWithinBounds(const FVector2D& WidgetPosition, const FVector2D& WidgetSize, const FVector2D& MousePosition)
+{
+	return MousePosition.X >= WidgetPosition.X && MousePosition.X <= (WidgetPosition.X + WidgetSize.X) &&
+		MousePosition.Y >= WidgetPosition.Y && MousePosition.Y <= (WidgetPosition.Y + WidgetSize.Y);
+}
