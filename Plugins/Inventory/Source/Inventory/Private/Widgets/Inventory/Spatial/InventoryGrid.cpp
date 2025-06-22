@@ -3,14 +3,17 @@
 
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
+#include "Editor/WidgetCompilerLog.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Widgets/Inventory/GridSlot/InventoryGridSlot.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
 #include "Widgets/Inventory/SlottedItems/InventorySlottedItemWidget.h"
 
 void UInventoryGrid::NativeOnInitialized()
@@ -192,6 +195,18 @@ void UInventoryGrid::AddItem(UInventoryItem* Item)
 	AddItemToIndexes(Result, Item);
 }
 
+void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	check(GridSlots.IsValidIndex(GridIndex));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked on item: %d"), GridIndex);
+	UInventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+
+	if (!IsValid(HoverItem) && IsLeftMouseButtonClick(MouseEvent))
+	{
+		PickUpItemInInventory(ClickedInventoryItem, GridIndex);
+	}
+}
+
 void UInventoryGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem)
 {
 	for (const auto& Availability : Result.SlotAvailabilities)
@@ -228,6 +243,7 @@ UInventorySlottedItemWidget* UInventoryGrid::CreateSlottedItemWidget(UInventoryI
 	SlottedItem->SetIsStackable(bStackable);
 	const int32 NewStackAmount = bStackable ? StackAmount : 0;
 	SlottedItem->UpdateStackCount(NewStackAmount);
+	SlottedItem->OnSlottedItemClicked.AddDynamic(this, &UInventoryGrid::OnSlottedItemClicked);
 	
 	return SlottedItem;
 }
@@ -333,3 +349,80 @@ void UInventoryGrid::OnStackChanged(const FInventorySlotAvailabilityResult& Resu
 		}
 	}
 }
+
+bool UInventoryGrid::IsLeftMouseButtonClick(const FPointerEvent& MouseEvent)
+{
+	return MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
+}
+
+bool UInventoryGrid::IsRightMouseButtonClick(const FPointerEvent& MouseEvent)
+{
+	return MouseEvent.GetEffectingButton() == EKeys::RightMouseButton;
+}
+
+void UInventoryGrid::PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex)
+{
+	AssignHoverItem(ClickedItem, GridIndex, GridIndex);
+
+	// Remove clicked item
+}
+
+void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
+{
+	const auto GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(ClickedItem, InventoryFragmentTags::FragmentTag_Grid);
+	if (GridFragment == nullptr)
+		return;
+	const auto ImageFragment = UInventoryItem::GetFragment<FInventoryItemImageFragment>(ClickedItem, InventoryFragmentTags::FragmentTag_Image);
+	if (ImageFragment == nullptr)
+		return;
+
+	if(!IsValid(HoverItem))
+	{
+		HoverItem = CreateWidget<UInventoryHoverProxy>(GetOwningPlayer(), HoverItemClass);
+	}
+
+	const FVector2D DrawSize = GetDrawSize(*GridFragment);
+
+	FSlateBrush IconBrush;
+	// ToDo: async loading
+	IconBrush.SetResourceObject(ImageFragment->GetIcon().LoadSynchronous());
+	IconBrush.DrawAs = ESlateBrushDrawType::Image;
+	IconBrush.ImageSize = DrawSize *UWidgetLayoutLibrary::GetViewportScale(this);
+
+	HoverItem->SetImageBrush(IconBrush);
+	HoverItem->SetGridDimensions(GridFragment->GetGridSize());
+	HoverItem->SetInventoryItem(ClickedItem);
+	HoverItem->SetIsStackable(ClickedItem->IsStackable());
+
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
+
+	if (GridIndex != INDEX_NONE)
+	{
+		HoverItem->UpdateStackCount(ClickedItem->IsStackable()? GridSlots[GridIndex]->GetStackCount() : 0);
+	}
+	if (PrevGridIndex != INDEX_NONE)
+	{
+		HoverItem->SetPreviousGridIndex(PrevGridIndex);
+	}
+}
+
+#if WITH_EDITOR
+void UInventoryGrid::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const
+{
+	Super::ValidateCompiledDefaults(CompileLog);
+
+	if (!GridSlotClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no GridSlotClass specified.")));
+	}
+	if (!SlottedItemClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no SlottedItemClass specified.")));
+	}
+	if (!HoverItemClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no HoverItemClass specified.")));
+	}
+}
+#endif//WITH_EDITOR
+

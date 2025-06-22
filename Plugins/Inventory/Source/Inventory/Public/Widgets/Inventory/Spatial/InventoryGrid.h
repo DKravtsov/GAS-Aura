@@ -31,6 +31,9 @@ class UInventoryGrid : public UUserWidget
 	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<class UInventoryHoverProxy> HoverItemClass;
+
+	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 0;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
@@ -42,8 +45,11 @@ class UInventoryGrid : public UUserWidget
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UGridPanel> GridWidget;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryHoverProxy> HoverItem;
 
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	
@@ -68,8 +74,17 @@ public:
 	UFUNCTION()
 	INVENTORY_API void AddItem(UInventoryItem* Item);
 
+	UFUNCTION()
+	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
+
 	INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const class UInventoryItemComponent* ItemComponent) const;
-	
+
+	//~ Begin UWidget Interface
+#if WITH_EDITOR	
+	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
+#endif
+	//~ End UWidget Interface
+
 private:
 
 	void ConstructGrid();
@@ -106,4 +121,10 @@ private:
 
 	int32 GetStackAmountInSlot(const UInventoryGridSlot* GridSlot) const;
 	int32 CalculateStackableFillAmountForSlot(const int32 MaxStackSize, const int32 Amount, const UInventoryGridSlot* GridSlot) const;
+
+	static bool IsLeftMouseButtonClick(const FPointerEvent& MouseEvent);
+	static bool IsRightMouseButtonClick(const FPointerEvent& MouseEvent);
+
+	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
+	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 };

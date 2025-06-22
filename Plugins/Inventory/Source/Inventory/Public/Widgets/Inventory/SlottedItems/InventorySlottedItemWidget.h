@@ -6,11 +6,19 @@
 #include "Blueprint/UserWidget.h"
 #include "InventorySlottedItemWidget.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSlottedItemClickedSignature, int32, GridIndex, const FPointerEvent&, MouseEvent);
+
 UCLASS()
 class UInventorySlottedItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+
+	FSlottedItemClickedSignature OnSlottedItemClicked;
+
+private:
+	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UImage> Image_Icon;
 
@@ -23,6 +31,12 @@ class UInventorySlottedItemWidget : public UUserWidget
 	bool bIsStackable = false;
 
 public:
+
+	//~ Being of UUserWidget interface
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	//~ End of UUserWidget interface
 
 	void SetIsStackable(bool bStackable) {bIsStackable = bStackable;}
 	bool IsStackable() const {return bIsStackable;}
