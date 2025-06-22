@@ -3,7 +3,6 @@
 
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 
-#include "Components/UniformGridPanel.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
@@ -22,6 +21,7 @@ void UInventoryGrid::NativeOnInitialized()
 
 	InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 	InventoryComponent->OnItemAdded.AddDynamic(this, &UInventoryGrid::AddItem);
+	InventoryComponent->OnStackChanged.AddDynamic(this, &UInventoryGrid::OnStackChanged);
 }
 
 FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItem(const UInventoryItemComponent* ItemComponent) const
@@ -309,4 +309,27 @@ void UInventoryGrid::ConstructGrid()
 bool UInventoryGrid::MatchesCategory(const UInventoryItem* Item) const
 {
 	return Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
+}
+
+void UInventoryGrid::OnStackChanged(const FInventorySlotAvailabilityResult& Result)
+{
+	if (!MatchesCategory(Result.Item.Get()))
+		return;
+
+	for (const auto& Availability : Result.SlotAvailabilities)
+	{
+		if (Availability.bItemAtIndex)
+		{
+			const auto& GridSlot = GridSlots[Availability.Index];
+			const auto& SlottedItem = SlottedItems.FindChecked(Availability.Index);
+			const int32 NewStackCount = GridSlot->GetStackCount() + Availability.Amount;
+			SlottedItem->UpdateStackCount(NewStackCount);
+			GridSlot->SetStackCount(NewStackCount);
+		}
+		else
+		{
+			AddItemAtIndex(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.Amount);
+			UpdateGridSlots(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.Amount);
+		}
+	}
 }

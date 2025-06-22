@@ -45,6 +45,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 
 	if (Result.Item.IsValid() && Result.bStackable)
 	{
+		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
 		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}

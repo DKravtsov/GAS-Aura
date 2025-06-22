@@ -8,8 +8,11 @@
 #include "InventoryComponent.generated.h"
 
 class UInventoryItemComponent;
+struct FInventorySlotAvailabilityResult;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInventorySlotAvailabilityResult&, Result);
 
 class UInventoryWidgetBase;
 
@@ -23,6 +26,7 @@ public:
 	FInventoryItemChangeSignature OnItemAdded;
 	FInventoryItemChangeSignature OnItemRemoved;
 	FInventoryHasNoRoomSignature OnNoRoomInInventory;
+	FStackChangedSignature OnStackChanged;
 
 private:
 	

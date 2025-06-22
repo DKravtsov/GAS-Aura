@@ -20,7 +20,7 @@ class UInventoryItem : public UObject
 	UPROPERTY(Replicated)
 	int32 TotalStackCount = 0;
 
-	mutable TOptional<bool> bCachedIsStackable = false;
+	mutable TOptional<bool> bCachedIsStackable;
 
 public:
 

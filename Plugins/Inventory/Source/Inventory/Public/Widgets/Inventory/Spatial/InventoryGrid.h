@@ -75,6 +75,9 @@ private:
 	void ConstructGrid();
 	bool MatchesCategory(const UInventoryItem* Item) const;
 
+	UFUNCTION()
+	void OnStackChanged(const FInventorySlotAvailabilityResult& Result);
+
 	FInventorySlotAvailabilityResult HasRoomForItemInternal(const struct FInventoryItemManifest& ItemManifest) const;
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
