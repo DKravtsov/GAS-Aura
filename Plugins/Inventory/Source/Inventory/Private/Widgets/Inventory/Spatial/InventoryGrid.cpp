@@ -49,7 +49,7 @@ bool UInventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos, const FVec
 	bMouseWithinCanvas = UInventoryWidgetUtils::IsWithinBounds(BoundaryPos, BoundarySize, Location);
 	if (!bMouseWithinCanvas && bMouseWasWithinCanvas)
 	{
-		// unhighlight slot
+		UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
 		return true;
 	}
 	return false;
@@ -57,8 +57,8 @@ bool UInventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos, const FVec
 
 void UInventoryGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition)
 {
-	// early exit if the mouse pointer is outside
-
+	if (!bMouseWithinCanvas)
+		return;
 
 	LastTileParameters = TileParameters;
 	
@@ -84,6 +84,17 @@ void UInventoryGrid::OnTileParametersUpdated(const FInventoryTileParameters& Par
 
 	// check hover position
 	CurrentQueryResult = CheckHoverPosition(StartCoords, Dimensions);
+
+	if (CurrentQueryResult.bHasSpace)
+	{
+		HighlightSlots(ItemDropIndex, Dimensions);
+		return;
+	}
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+	if (CurrentQueryResult.ValidItem.IsValid())
+	{
+		// TODO: there's one item we can swap with or add stacks
+	}
 }
 
 FInventorySpaceQueryResult UInventoryGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const
@@ -120,6 +131,39 @@ FInventorySpaceQueryResult UInventoryGrid::CheckHoverPosition(const FIntPoint& P
 	return Result;
 }
 
+void UInventoryGrid::HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions)
+{
+	if (!bMouseWithinCanvas)
+		return;
+
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+	
+	UInventoryStatics::ForEach2D(GridSlots, StartIndex, Dimensions, Columns, [](UInventoryGridSlot* GridSlot)
+	{
+		GridSlot->SetOccupiedTexture();
+		return true;
+	});
+	LastHighlightedIndex = StartIndex;
+	LastHighlightedDimensions = Dimensions;
+}
+
+void UInventoryGrid::UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions)
+{
+	UInventoryStatics::ForEach2D(GridSlots, StartIndex, Dimensions, Columns, [](UInventoryGridSlot* GridSlot)
+	{
+		if (GridSlot->IsAvailable())
+		{
+			GridSlot->SetDefaultTexture();			
+		}
+		else
+		{
+			GridSlot->SetOccupiedTexture();
+		}
+		return true;
+	});
+	LastHighlightedIndex = INDEX_NONE;
+}
+
 FIntPoint UInventoryGrid::CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const
 {
 	const int32 HasEvenWidth = Dimensions.X % 2 == 0;
@@ -135,7 +179,7 @@ FIntPoint UInventoryGrid::CalculateStartingCoordinates(const FIntPoint& Coordina
 		StartingCoord.Y = Coordinate.Y - HalfDimension.Y;
 		break;
 	case EInventoryTileQuadrant::TopRight:
-		StartingCoord.X = Coordinate.X - HalfDimension.X + HasEvenHeight;
+		StartingCoord.X = Coordinate.X - HalfDimension.X + HasEvenWidth;
 		StartingCoord.Y = Coordinate.Y - HalfDimension.Y;
 		break;
 	case EInventoryTileQuadrant::BottomLeft:
@@ -143,7 +187,7 @@ FIntPoint UInventoryGrid::CalculateStartingCoordinates(const FIntPoint& Coordina
 		StartingCoord.Y = Coordinate.Y - HalfDimension.Y + HasEvenHeight;
 		break;
 	case EInventoryTileQuadrant::BottomRight:
-		StartingCoord.X = Coordinate.X - HalfDimension.X + HasEvenHeight;
+		StartingCoord.X = Coordinate.X - HalfDimension.X + HasEvenWidth;
 		StartingCoord.Y = Coordinate.Y - HalfDimension.Y + HasEvenHeight;
 		break;
 	default:
@@ -461,7 +505,7 @@ void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index,
 
 void UInventoryGrid::ConstructGrid()
 {
-	check(Rows > 0 && Columns > 0 && TileSize > 0.f);
+	check(Rows > 0 && Columns > 0);
 	
 	GridSlots.Reserve(Rows * Columns);
 
@@ -596,6 +640,16 @@ void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32
 void UInventoryGrid::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const
 {
 	Super::ValidateCompiledDefaults(CompileLog);
+
+	if (Rows == 0 || Columns == 0)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(": Rows and Columns expected to be set.")));
+	}
+
+	if (TileSize == 0.f)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(": TileSize must be set. It should be equal to GridSlot's size.")));
+	}
 
 	if (!GridSlotClass)
 	{

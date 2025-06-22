@@ -60,6 +60,9 @@ class UInventoryGrid : public UUserWidget
 	int32 ItemDropIndex = INDEX_NONE;
 	FInventorySpaceQueryResult CurrentQueryResult;
 
+	int32 LastHighlightedIndex = INDEX_NONE;
+	FIntPoint LastHighlightedDimensions;
+
 	uint8 bMouseWithinCanvas:1 = false;
 	uint8 bMouseWasWithinCanvas:1 = false;
 	
@@ -148,4 +151,7 @@ private:
 	FIntPoint CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const;
 
 	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
+
+	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
+	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 };

@@ -24,8 +24,8 @@ class UInventoryGridSlot : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;
 
-	int32 TileIndex;
-	int32 StackCount;
+	int32 TileIndex = INDEX_NONE;
+	int32 StackCount = 0;
 	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
 
 	TWeakObjectPtr<class UInventoryItem> InventoryItem;
