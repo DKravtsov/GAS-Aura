@@ -48,3 +48,34 @@ public:
 
 	FInventorySlotAvailabilityResult();
 };
+
+UENUM(BlueprintType)
+enum class EInventoryTileQuadrant : uint8
+{
+	None,
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight,
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryTileParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	FIntPoint TileCoordinates;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	int32 TileIndex = INDEX_NONE;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	EInventoryTileQuadrant TileQuadrant = EInventoryTileQuadrant::None;
+
+	FORCEINLINE_DEBUGGABLE
+	bool operator==(const FInventoryTileParameters& Other) const
+	{
+		return TileCoordinates == Other.TileCoordinates && TileIndex == Other.TileIndex && TileQuadrant == Other.TileQuadrant;
+	}
+};

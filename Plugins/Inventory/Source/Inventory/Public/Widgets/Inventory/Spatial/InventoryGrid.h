@@ -52,6 +52,9 @@ class UInventoryGrid : public UUserWidget
 	TObjectPtr<UInventoryHoverProxy> HoverItem;
 
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+
+	FInventoryTileParameters TileParameters;
+	FInventoryTileParameters LastTileParameters;
 	
 public:
 
@@ -59,6 +62,7 @@ public:
 
 	//~ Begin of UUserWidget interface
 	INVENTORY_API virtual void NativeOnInitialized() override;
+	INVENTORY_API virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 	//~ End of UUserWidget interface
 
 	int32 GetIndexFromPosition(const FIntPoint& Position) const
@@ -128,4 +132,6 @@ private:
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
+
+	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
 };
