@@ -364,7 +364,7 @@ void UInventoryGrid::PickUpItemInInventory(UInventoryItem* ClickedItem, const in
 {
 	AssignHoverItem(ClickedItem, GridIndex, GridIndex);
 
-	// Remove clicked item
+	RemoveItemFromGrid(ClickedItem, GridIndex);
 }
 
 void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
@@ -403,6 +403,32 @@ void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 Gr
 	if (PrevGridIndex != INDEX_NONE)
 	{
 		HoverItem->SetPreviousGridIndex(PrevGridIndex);
+	}
+}
+
+void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex)
+{
+	const auto GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(ClickedItem, InventoryFragmentTags::FragmentTag_Grid);
+	if (GridFragment == nullptr)
+		return;
+
+	UInventoryStatics::ForEach2D(GridSlots, GridIndex, GridFragment->GetGridSize(), Columns, [](UInventoryGridSlot* GridSlot)
+	{
+		GridSlot->SetInventoryItem(nullptr);
+		GridSlot->SetStartIndex(INDEX_NONE);
+		GridSlot->SetDefaultTexture();
+		GridSlot->SetIsAvailable(true);
+		GridSlot->SetStackCount(0);
+		return true;
+	});
+
+	if (SlottedItems.Contains(GridIndex))
+	{
+		TObjectPtr<UInventorySlottedItemWidget> FoundSlottedItem;
+		if (SlottedItems.RemoveAndCopyValue(GridIndex, FoundSlottedItem))
+		{
+			FoundSlottedItem->RemoveFromParent();
+		}
 	}
 }
 

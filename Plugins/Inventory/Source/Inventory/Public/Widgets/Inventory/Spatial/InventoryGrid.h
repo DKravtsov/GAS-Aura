@@ -127,4 +127,5 @@ private:
 
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
+	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 };
