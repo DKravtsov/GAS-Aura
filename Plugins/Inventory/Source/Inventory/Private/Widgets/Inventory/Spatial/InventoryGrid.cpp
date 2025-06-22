@@ -3,6 +3,7 @@
 
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 
+#include "Inventory.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
@@ -44,14 +45,95 @@ void UInventoryGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const
 
 	LastTileParameters = TileParameters;
 	
-	// Calculate tile quadrant
-
 	const FIntPoint HoveredTileCoordinates = CalculateHoveredCoordinates(CanvasPosition, MousePosition);
 	TileParameters.TileCoordinates = HoveredTileCoordinates;
 	TileParameters.TileIndex = GetIndexFromPosition(HoveredTileCoordinates);
 	TileParameters.TileQuadrant = CalculateTileQuadrant(CanvasPosition, MousePosition);
 
-	// handle highlighting of the grid slots
+	OnTileParametersUpdated(TileParameters);
+}
+
+void UInventoryGrid::OnTileParametersUpdated(const FInventoryTileParameters& Parameters)
+{
+	if (!IsValid(HoverItem))
+		return;
+	
+	// Get Hover Item's dimensions
+	const FIntPoint Dimensions = HoverItem->GetGridDimensions();
+	
+	// calculate the starting coordinate for highlighting
+	const FIntPoint StartCoords = CalculateStartingCoordinates(Parameters.TileCoordinates, Dimensions, Parameters.TileQuadrant);
+	ItemDropIndex = GetIndexFromPosition(StartCoords);
+
+	// check hover position
+	CurrentQueryResult = CheckHoverPosition(StartCoords, Dimensions);
+}
+
+FInventorySpaceQueryResult UInventoryGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const
+{
+	FInventorySpaceQueryResult Result;
+
+	// in the grid bounds?
+	const int32 GridIndex = GetIndexFromPosition(Position);
+	if (!IsInGridBounds(GridIndex, Dimensions))
+		return Result;
+
+	Result.bHasSpace = true;
+	
+	// any items in the way?
+	TSet<int32> OccupiedUpperLeftIndexes;
+	UInventoryStatics::ForEach2D(GridSlots, GridIndex, Dimensions, Columns, [&](const UInventoryGridSlot* GridSlot)
+	{
+		if (GridSlot->GetInventoryItem().IsValid())
+		{
+			OccupiedUpperLeftIndexes.Add(GridSlot->GetStartIndex());
+			Result.bHasSpace = false;
+		}
+		return OccupiedUpperLeftIndexes.Num() <= 1; // early exit, if we found more than 1 items
+	});
+	
+	// if so, is there only one item in the way? (can we swap?)
+	if (OccupiedUpperLeftIndexes.Num() == 1)
+	{
+		const int32 Index = *OccupiedUpperLeftIndexes.FindArbitraryElement();
+		Result.ValidItem = GridSlots[Index]->GetInventoryItem();
+		Result.UpperLeftIndex = GridSlots[Index]->GetStartIndex();
+	}
+
+	return Result;
+}
+
+FIntPoint UInventoryGrid::CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const
+{
+	const int32 HasEvenWidth = Dimensions.X % 2 == 0;
+	const int32 HasEvenHeight = Dimensions.Y % 2 == 0;
+
+	const FIntPoint HalfDimension = {FMath::FloorToInt32(Dimensions.X * 0.5f), FMath::FloorToInt32(Dimensions.Y * 0.5f)};
+
+	FIntPoint StartingCoord;
+	switch (Quadrant)
+	{
+	case EInventoryTileQuadrant::TopLeft:
+		StartingCoord.X = Coordinate.X - HalfDimension.X;
+		StartingCoord.Y = Coordinate.Y - HalfDimension.Y;
+		break;
+	case EInventoryTileQuadrant::TopRight:
+		StartingCoord.X = Coordinate.X - HalfDimension.X + HasEvenHeight;
+		StartingCoord.Y = Coordinate.Y - HalfDimension.Y;
+		break;
+	case EInventoryTileQuadrant::BottomLeft:
+		StartingCoord.X = Coordinate.X - HalfDimension.X;
+		StartingCoord.Y = Coordinate.Y - HalfDimension.Y + HasEvenHeight;
+		break;
+	case EInventoryTileQuadrant::BottomRight:
+		StartingCoord.X = Coordinate.X - HalfDimension.X + HasEvenHeight;
+		StartingCoord.Y = Coordinate.Y - HalfDimension.Y + HasEvenHeight;
+		break;
+	default:
+		UE_LOG(LogInventory, Error, TEXT("Invalid quadrant"));
+		StartingCoord = {-1, -1};
+	}
+	return StartingCoord;
 }
 
 FIntPoint UInventoryGrid::CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const

@@ -55,6 +55,10 @@ class UInventoryGrid : public UUserWidget
 
 	FInventoryTileParameters TileParameters;
 	FInventoryTileParameters LastTileParameters;
+
+	// Index where an item would be placed if we click on the grid at a valid location
+	int32 ItemDropIndex = INDEX_NONE;
+	FInventorySpaceQueryResult CurrentQueryResult;
 	
 public:
 
@@ -134,6 +138,10 @@ private:
 	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
+	void OnTileParametersUpdated(const FInventoryTileParameters& Parameters);
 	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
 	EInventoryTileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
+	FIntPoint CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const;
+
+	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
 };

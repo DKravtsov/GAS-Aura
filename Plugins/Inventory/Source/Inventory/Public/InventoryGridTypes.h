@@ -79,3 +79,18 @@ struct FInventoryTileParameters
 		return TileCoordinates == Other.TileCoordinates && TileIndex == Other.TileIndex && TileQuadrant == Other.TileQuadrant;
 	}
 };
+
+USTRUCT()
+struct FInventorySpaceQueryResult
+{
+	GENERATED_BODY()
+
+	// There is no items in the queried space
+	bool bHasSpace = false;
+
+	// Valid if there is a single item we can swap with
+	TWeakObjectPtr<UInventoryItem> ValidItem = nullptr;
+
+	// Upper left index of the valid item if there is one
+	int32 UpperLeftIndex = INDEX_NONE;
+};
