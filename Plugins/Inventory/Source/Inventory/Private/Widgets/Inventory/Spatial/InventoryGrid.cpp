@@ -39,9 +39,53 @@ void UInventoryGrid::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 void UInventoryGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition)
 {
+	// early exit if the mouse pointer is outside
+
+
+	LastTileParameters = TileParameters;
+	
 	// Calculate tile quadrant
 
-	// handle highlightin of the grid slots
+	const FIntPoint HoveredTileCoordinates = CalculateHoveredCoordinates(CanvasPosition, MousePosition);
+	TileParameters.TileCoordinates = HoveredTileCoordinates;
+	TileParameters.TileIndex = GetIndexFromPosition(HoveredTileCoordinates);
+	TileParameters.TileQuadrant = CalculateTileQuadrant(CanvasPosition, MousePosition);
+
+	// handle highlighting of the grid slots
+}
+
+FIntPoint UInventoryGrid::CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const
+{
+	// TODO: Make sure that TileSize is equal to actual Grid cell size
+	
+	const FIntPoint Coordinates{
+		FMath::FloorToInt32((MousePosition.X - CanvasPosition.X) / TileSize),
+		FMath::FloorToInt32((MousePosition.Y - CanvasPosition.Y) / TileSize)
+	};
+	return Coordinates;
+}
+
+EInventoryTileQuadrant UInventoryGrid::CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const
+{
+	// TODO: Make sure that TileSize is equal to actual Grid cell size
+	
+	const float TileLocalX = FMath::Fmod(MousePosition.X - CanvasPosition.X, TileSize);
+	const float TileLocalY = FMath::Fmod(MousePosition.Y - CanvasPosition.Y, TileSize);
+
+	const bool bInTop = TileLocalY < TileSize * 0.5f;
+	const bool bInLeft = TileLocalX < TileSize * 0.5f;
+
+	EInventoryTileQuadrant TileQuadrant;
+	if (bInTop && bInLeft)
+		TileQuadrant = EInventoryTileQuadrant::TopLeft;
+	else if (bInTop && !bInLeft)
+		TileQuadrant = EInventoryTileQuadrant::TopRight;
+	else if (!bInTop && bInLeft)
+		TileQuadrant = EInventoryTileQuadrant::BottomLeft;
+	else
+		TileQuadrant = EInventoryTileQuadrant::BottomRight;
+
+	return TileQuadrant;
 }
 
 FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItem(const UInventoryItemComponent* ItemComponent) const

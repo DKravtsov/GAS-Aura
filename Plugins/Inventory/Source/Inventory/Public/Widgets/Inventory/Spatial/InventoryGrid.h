@@ -134,4 +134,6 @@ private:
 	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
+	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
+	EInventoryTileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const;
 };
