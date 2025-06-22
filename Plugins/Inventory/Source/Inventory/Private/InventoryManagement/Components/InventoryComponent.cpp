@@ -8,6 +8,7 @@
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 #include "Player/InventoryPlayerControllerComponent.h"
 #include "Items/InventoryItem.h"
+#include "Items/Fragments/InventoryItemFragment.h"
 
 UInventoryComponent::UInventoryComponent()
 	: InventoryList(this)
@@ -51,19 +52,25 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
 		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 1);
+
+		// TODO: There might be situation when we gonna add new stackable items and reminder is > 0,
+		// because we don't have enough room for everything.
+		// I believe, Reminder should be taken into account here as well in the same way as in Server_AddStacksToItem()
 	}
 }
 
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount)
 {
 	auto NewItem = InventoryList.AddItem(ItemComponent);
+	NewItem->SetTotalStackCount(StackCount);
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
 
-	// TODO: tell the item component to destroy its owning actor
+	// tell the item component to destroy its owning actor
+	ItemComponent->PickedUp();
 }
 
 bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount)
@@ -73,6 +80,24 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 
 void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
 {
+	check(IsValid(ItemComponent));
+	const FGameplayTag ItemType = ItemComponent->GetItemManifest().GetItemType();
+	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
+	{
+		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
+
+		// tell the item component to destroy its owning actor if Remainder == 0
+		//  otherwise, update the stack count for the pickup
+
+		if (Remainder == 0)
+		{
+			ItemComponent->PickedUp();
+		}
+		else if (auto StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+		{
+			StackableFragment->SetStackCount(Remainder);
+		}
+	}
 }
 
 bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount,	int32 Remainder)

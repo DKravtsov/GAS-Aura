@@ -27,5 +27,12 @@ public:
 
 	FInventoryItemManifest GetItemManifest() const { return ItemManifest; }
 
+	void PickedUp();
+
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Inventory", meta=(DisplayName="On Picked Up"))
+	void BP_PickedUp();
 };

@@ -11,6 +11,7 @@ void UInventoryItem::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryItem, ItemManifest);
+	DOREPLIFETIME(UInventoryItem, TotalStackCount);
 }
 
 bool UInventoryItem::IsStackable() const

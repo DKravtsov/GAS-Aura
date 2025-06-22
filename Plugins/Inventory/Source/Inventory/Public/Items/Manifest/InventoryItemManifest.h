@@ -49,6 +49,19 @@ public:
 	}
 
 	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
+	TFragment* GetFragmentOfTypeMutable()
+	{
+		for (auto& Fragment : Fragments)
+		{
+			if (TFragment* FragmentPtr = Fragment.GetMutablePtr<TFragment>())
+			{
+				return FragmentPtr;
+			}
+		}
+		return nullptr;
+	}
+
+	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
 	const TFragment* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const
 	{
 		for (const auto& Fragment : Fragments)

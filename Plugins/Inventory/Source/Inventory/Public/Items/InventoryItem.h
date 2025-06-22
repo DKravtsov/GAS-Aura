@@ -17,6 +17,9 @@ class UInventoryItem : public UObject
 	UPROPERTY(VisibleAnywhere, meta=(BaseStruct="/Script/Inventory.InventoryItemManifest"), Replicated)
 	FInstancedStruct ItemManifest;
 
+	UPROPERTY(Replicated)
+	int32 TotalStackCount = 0;
+
 	mutable TOptional<bool> bCachedIsStackable = false;
 
 public:
@@ -45,4 +48,7 @@ public:
 	bool IsStackable() const;
 
 	const FGameplayTag& GetItemType() const;
+
+	int32 GetTotalStackCount() const { return TotalStackCount; }
+	void SetTotalStackCount(int32 InStackCount) { TotalStackCount = InStackCount; }
 };

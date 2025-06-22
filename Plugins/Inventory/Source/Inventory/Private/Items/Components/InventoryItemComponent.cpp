@@ -13,6 +13,13 @@ UInventoryItemComponent::UInventoryItemComponent()
 	SetIsReplicatedByDefault(true);
 }
 
+void UInventoryItemComponent::PickedUp()
+{
+	BP_PickedUp();
+
+	GetOwner()->Destroy();
+}
+
 void UInventoryItemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
