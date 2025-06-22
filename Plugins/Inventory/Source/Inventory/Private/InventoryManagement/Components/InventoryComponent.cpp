@@ -3,9 +3,11 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 
+#include "Items/Components/InventoryItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 #include "Player/InventoryPlayerControllerComponent.h"
+#include "Items/InventoryItem.h"
 
 UInventoryComponent::UInventoryComponent()
 	: InventoryList(this)
@@ -36,6 +38,9 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 		OnNoRoomInInventory.Broadcast();
 		return;
 	}
+
+	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemComponent->GetItemManifest().GetItemType());
+	Result.Item = FoundItem;
 
 	if (Result.Item.IsValid() && Result.bStackable)
 	{

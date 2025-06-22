@@ -6,6 +6,7 @@
 #include "Net/Serialization/FastArraySerializer.h"
 #include "InventoryFastArray.generated.h"
 
+struct FGameplayTag;
 class UInventoryItem;
 
 /// Single entry in inventory for Fast Array Serializer
@@ -63,6 +64,8 @@ public:
 	UInventoryItem* AddItem(class UInventoryItemComponent* ItemComponent);
 	UInventoryItem* AddItem(UInventoryItem* Item);
 	void RemoveItem(UInventoryItem* Item);
+
+	UInventoryItem* FindFirstItemByType(const FGameplayTag& ItemType) const;
 };
 
 template<>

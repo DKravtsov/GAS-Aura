@@ -91,3 +91,12 @@ void FInventoryFastArray::RemoveItem(UInventoryItem* Item)
 		}
 	}
 }
+
+UInventoryItem* FInventoryFastArray::FindFirstItemByType(const FGameplayTag& ItemType) const
+{
+	const auto FoundItem = Entries.FindByPredicate([ItemType](const FInventoryEntry& Entry)
+	{
+		return IsValid(Entry.Item) && Entry.Item->GetItemType().MatchesTagExact(ItemType);
+	});
+	return FoundItem ? ToRawPtr(FoundItem->Item) : nullptr;
+}
