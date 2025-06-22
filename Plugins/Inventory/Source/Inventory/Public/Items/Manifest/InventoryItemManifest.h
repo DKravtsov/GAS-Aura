@@ -30,8 +30,8 @@ private:
 public:
 	INVENTORY_API FInventoryItemManifest();
 
-	FGameplayTag GetItemCategory() const {return ItemCategory;}
-	FGameplayTag GetItemType() const {return ItemType;}
+	const FGameplayTag& GetItemCategory() const {return ItemCategory;}
+	const FGameplayTag& GetItemType() const {return ItemType;}
 
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
 

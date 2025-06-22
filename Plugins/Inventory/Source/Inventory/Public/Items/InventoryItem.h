@@ -17,6 +17,8 @@ class UInventoryItem : public UObject
 	UPROPERTY(VisibleAnywhere, meta=(BaseStruct="/Script/Inventory.InventoryItemManifest"), Replicated)
 	FInstancedStruct ItemManifest;
 
+	mutable TOptional<bool> bCachedIsStackable = false;
+
 public:
 
 	void SetItemManifest(const FInventoryItemManifest& InItemManifest);
@@ -39,4 +41,8 @@ public:
 		}
 		return nullptr;
 	}
+
+	bool IsStackable() const;
+
+	const FGameplayTag& GetItemType() const;
 };

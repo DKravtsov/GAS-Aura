@@ -90,4 +90,17 @@ private:
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
 
 	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
+
+	bool HasRoomAtIndex(const UInventoryGridSlot* GridSlot, const FIntPoint& Dimensions,
+						const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
+						const int32 MaxStackSize, const FGameplayTag& ItemType) const;
+
+	bool CheckSlotConstraints(const UInventoryGridSlot* GridSlot, const UInventoryGridSlot* CurGridSlot,
+							  const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
+							  const int32 MaxStackSize, const FGameplayTag& ItemType) const;
+
+	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& Dimensions) const;
+
+	int32 GetStackAmountInSlot(const UInventoryGridSlot* GridSlot) const;
+	int32 CalculateStackableFillAmountForSlot(const int32 MaxStackSize, const int32 Amount, const UInventoryGridSlot* GridSlot) const;
 };
