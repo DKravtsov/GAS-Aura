@@ -609,6 +609,11 @@ void UInventoryGrid::PutDownItemInInventoryAtIndex(const int32 GridIndex)
 	ClearHoverItem();
 }
 
+void UInventoryGrid::ShowDefaultCursor() const
+{
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, nullptr);
+}
+
 void UInventoryGrid::ClearHoverItem()
 {
 	if (!IsValid(HoverItem))
@@ -618,7 +623,7 @@ void UInventoryGrid::ClearHoverItem()
 	HoverItem->RemoveFromParent();
 	HoverItem = nullptr;
 
-	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, nullptr);
+	ShowDefaultCursor();
 }
 
 void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
