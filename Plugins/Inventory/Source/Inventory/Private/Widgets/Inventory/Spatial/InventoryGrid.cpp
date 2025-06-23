@@ -414,32 +414,6 @@ void UInventoryGrid::AddItem(UInventoryItem* Item)
 	AddItemToIndexes(Result, Item);
 }
 
-void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
-{
-	check(GridSlots.IsValidIndex(GridIndex));
-	UE_LOG(LogTemp, Warning, TEXT("Clicked on item: %d"), GridIndex);
-	UInventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get();
-
-	if (!IsValid(HoverItem) && IsLeftMouseButtonClick(MouseEvent))
-	{
-		PickUpItemInInventory(ClickedInventoryItem, GridIndex);
-		return;
-	}
-
-	// Do the hovered item and the clicked inventory item share a type, and are they stackable?
-	if (IsHoverItemSameStackableAs(ClickedInventoryItem))
-	{
-		// Should we swap their stack counts?
-		// Should we consume the hover item's stacks?
-		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
-		// Is there no room in the clicked slot?
-		return;
-	}
-	
-	// Swap with the hover item.
-	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
-}
-
 void UInventoryGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem)
 {
 	for (const auto& Availability : Result.SlotAvailabilities)
@@ -768,6 +742,62 @@ bool UInventoryGrid::IsHoverItemSameStackableAs(UInventoryItem* ClickedInventory
 	const bool bSameItem = ClickedInventoryItem == HoverItem->GetInventoryItem();
 	const bool bIsStackable = ClickedInventoryItem->IsStackable();
 	return bSameItem && bIsStackable && HoverItem->GetItemType().MatchesTagExact(ClickedInventoryItem->GetItemType());
+}
+
+int32 UInventoryGrid::GetMaxStackSize(const UInventoryItem* Item)
+{
+	check(IsValid(Item));
+	if (const auto StackableFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
+	{
+		return StackableFragment->GetMaxStackSize();
+	}
+	return 1;
+}
+
+void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	check(GridSlots.IsValidIndex(GridIndex));
+	UE_LOG(LogTemp, Warning, TEXT("Clicked on item: %d"), GridIndex);
+	UInventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+
+	if (!IsValid(HoverItem) && IsLeftMouseButtonClick(MouseEvent))
+	{
+		PickUpItemInInventory(ClickedInventoryItem, GridIndex);
+		return;
+	}
+
+	// Do the hovered item and the clicked inventory item share a type, and are they stackable?
+	if (IsHoverItemSameStackableAs(ClickedInventoryItem))
+	{
+		// Should we swap their stack counts?
+		const int32 HoveredStackCount = HoverItem->GetStackCount();
+		const int32 MaxStackSize = GetMaxStackSize(ClickedInventoryItem);
+		const int32 ClickedStackCount = GridSlots[GridIndex]->GetStackCount();
+		if (ClickedStackCount == MaxStackSize && HoveredStackCount < MaxStackSize)
+		{
+			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
+		}
+		
+		// Should we consume the hover item's stacks?
+		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
+		// Is there no room in the clicked slot?
+		return;
+	}
+	
+	// Swap with the hover item.
+	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+}
+
+void UInventoryGrid::SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex)
+{
+	check(GridSlots.IsValidIndex(GridIndex));
+	UInventoryGridSlot* GridSlot = GridSlots[GridIndex];
+	GridSlot->SetStackCount(HoveredStackCount);
+	
+	UInventorySlottedItemWidget* ClickedSlottedItem = SlottedItems.FindChecked(GridIndex);
+	ClickedSlottedItem->UpdateStackCount(HoveredStackCount);
+
+	HoverItem->UpdateStackCount(ClickedStackCount);
 }
 
 #if WITH_EDITOR
