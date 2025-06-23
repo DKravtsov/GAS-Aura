@@ -782,9 +782,12 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 		FillInStacksOrConsumeHover(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
 		return;
 	}
-	
-	// Swap with the hover item.
-	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+
+	if (CurrentQueryResult.ValidItem.IsValid())
+	{
+		// Swap with the hover item.
+		SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+	}
 }
 
 void UInventoryGrid::SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex)
