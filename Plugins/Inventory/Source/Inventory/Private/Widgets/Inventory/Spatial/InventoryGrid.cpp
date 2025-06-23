@@ -93,7 +93,7 @@ void UInventoryGrid::OnTileParametersUpdated(const FInventoryTileParameters& Par
 	UnHighlightSlots();
 	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex))
 	{
-		if (const auto GridFragment =GetGridFragmentFromInventoryItem(CurrentQueryResult.ValidItem.Get()))
+		if (const auto GridFragment = GetGridFragmentFromInventoryItem(CurrentQueryResult.ValidItem.Get()))
 		{
 			ChangeHoverType(CurrentQueryResult.UpperLeftIndex, GridFragment->GetGridSize(), EInventoryGridSlotVisualState::GrayedOut);
 		}
@@ -472,8 +472,7 @@ void UInventoryGrid::SetSlottedItemImage(const UInventorySlottedItemWidget* Slot
 	SlottedItem->SetImageBrush(ImageBrush);
 }
 
-void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment,
-	UInventorySlottedItemWidget* SlottedItem) const
+void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const
 {
 	const FIntPoint Pos = GetPositionFromIndex(Index);
 	if (const auto GridSlot = GridWidget->AddChildToGrid(SlottedItem, Pos.Y, Pos.X))
@@ -769,16 +768,22 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 	// Do the hovered item and the clicked inventory item share a type, and are they stackable?
 	if (IsHoverItemSameStackableAs(ClickedInventoryItem))
 	{
-		// Should we swap their stack counts?
 		const int32 HoveredStackCount = HoverItem->GetStackCount();
 		const int32 MaxStackSize = GetMaxStackSize(ClickedInventoryItem);
 		const int32 ClickedStackCount = GridSlots[GridIndex]->GetStackCount();
+		
+		// Should we swap their stack counts?
 		if (ClickedStackCount == MaxStackSize && HoveredStackCount < MaxStackSize)
 		{
 			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
 		}
 		
 		// Should we consume the hover item's stacks?
+		if (HoveredStackCount + ClickedStackCount <= MaxStackSize)
+		{
+			ConsumeHoverItemStacks(ClickedStackCount, HoveredStackCount, GridIndex);
+		}
+		
 		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
 		// Is there no room in the clicked slot?
 		return;
@@ -790,14 +795,31 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 
 void UInventoryGrid::SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex)
 {
+	UpdateStackCountInSlot(GridIndex, HoveredStackCount);
+	HoverItem->UpdateStackCount(ClickedStackCount);
+}
+
+void UInventoryGrid::ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex)
+{
+	const int32 NewClickedStackCount = ClickedStackCount + HoveredStackCount;
+	UpdateStackCountInSlot(GridIndex, NewClickedStackCount);
+
+	ClearHoverItem();
+	ShowDefaultCursor();
+
+	const auto GridFragment = GetGridFragmentFromInventoryItem(GridSlots[GridIndex]->GetInventoryItem().Get());
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
+	HighlightSlots(GridIndex, Dimensions);
+}
+
+void UInventoryGrid::UpdateStackCountInSlot(const int32 GridIndex, const int32 NewStackCount)
+{
 	check(GridSlots.IsValidIndex(GridIndex));
 	UInventoryGridSlot* GridSlot = GridSlots[GridIndex];
-	GridSlot->SetStackCount(HoveredStackCount);
+	GridSlot->SetStackCount(NewStackCount);
 	
-	UInventorySlottedItemWidget* ClickedSlottedItem = SlottedItems.FindChecked(GridIndex);
-	ClickedSlottedItem->UpdateStackCount(HoveredStackCount);
-
-	HoverItem->UpdateStackCount(ClickedStackCount);
+	UInventorySlottedItemWidget* SlottedItem = SlottedItems.FindChecked(GridIndex);
+	SlottedItem->UpdateStackCount(NewStackCount);
 }
 
 #if WITH_EDITOR
