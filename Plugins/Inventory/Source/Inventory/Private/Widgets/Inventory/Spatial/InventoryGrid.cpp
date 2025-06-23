@@ -547,6 +547,10 @@ void UInventoryGrid::ConstructGrid()
 			const int32 AddedIndex = GridSlots.Add(InventoryGridSlot);
 			check(AddedIndex == GetIndexFromPosition(FIntPoint(ColumnIndex, RowIndex)));
 			InventoryGridSlot->SetTileIndex(AddedIndex);
+
+			InventoryGridSlot->OnGridSlotClicked.AddDynamic(this, &UInventoryGrid::OnGridSlotClicked);
+			InventoryGridSlot->OnGridSlotHovered.AddDynamic(this, &UInventoryGrid::OnGridSlotHovered);
+			InventoryGridSlot->OnGridSlotUnhovered.AddDynamic(this, &UInventoryGrid::OnGridSlotUnhovered);
 		}
 	}
 }
@@ -658,6 +662,34 @@ void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32
 		{
 			FoundSlottedItem->RemoveFromParent();
 		}
+	}
+}
+
+void UInventoryGrid::OnGridSlotClicked(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
+{
+}
+
+void UInventoryGrid::OnGridSlotHovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
+{
+	if (IsValid(HoverItem))
+		return;
+
+	const auto GridSlot = GridSlots[GridSlotIndex];
+	if (GridSlot->IsAvailable())
+	{
+		GridSlot->SetOccupiedTexture();
+	}
+}
+
+void UInventoryGrid::OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
+{
+	if (IsValid(HoverItem))
+		return;
+
+	const auto GridSlot = GridSlots[GridSlotIndex];
+	if (GridSlot->IsAvailable())
+	{
+		GridSlot->SetDefaultTexture();
 	}
 }
 

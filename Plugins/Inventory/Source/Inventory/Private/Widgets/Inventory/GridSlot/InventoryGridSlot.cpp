@@ -42,6 +42,27 @@ void UInventoryGridSlot::SetGridSlotState(EInventoryGridSlotVisualState NewState
 	}
 }
 
+void UInventoryGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+	
+	OnGridSlotHovered.Broadcast(TileIndex, InMouseEvent);
+}
+
+void UInventoryGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+
+	OnGridSlotUnhovered.Broadcast(TileIndex, InMouseEvent);
+}
+
+FReply UInventoryGridSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	OnGridSlotClicked.Broadcast(TileIndex, InMouseEvent);
+	
+	return FReply::Handled();
+}
+
 void UInventoryGridSlot::SetInventoryItem(UInventoryItem* Item)
 {
 	InventoryItem = Item;

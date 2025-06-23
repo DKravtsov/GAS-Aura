@@ -160,4 +160,13 @@ private:
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots() {UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);}
 	void ChangeHoverType(const int32 StartIndex, const FIntPoint& Dimensions, EInventoryGridSlotVisualState GridSlotState);
+
+	UFUNCTION()
+	void OnGridSlotClicked(int32 GridSlotIndex, const FPointerEvent& MouseEvent);
+
+	UFUNCTION()
+	void OnGridSlotHovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent);
+
+	UFUNCTION()
+	void OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent);
 };

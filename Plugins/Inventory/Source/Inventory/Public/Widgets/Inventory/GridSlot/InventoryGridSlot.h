@@ -8,6 +8,8 @@
 
 class UImage;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEventSignature, int32, GridIndex, const FPointerEvent&, MouseEvent);
+
 enum class EInventoryGridSlotVisualState : uint8
 {
 	Default,
@@ -20,6 +22,14 @@ UCLASS()
 class UInventoryGridSlot : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+
+	FGridSlotEventSignature OnGridSlotClicked;
+	FGridSlotEventSignature OnGridSlotHovered;
+	FGridSlotEventSignature OnGridSlotUnhovered;
+
+private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;
@@ -70,6 +80,12 @@ public:
 	void SetSelectedTexture();
 	void SetGrayedOutTexture();
 	void SetGridSlotState(EInventoryGridSlotVisualState NewState);
+
+	//~ Begin of UUserWidget interface
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	//~ End of UUserWidget interface
 
 private:
 
