@@ -161,8 +161,9 @@ private:
 	void ClearHoverItem();
 	void SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex);
 	void SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex);
-	void UpdateStackCountInSlot(int32 GridIndex, int32 NewStackCount);
 	void ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex);
+	void FillInStacksInSlot(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex);
+	void UpdateStackCountInSlot(int32 GridIndex, int32 NewStackCount);
 
 	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
