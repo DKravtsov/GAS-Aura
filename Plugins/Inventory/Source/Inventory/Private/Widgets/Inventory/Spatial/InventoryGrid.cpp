@@ -779,21 +779,7 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 			return;
 		}
 		
-		// Should we consume the hover item's stacks?
-		if (HoveredStackCount + ClickedStackCount <= MaxStackSize)
-		{
-			ConsumeHoverItemStacks(ClickedStackCount, HoveredStackCount, GridIndex);
-			return;
-		}
-		
-		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
-		if (HoveredStackCount + ClickedStackCount > MaxStackSize)
-		{
-			FillInStacksInSlot(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
-			return;
-		}
-		
-		// Is there no room in the clicked slot?
+		FillInStacksOrConsumeHover(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
 		return;
 	}
 	
@@ -807,26 +793,30 @@ void UInventoryGrid::SwapStackCountsWithHoverItem(const int32 ClickedStackCount,
 	HoverItem->UpdateStackCount(ClickedStackCount);
 }
 
-void UInventoryGrid::ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex)
-{
-	const int32 NewClickedStackCount = ClickedStackCount + HoveredStackCount;
-	UpdateStackCountInSlot(GridIndex, NewClickedStackCount);
-
-	ClearHoverItem();
-	ShowDefaultCursor();
-
-	const auto GridFragment = GetGridFragmentFromInventoryItem(GridSlots[GridIndex]->GetInventoryItem().Get());
-	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
-	HighlightSlots(GridIndex, Dimensions);
-}
-
-void UInventoryGrid::FillInStacksInSlot(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex)
+void UInventoryGrid::FillInStacksOrConsumeHover(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex)
 {
 	const int32 FillAmount = FMath::Min(HoveredStackCount, MaxStackCount - ClickedStackCount);
+	if (FillAmount == 0)
+		return;
+	
 	const int32 NewStackCount = ClickedStackCount + FillAmount;
 	const int32 Remainder = HoveredStackCount - FillAmount;
+
 	UpdateStackCountInSlot(GridIndex, NewStackCount);
-	HoverItem->UpdateStackCount(Remainder);
+
+	if (Remainder == 0)
+	{
+		ClearHoverItem();
+		ShowDefaultCursor();
+
+		const auto GridFragment = GetGridFragmentFromInventoryItem(GridSlots[GridIndex]->GetInventoryItem().Get());
+		const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
+		HighlightSlots(GridIndex, Dimensions);
+	}
+	else
+	{
+		HoverItem->UpdateStackCount(Remainder);
+	}
 }
 
 void UInventoryGrid::UpdateStackCountInSlot(const int32 GridIndex, const int32 NewStackCount)
