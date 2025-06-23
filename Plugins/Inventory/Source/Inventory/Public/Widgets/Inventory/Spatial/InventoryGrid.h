@@ -159,6 +159,7 @@ private:
 
 	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
 	void ClearHoverItem();
+	void SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex);
 
 	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
@@ -173,4 +174,6 @@ private:
 
 	UFUNCTION()
 	void OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent);
+
+	bool IsHoverItemSameStackableAs(UInventoryItem* ClickedInventoryItem) const;
 };

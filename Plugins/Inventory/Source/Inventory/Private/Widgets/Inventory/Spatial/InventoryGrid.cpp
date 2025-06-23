@@ -423,7 +423,21 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 	if (!IsValid(HoverItem) && IsLeftMouseButtonClick(MouseEvent))
 	{
 		PickUpItemInInventory(ClickedInventoryItem, GridIndex);
+		return;
 	}
+
+	// Do the hovered item and the clicked inventory item share a type, and are they stackable?
+	if (IsHoverItemSameStackableAs(ClickedInventoryItem))
+	{
+		// Should we swap their stack counts?
+		// Should we consume the hover item's stacks?
+		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
+		// Is there no room in the clicked slot?
+		return;
+	}
+	
+	// Swap with the hover item.
+	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
 }
 
 void UInventoryGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem)
@@ -626,6 +640,22 @@ void UInventoryGrid::ClearHoverItem()
 	ShowDefaultCursor();
 }
 
+void UInventoryGrid::SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex)
+{
+	if (!IsValid(HoverItem))
+		return;
+
+	UInventoryItem* TempItem = HoverItem->GetInventoryItem();
+	const int32 TempStackCount = HoverItem->GetStackCount();
+	const bool bTempStackable = HoverItem->IsStackable();
+	// keep the same PreviousGridIndex
+
+	AssignHoverItem(ClickedInventoryItem, GridIndex, HoverItem->GetPreviousGridIndex());
+	RemoveItemFromGrid(ClickedInventoryItem, GridIndex);
+	AddItemAtIndex(TempItem, ItemDropIndex, bTempStackable, TempStackCount);
+	UpdateGridSlots(TempItem, ItemDropIndex, bTempStackable, TempStackCount);
+}
+
 void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
 {
 	const auto GridFragment = GetGridFragmentFromInventoryItem(ClickedItem);
@@ -731,6 +761,13 @@ void UInventoryGrid::OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEven
 	{
 		GridSlot->SetDefaultTexture();
 	}
+}
+
+bool UInventoryGrid::IsHoverItemSameStackableAs(UInventoryItem* ClickedInventoryItem) const
+{
+	const bool bSameItem = ClickedInventoryItem == HoverItem->GetInventoryItem();
+	const bool bIsStackable = ClickedInventoryItem->IsStackable();
+	return bSameItem && bIsStackable && HoverItem->GetItemType().MatchesTagExact(ClickedInventoryItem->GetItemType());
 }
 
 #if WITH_EDITOR
