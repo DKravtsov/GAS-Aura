@@ -12,8 +12,9 @@ void UInventoryHoverProxy::SetImageBrush(const FSlateBrush& Brush)
 	Image_Icon->SetBrush(Brush);
 }
 
-void UInventoryHoverProxy::UpdateStackCount(const int32 NewStackCount) const
+void UInventoryHoverProxy::UpdateStackCount(const int32 NewStackCount)
 {
+	StackCount = NewStackCount;
 	if (NewStackCount > 0)
 	{
 		Text_StackCount->SetText(FText::AsNumber(NewStackCount));

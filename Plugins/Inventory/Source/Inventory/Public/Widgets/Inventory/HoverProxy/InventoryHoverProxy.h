@@ -35,7 +35,7 @@ public:
 
 	void SetImageBrush(const FSlateBrush& Brush);
 
-	void UpdateStackCount(const int32 NewStackCount) const;
+	void UpdateStackCount(const int32 NewStackCount);
 
 	const FGameplayTag& GetItemType() const;
 	
