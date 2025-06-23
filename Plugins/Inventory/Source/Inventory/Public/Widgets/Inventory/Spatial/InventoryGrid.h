@@ -12,6 +12,7 @@
 class UInventoryGridSlot;
 class UUniformGridPanel;
 class UGridPanel;
+enum class EInventoryGridSlotVisualState : uint8;
 
 UCLASS()
 class UInventoryGrid : public UUserWidget
@@ -120,6 +121,9 @@ private:
 	                         const FInventoryItemImageFragment& ImageFragment) const;
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
+	
+	static const FInventoryItemImageFragment* GetImageFragmentFromInventoryItem(UInventoryItem* Item);
+	static const FInventoryItemGridFragment* GetGridFragmentFromInventoryItem(UInventoryItem* NewItem);
 
 	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
 
@@ -154,4 +158,6 @@ private:
 
 	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
+	void UnHighlightSlots() {UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);}
+	void ChangeHoverType(const int32 StartIndex, const FIntPoint& Dimensions, EInventoryGridSlotVisualState GridSlotState);
 };

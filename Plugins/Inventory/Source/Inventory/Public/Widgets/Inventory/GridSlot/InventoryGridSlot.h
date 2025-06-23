@@ -69,6 +69,7 @@ public:
 	void SetOccupiedTexture();
 	void SetSelectedTexture();
 	void SetGrayedOutTexture();
+	void SetGridSlotState(EInventoryGridSlotVisualState NewState);
 
 private:
 

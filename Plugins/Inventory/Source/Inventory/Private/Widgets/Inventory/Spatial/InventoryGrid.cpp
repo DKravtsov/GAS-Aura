@@ -49,7 +49,7 @@ bool UInventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos, const FVec
 	bMouseWithinCanvas = UInventoryWidgetUtils::IsWithinBounds(BoundaryPos, BoundarySize, Location);
 	if (!bMouseWithinCanvas && bMouseWasWithinCanvas)
 	{
-		UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+		UnHighlightSlots();
 		return true;
 	}
 	return false;
@@ -90,10 +90,13 @@ void UInventoryGrid::OnTileParametersUpdated(const FInventoryTileParameters& Par
 		HighlightSlots(ItemDropIndex, Dimensions);
 		return;
 	}
-	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
-	if (CurrentQueryResult.ValidItem.IsValid())
+	UnHighlightSlots();
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex))
 	{
-		// TODO: there's one item we can swap with or add stacks
+		if (const auto GridFragment =GetGridFragmentFromInventoryItem(CurrentQueryResult.ValidItem.Get()))
+		{
+			ChangeHoverType(CurrentQueryResult.UpperLeftIndex, GridFragment->GetGridSize(), EInventoryGridSlotVisualState::GrayedOut);
+		}
 	}
 }
 
@@ -136,7 +139,7 @@ void UInventoryGrid::HighlightSlots(const int32 StartIndex, const FIntPoint& Dim
 	if (!bMouseWithinCanvas)
 		return;
 
-	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+	UnHighlightSlots();
 	
 	UInventoryStatics::ForEach2D(GridSlots, StartIndex, Dimensions, Columns, [](UInventoryGridSlot* GridSlot)
 	{
@@ -162,6 +165,18 @@ void UInventoryGrid::UnHighlightSlots(const int32 StartIndex, const FIntPoint& D
 		return true;
 	});
 	LastHighlightedIndex = INDEX_NONE;
+}
+
+void UInventoryGrid::ChangeHoverType(const int32 StartIndex, const FIntPoint& Dimensions, EInventoryGridSlotVisualState GridSlotState)
+{
+	UnHighlightSlots();
+	UInventoryStatics::ForEach2D(GridSlots, StartIndex, Dimensions, Columns, [GridSlotState](UInventoryGridSlot* GridSlot)->bool
+	{
+		GridSlot->SetGridSlotState(GridSlotState);
+		return true;
+	});
+	LastHighlightedIndex = StartIndex;
+	LastHighlightedDimensions = Dimensions;
 }
 
 FIntPoint UInventoryGrid::CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const
@@ -422,10 +437,10 @@ void UInventoryGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Re
 
 void UInventoryGrid::AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable,	const int32 StackAmount)
 {
-	const auto GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(Item, InventoryFragmentTags::FragmentTag_Grid);
+	const auto GridFragment = GetGridFragmentFromInventoryItem(Item);
 	if (GridFragment == nullptr)
 		return;
-	const auto ImageFragment = UInventoryItem::GetFragment<FInventoryItemImageFragment>(Item, InventoryFragmentTags::FragmentTag_Image);
+	const auto ImageFragment = GetImageFragmentFromInventoryItem(Item);
 	if (ImageFragment == nullptr)
 		return;
 
@@ -480,6 +495,16 @@ void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryIte
 	}
 }
 
+const FInventoryItemGridFragment* UInventoryGrid::GetGridFragmentFromInventoryItem(UInventoryItem* NewItem)
+{
+	return UInventoryItem::GetFragment<FInventoryItemGridFragment>(NewItem, InventoryFragmentTags::FragmentTag_Grid);
+}
+
+const FInventoryItemImageFragment* UInventoryGrid::GetImageFragmentFromInventoryItem(UInventoryItem* Item)
+{
+	return UInventoryItem::GetFragment<FInventoryItemImageFragment>(Item, InventoryFragmentTags::FragmentTag_Image);
+}
+
 void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
 {
 	check(GridSlots.IsValidIndex(Index));
@@ -489,7 +514,7 @@ void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index,
 		GridSlots[Index]->SetStackCount(StackAmount);
 	}
 
-	const FInventoryItemGridFragment* GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(NewItem, InventoryFragmentTags::FragmentTag_Grid);
+	const FInventoryItemGridFragment* GridFragment = GetGridFragmentFromInventoryItem(NewItem);
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
 
 	UInventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns,
@@ -573,10 +598,10 @@ void UInventoryGrid::PickUpItemInInventory(UInventoryItem* ClickedItem, const in
 
 void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
 {
-	const auto GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(ClickedItem, InventoryFragmentTags::FragmentTag_Grid);
+	const auto GridFragment = GetGridFragmentFromInventoryItem(ClickedItem);
 	if (GridFragment == nullptr)
 		return;
-	const auto ImageFragment = UInventoryItem::GetFragment<FInventoryItemImageFragment>(ClickedItem, InventoryFragmentTags::FragmentTag_Image);
+	const auto ImageFragment = GetImageFragmentFromInventoryItem(ClickedItem);
 	if (ImageFragment == nullptr)
 		return;
 
@@ -612,7 +637,7 @@ void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 Gr
 
 void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex)
 {
-	const auto GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(ClickedItem, InventoryFragmentTags::FragmentTag_Grid);
+	const auto GridFragment = GetGridFragmentFromInventoryItem(ClickedItem);
 	if (GridFragment == nullptr)
 		return;
 
