@@ -50,3 +50,12 @@ void UInventoryHoverProxy::SetInventoryItem(UInventoryItem* Item)
 {
 	InventoryItem = Item;
 }
+
+void UInventoryHoverProxy::Reset()
+{
+	SetInventoryItem(nullptr);
+	SetIsStackable(false);
+	SetPreviousGridIndex(INDEX_NONE);
+	UpdateStackCount(0);
+	SetImageBrush(FSlateNoResource());
+}

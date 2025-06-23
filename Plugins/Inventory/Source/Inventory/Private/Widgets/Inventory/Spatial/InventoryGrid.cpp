@@ -600,6 +600,27 @@ void UInventoryGrid::PickUpItemInInventory(UInventoryItem* ClickedItem, const in
 	RemoveItemFromGrid(ClickedItem, GridIndex);
 }
 
+void UInventoryGrid::PutDownItemInInventoryAtIndex(const int32 GridIndex)
+{
+	check(IsValid(HoverItem));
+	AddItemAtIndex(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
+	UpdateGridSlots(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
+
+	ClearHoverItem();
+}
+
+void UInventoryGrid::ClearHoverItem()
+{
+	if (!IsValid(HoverItem))
+		return;
+
+	HoverItem->Reset();
+	HoverItem->RemoveFromParent();
+	HoverItem = nullptr;
+
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, nullptr);
+}
+
 void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
 {
 	const auto GridFragment = GetGridFragmentFromInventoryItem(ClickedItem);
@@ -667,6 +688,20 @@ void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32
 
 void UInventoryGrid::OnGridSlotClicked(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
 {
+	if (!IsValid(HoverItem) || !GridSlots.IsValidIndex(ItemDropIndex))
+		return;
+
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex))
+	{
+		OnSlottedItemClicked(CurrentQueryResult.UpperLeftIndex, MouseEvent);
+		return;
+	}
+
+	auto GridSlot = GridSlots[ItemDropIndex];
+	if (!GridSlot->GetInventoryItem().IsValid())
+	{
+		PutDownItemInInventoryAtIndex(ItemDropIndex);
+	}
 }
 
 void UInventoryGrid::OnGridSlotHovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent)

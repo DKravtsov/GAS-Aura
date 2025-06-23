@@ -52,4 +52,6 @@ public:
 
 	UInventoryItem* GetInventoryItem() const {return InventoryItem.Get();}
 	void SetInventoryItem(UInventoryItem* Item);
+
+	void Reset();
 };

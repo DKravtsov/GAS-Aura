@@ -57,8 +57,9 @@ class UInventoryGrid : public UUserWidget
 	FInventoryTileParameters TileParameters;
 	FInventoryTileParameters LastTileParameters;
 
-	// Index where an item would be placed if we click on the grid at a valid location
+	// Index where an item would be placed if we click on the grid at a valid location. It's Valid only when there's a hover item
 	int32 ItemDropIndex = INDEX_NONE;
+	// More detailed information about where a hovered item would be placed. It's Valid only when there's a hover item
 	FInventorySpaceQueryResult CurrentQueryResult;
 
 	int32 LastHighlightedIndex = INDEX_NONE;
@@ -144,6 +145,7 @@ private:
 	static bool IsRightMouseButtonClick(const FPointerEvent& MouseEvent);
 
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
+	void PutDownItemInInventoryAtIndex(const int32 GridIndex);
 	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 
@@ -155,6 +157,7 @@ private:
 	FIntPoint CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const;
 
 	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
+	void ClearHoverItem();
 
 	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
