@@ -52,15 +52,11 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 1);
-
-		// TODO: There might be situation when we gonna add new stackable items and reminder is > 0,
-		// because we don't have enough room for everything.
-		// I believe, Reminder should be taken into account here as well in the same way as in Server_AddStacksToItem()
+		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
 	}
 }
 
-void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount)
+void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
 	auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
@@ -70,11 +66,20 @@ void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemCompone
 		OnItemAdded.Broadcast(NewItem);
 	}
 
-	// tell the item component to destroy its owning actor
-	ItemComponent->PickedUp();
+	// tell the item component to destroy its owning actor if Remainder == 0
+	//  otherwise, update the stack count for the pickup
+
+	if (Remainder == 0)
+	{
+		ItemComponent->PickedUp();
+	}
+	else if (auto StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+	{
+		StackableFragment->SetStackCount(Remainder);
+	}
 }
 
-bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount)
+bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
 	return true;
 }

@@ -59,7 +59,7 @@ protected:
 	INVENTORY_API virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount);
+	void Server_AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
