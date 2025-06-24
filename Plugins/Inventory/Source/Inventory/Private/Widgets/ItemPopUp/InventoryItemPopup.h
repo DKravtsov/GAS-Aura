@@ -52,13 +52,21 @@ public:
 
 	//~ Begin of UUserWidget interface
 	virtual void NativeOnInitialized() override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
+	void SetSliderParams(const int32 MaxStackSize, const int32 StackCount);
 	int32 GetSplitAmount() const;
+	
 	void HideMenu();
 
 	int32 GetGridIndex() const {return GridIndex;}
 	void SetGridIndex(int32 NewValue) {GridIndex = NewValue;}
+
+	void CollapseSplitButton();
+	void CollapseConsumeButton();
+
+	FVector2D GetBoxSize() const;
 
 private:
 
