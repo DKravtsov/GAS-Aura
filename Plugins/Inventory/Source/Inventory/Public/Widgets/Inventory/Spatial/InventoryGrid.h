@@ -197,4 +197,8 @@ private:
 	static int32 GetMaxStackSize(const UInventoryItem* Item);
 
 	void CreateItemPopupMenu(const int32 GridIndex);
+
+	void OnPopupMenuSplit(const int32 SplitAmount, const int32 GridIndex);
+	void OnPopupMenuConsume(const int32 GridIndex);
+	void OnPopupMenuDrop(const int32 GridIndex);
 };

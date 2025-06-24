@@ -46,6 +46,7 @@ public:
 	}
 
 	bool IsStackable() const;
+	bool IsConsumable() const;
 
 	const FGameplayTag& GetItemType() const;
 

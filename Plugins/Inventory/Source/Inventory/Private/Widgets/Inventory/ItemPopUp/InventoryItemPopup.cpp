@@ -29,9 +29,9 @@ void UInventoryItemPopup::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 void UInventoryItemPopup::SetSliderParams(const int32 MaxStackSize, const int32 StackCount)
 {
-	Slider_Split->SetMaxValue(MaxStackSize);
+	Slider_Split->SetMaxValue(StackCount - 1);
 	Slider_Split->SetMinValue(1);
-	Slider_Split->SetValue(StackCount);
+	Slider_Split->SetValue(FMath::Max(StackCount / 2, 1));
 }
 
 void UInventoryItemPopup::SliderValueChanged(float Value)

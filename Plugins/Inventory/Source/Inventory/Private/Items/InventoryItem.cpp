@@ -3,6 +3,7 @@
 
 #include "Items/InventoryItem.h"
 
+#include "InventoryGridTypes.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Net/UnrealNetwork.h"
 
@@ -22,6 +23,11 @@ bool UInventoryItem::IsStackable() const
 		bCachedIsStackable = StackableFragment != nullptr;
 	}
 	return bCachedIsStackable.GetValue();
+}
+
+bool UInventoryItem::IsConsumable() const
+{
+	return GetItemManifest().GetItemCategory().MatchesTag(InventoryTags::Inventory_ItemCategory_Consumable);
 }
 
 const FGameplayTag& UInventoryItem::GetItemType() const

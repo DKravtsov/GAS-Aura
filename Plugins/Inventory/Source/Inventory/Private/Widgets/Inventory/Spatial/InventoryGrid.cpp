@@ -828,6 +828,29 @@ void UInventoryGrid::CreateItemPopupMenu(const int32 GridIndex)
 		const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
 		CanvasSlot->SetPosition(MousePosition - PopupMenuOffset);
 		CanvasSlot->SetSize(ItemPopupMenu->GetBoxSize());
+
+
+		const int32 StackCount = GridSlots[GridIndex]->GetStackCount();
+		if (StackCount > 2)
+		{
+			ItemPopupMenu->SetSliderParams(-1, StackCount);
+			ItemPopupMenu->OnSplitDelegate.BindUObject(this, &ThisClass::OnPopupMenuSplit);
+		}
+		else
+		{
+			ItemPopupMenu->CollapseSplitButton();
+		}
+
+		ItemPopupMenu->OnDropDelegate.BindUObject(this, &ThisClass::OnPopupMenuDrop);
+
+		if (RightClickedItem->IsConsumable())
+		{
+			ItemPopupMenu->OnConsumeDelegate.BindUObject(this, &ThisClass::OnPopupMenuConsume);
+		}
+		else
+		{
+			ItemPopupMenu->CollapseConsumeButton();
+		}
 	}
 }
 
@@ -876,6 +899,18 @@ void UInventoryGrid::UpdateStackCountInSlot(const int32 GridIndex, const int32 N
 void UInventoryGrid::SetOwningCanvas(UCanvasPanel* OwningCanvas)
 {
 	OwningCanvasPanel = OwningCanvas;
+}
+
+void UInventoryGrid::OnPopupMenuSplit(const int32 SplitAmount, const int32 GridIndex)
+{
+}
+
+void UInventoryGrid::OnPopupMenuConsume(const int32 GridIndex)
+{
+}
+
+void UInventoryGrid::OnPopupMenuDrop(const int32 GridIndex)
+{
 }
 
 #if WITH_EDITOR
