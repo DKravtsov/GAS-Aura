@@ -35,6 +35,9 @@ class UInventoryGrid : public UUserWidget
 	TSubclassOf<class UInventoryHoverProxy> HoverItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<class UInventoryItemPopup> ItemPopupMenuClass;
+
+	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 0;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
@@ -52,7 +55,11 @@ class UInventoryGrid : public UUserWidget
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryHoverProxy> HoverItem;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
+
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+	TWeakObjectPtr<class UCanvasPanel> OwningCanvasPanel;
 
 	FInventoryTileParameters TileParameters;
 	FInventoryTileParameters LastTileParameters;
@@ -100,6 +107,8 @@ public:
 	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
 #endif
 	//~ End UWidget Interface
+
+	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
 
 private:
 
@@ -182,4 +191,6 @@ private:
 	bool IsHoverItemSameStackableAs(UInventoryItem* ClickedInventoryItem) const;
 
 	static int32 GetMaxStackSize(const UInventoryItem* Item);
+
+	void CreateItemPopupMenu(const int32 GridIndex);
 };

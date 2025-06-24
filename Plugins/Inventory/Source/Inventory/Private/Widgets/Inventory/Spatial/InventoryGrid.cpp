@@ -5,8 +5,11 @@
 
 #include "Inventory.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
+#include "Components/MenuAnchor.h"
 #include "Editor/WidgetCompilerLog.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
@@ -15,6 +18,7 @@
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Widgets/Inventory/GridSlot/InventoryGridSlot.h"
 #include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
+#include "Widgets/Inventory/ItemPopUp/InventoryItemPopup.h"
 #include "Widgets/Inventory/SlottedItems/InventorySlottedItemWidget.h"
 
 void UInventoryGrid::NativeOnInitialized()
@@ -759,9 +763,16 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 	UE_LOG(LogTemp, Warning, TEXT("Clicked on item: %d"), GridIndex);
 	UInventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get();
 
-	if (!IsValid(HoverItem) && IsLeftMouseButtonClick(MouseEvent))
+	if (!IsValid(HoverItem))
 	{
-		PickUpItemInInventory(ClickedInventoryItem, GridIndex);
+		if (IsLeftMouseButtonClick(MouseEvent))
+		{
+			PickUpItemInInventory(ClickedInventoryItem, GridIndex);
+		}
+		else if (IsRightMouseButtonClick(MouseEvent))
+		{
+			CreateItemPopupMenu(GridIndex);
+		}
 		return;
 	}
 
@@ -787,6 +798,28 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 	{
 		// Swap with the hover item.
 		SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+	}
+}
+
+void UInventoryGrid::CreateItemPopupMenu(const int32 GridIndex)
+{
+	check(GridSlots.IsValidIndex(GridIndex));
+
+	if (IsValid(ItemPopupMenu))
+	{
+		ItemPopupMenu->HideMenu();
+	}
+	
+	if (UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get())
+	{
+		ItemPopupMenu = CreateWidget<UInventoryItemPopup>(GetOwningPlayer(), ItemPopupMenuClass);
+		check(IsValid(ItemPopupMenu));
+
+		UCanvasPanelSlot* CanvasSlot = OwningCanvasPanel->AddChildToCanvas(ItemPopupMenu);
+		UWidgetLayoutLibrary::SlotAsCanvasSlot(ItemPopupMenu);
+		const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
+		CanvasSlot->SetPosition(MousePosition);
+		CanvasSlot->SetSize(ItemPopupMenu->GetBoxSize());
 	}
 }
 
@@ -832,6 +865,11 @@ void UInventoryGrid::UpdateStackCountInSlot(const int32 GridIndex, const int32 N
 	SlottedItem->UpdateStackCount(NewStackCount);
 }
 
+void UInventoryGrid::SetOwningCanvas(UCanvasPanel* OwningCanvas)
+{
+	OwningCanvasPanel = OwningCanvas;
+}
+
 #if WITH_EDITOR
 void UInventoryGrid::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const
 {
@@ -858,6 +896,10 @@ void UInventoryGrid::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileL
 	if (!HoverItemClass)
 	{
 		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no HoverItemClass specified.")));
+	}
+	if (!ItemPopupMenuClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no ItemPopupMenuClass specified.")));
 	}
 }
 #endif//WITH_EDITOR

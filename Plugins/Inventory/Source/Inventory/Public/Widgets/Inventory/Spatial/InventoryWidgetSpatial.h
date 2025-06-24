@@ -36,6 +36,9 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UButton> Button_Crafting;
 
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class UCanvasPanel> CanvasPanel;
+
 public:
 
 	//~ Begin of UUserWidget interface

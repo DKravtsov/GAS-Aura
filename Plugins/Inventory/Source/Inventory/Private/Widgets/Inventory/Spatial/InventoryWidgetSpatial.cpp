@@ -5,6 +5,7 @@
 
 #include "Inventory.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
 #include "Components/WidgetSwitcher.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
@@ -18,6 +19,10 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	Button_Consumable->OnClicked.AddDynamic(this, &UInventoryWidgetSpatial::ShowConsumableGrid);
 	Button_Crafting->OnClicked.AddDynamic(this, &UInventoryWidgetSpatial::ShowCraftingGrid);
 
+	InventoryGrid_Equipment->SetOwningCanvas(CanvasPanel);
+	InventoryGrid_Consumable->SetOwningCanvas(CanvasPanel);
+	InventoryGrid_Crafting->SetOwningCanvas(CanvasPanel);
+	
 	ShowEquipmentGrid();
 }
 

@@ -41,26 +41,20 @@ void UInventoryItemPopup::SliderValueChanged(float Value)
 
 void UInventoryItemPopup::SplitButtonClicked()
 {
-	if (OnSplitDelegate.ExecuteIfBound(GetSplitAmount(), GridIndex))
-	{
-		HideMenu();
-	}
+	OnSplitDelegate.ExecuteIfBound(GetSplitAmount(), GridIndex);
+	HideMenu();
 }
 
 void UInventoryItemPopup::DropButtonClicked()
 {
-	if (OnDropDelegate.ExecuteIfBound(GridIndex))
-	{
-		HideMenu();
-	}
+	OnDropDelegate.ExecuteIfBound(GridIndex);
+	HideMenu();
 }
 
 void UInventoryItemPopup::ConsumeButtonClicked()
 {
-	if (OnConsumeDelegate.ExecuteIfBound(GridIndex))
-	{
-		HideMenu();
-	}
+	OnConsumeDelegate.ExecuteIfBound(GridIndex);
+	HideMenu();
 }
 
 void UInventoryItemPopup::CollapseSplitButton()
