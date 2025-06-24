@@ -1,7 +1,7 @@
 ﻿// Copyright 4sandwiches
 
 
-#include "InventoryItemPopup.h"
+#include "Widgets/Inventory/ItemPopUp/InventoryItemPopup.h"
 
 #include "Components/Button.h"
 #include "Components/SizeBox.h"
