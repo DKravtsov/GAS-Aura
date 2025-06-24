@@ -82,4 +82,5 @@ int32 UInventoryItemPopup::GetSplitAmount() const
 void UInventoryItemPopup::HideMenu()
 {
 	RemoveFromParent();
+	GridIndex = INDEX_NONE;
 }

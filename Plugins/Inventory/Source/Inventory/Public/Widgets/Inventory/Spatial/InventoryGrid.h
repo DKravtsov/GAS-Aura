@@ -46,6 +46,10 @@ class UInventoryGrid : public UUserWidget
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	float TileSize = 0.f;
 
+	// A small offset (in screen coordinates) for the popup menu related to the mouse cursor position
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	FVector2D PopupMenuOffset{5.f, 5.f};
+
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UGridPanel> GridWidget;
 
