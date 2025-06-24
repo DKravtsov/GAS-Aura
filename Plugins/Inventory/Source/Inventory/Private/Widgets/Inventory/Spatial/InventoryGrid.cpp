@@ -831,7 +831,7 @@ void UInventoryGrid::CreateItemPopupMenu(const int32 GridIndex)
 
 
 		const int32 StackCount = GridSlots[GridIndex]->GetStackCount();
-		if (StackCount > 2)
+		if (StackCount >= 2)
 		{
 			ItemPopupMenu->SetSliderParams(-1, StackCount);
 			ItemPopupMenu->OnSplitDelegate.BindUObject(this, &ThisClass::OnPopupMenuSplit);
@@ -903,6 +903,16 @@ void UInventoryGrid::SetOwningCanvas(UCanvasPanel* OwningCanvas)
 
 void UInventoryGrid::OnPopupMenuSplit(const int32 SplitAmount, const int32 GridIndex)
 {
+	check(GridSlots.IsValidIndex(GridIndex));
+	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+	check(RightClickedItem && RightClickedItem->IsStackable());
+	const int32 NewStackCount = GridSlots[GridIndex]->GetStackCount() - SplitAmount;
+	
+	AssignHoverItem(RightClickedItem, GridIndex, GridIndex);
+	check(IsValid(HoverItem));
+	HoverItem->UpdateStackCount(SplitAmount);
+	
+	UpdateStackCountInSlot(GridIndex, NewStackCount);
 }
 
 void UInventoryGrid::OnPopupMenuConsume(const int32 GridIndex)
