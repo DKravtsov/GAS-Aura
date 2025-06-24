@@ -18,7 +18,7 @@ enum class EInventoryGridSlotVisualState : uint8
 	GrayedOut,
 };
 
-UCLASS()
+UCLASS(MinimalAPI, Abstract)
 class UInventoryGridSlot : public UUserWidget
 {
 	GENERATED_BODY()

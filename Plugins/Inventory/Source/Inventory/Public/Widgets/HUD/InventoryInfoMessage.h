@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract, Blueprintable)
 class UInventoryInfoMessage : public UUserWidget
 {
 	GENERATED_BODY()

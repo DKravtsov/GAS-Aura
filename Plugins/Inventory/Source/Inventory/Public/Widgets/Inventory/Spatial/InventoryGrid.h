@@ -14,7 +14,7 @@ class UUniformGridPanel;
 class UGridPanel;
 enum class EInventoryGridSlotVisualState : uint8;
 
-UCLASS()
+UCLASS(MinimalAPI, Abstract)
 class UInventoryGrid : public UUserWidget
 {
 	GENERATED_BODY()

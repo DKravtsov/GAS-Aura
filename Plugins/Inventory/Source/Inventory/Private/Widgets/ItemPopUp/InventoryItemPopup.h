@@ -15,7 +15,7 @@ DECLARE_DELEGATE_OneParam(FInventoryItemPopupMenuConsumeDelegate, const int32 /*
 /**
  * The item popup widget when a user clicks RMB on the item
  */
-UCLASS()
+UCLASS(Abstract)
 class INVENTORY_API UInventoryItemPopup : public UUserWidget
 {
 	GENERATED_BODY()

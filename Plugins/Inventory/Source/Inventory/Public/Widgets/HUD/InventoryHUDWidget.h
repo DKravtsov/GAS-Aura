@@ -8,7 +8,7 @@
 
 class UInventoryInfoMessage;
 
-UCLASS(MinimalAPI)
+UCLASS(MinimalAPI, Abstract)
 class UInventoryHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()

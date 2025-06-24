@@ -14,7 +14,7 @@ class UTextBlock;
  * The HoverProxy is the item that will appear and follow the mouse
  * when an inventory item on the grid has been clicked.
  */
-UCLASS()
+UCLASS(MinimalAPI, Abstract)
 class UInventoryHoverProxy : public UUserWidget
 {
 	GENERATED_BODY()

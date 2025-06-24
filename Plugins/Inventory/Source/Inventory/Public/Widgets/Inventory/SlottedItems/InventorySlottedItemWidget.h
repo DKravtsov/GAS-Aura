@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSlottedItemClickedSignature, int32, GridIndex, const FPointerEvent&, MouseEvent);
 
-UCLASS()
+UCLASS(MinimalAPI, Abstract)
 class UInventorySlottedItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
