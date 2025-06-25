@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "Widgets/Composite/InventoryComposite.h"
 #include "InventoryItemDescription.generated.h"
 
 /**
  * 
  */
 UCLASS(MinimalAPI, Abstract)
-class UInventoryItemDescription : public UUserWidget
+class UInventoryItemDescription : public UInventoryComposite
 {
 	GENERATED_BODY()
 
