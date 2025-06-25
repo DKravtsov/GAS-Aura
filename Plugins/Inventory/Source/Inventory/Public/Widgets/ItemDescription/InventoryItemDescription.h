@@ -20,4 +20,7 @@ class UInventoryItemDescription : public UUserWidget
 public:
 
 	FVector2D GetBoxSize() const;
+
+	virtual void Show();
+	virtual void Hide();
 };

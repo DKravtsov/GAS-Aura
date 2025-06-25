@@ -15,6 +15,15 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<class UInventoryItemDescription> ItemDescriptionClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryItemDescription> ItemDescription;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DescriptionDelay = 0.2f;
+
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UInventoryGrid> InventoryGrid_Equipment;
 
@@ -40,6 +49,8 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	TObjectPtr<class UCanvasPanel> CanvasPanel;
 
 	TWeakObjectPtr<UInventoryGrid> ActiveGrid;
+
+	FTimerHandle TimerHandle_Description;
 
 public:
 
@@ -69,4 +80,6 @@ private:
 	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);
 
 	UInventoryGrid* GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const;
+
+	UInventoryItemDescription* GetOrCreateItemDescription();
 };

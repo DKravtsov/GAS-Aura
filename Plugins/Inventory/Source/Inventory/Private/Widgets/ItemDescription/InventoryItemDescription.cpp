@@ -9,3 +9,13 @@ FVector2D UInventoryItemDescription::GetBoxSize() const
 {
 	return SizeBox_Root->GetDesiredSize();
 }
+
+void UInventoryItemDescription::Show()
+{
+	SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UInventoryItemDescription::Hide()
+{
+	SetVisibility(ESlateVisibility::Collapsed);
+}

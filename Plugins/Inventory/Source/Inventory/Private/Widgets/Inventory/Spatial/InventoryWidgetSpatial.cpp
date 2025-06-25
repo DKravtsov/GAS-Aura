@@ -10,6 +10,7 @@
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
+#include "Widgets/ItemDescription/InventoryItemDescription.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
 {
@@ -47,12 +48,24 @@ FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInvent
 
 void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 {
-	
+	auto ItemDescWidget = GetOrCreateItemDescription();
+	//ItemDescWidget->Hide();
+	SetToolTip(nullptr);
+
+	FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, ItemDescWidget]()
+	{
+		//ItemDescWidget->Show();
+		SetToolTip(ItemDescWidget);
+	});
+	GetOwningPlayer()->GetWorldTimerManager().SetTimer(TimerHandle_Description, TimerDelegate, DescriptionDelay, false);
 }
 
 void UInventoryWidgetSpatial::OnInventoryUnhovered()
 {
-	
+	//GetOrCreateItemDescription()->Hide();
+	SetToolTip(nullptr);
+
+	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(TimerHandle_Description);	
 }
 
 bool UInventoryWidgetSpatial::HasHoverItem() const
@@ -99,4 +112,14 @@ UInventoryGrid* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGamep
 	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Crafting))
 		return InventoryGrid_Crafting;
 	return nullptr;
+}
+
+UInventoryItemDescription* UInventoryWidgetSpatial::GetOrCreateItemDescription()
+{
+	if (!IsValid(ItemDescription))
+	{
+		ItemDescription = CreateWidget<UInventoryItemDescription>(GetOwningPlayer(), ItemDescriptionClass);
+		//CanvasPanel->AddChildToCanvas(ItemDescription);
+	}
+	return ItemDescription;
 }

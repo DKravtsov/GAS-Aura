@@ -760,6 +760,9 @@ void UInventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& 
 {
 	check(GridSlots.IsValidIndex(GridIndex));
 	UE_LOG(LogTemp, Warning, TEXT("Clicked on item: %d"), GridIndex);
+
+	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
+	
 	UInventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get();
 
 	if (!IsValid(HoverItem))
