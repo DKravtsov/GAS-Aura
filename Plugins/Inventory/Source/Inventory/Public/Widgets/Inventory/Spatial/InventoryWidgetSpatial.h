@@ -39,10 +39,13 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UCanvasPanel> CanvasPanel;
 
+	TWeakObjectPtr<UInventoryGrid> ActiveGrid;
+
 public:
 
 	//~ Begin of UUserWidget interface
 	INVENTORY_API virtual void NativeOnInitialized() override;
+	INVENTORY_API virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
 	//~ Begin of UInventoryWidgetBase interface

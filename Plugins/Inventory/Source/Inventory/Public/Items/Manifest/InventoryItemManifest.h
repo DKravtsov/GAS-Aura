@@ -18,11 +18,16 @@ struct FInventoryItemManifest
 
 private:
 
+	friend class UInventoryItemComponent;
+
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"))
 	FGameplayTag ItemCategory;
 
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems"))
 	FGameplayTag ItemType;
+
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<AActor> PickupActorClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FInventoryItemFragment>> Fragments;
@@ -34,6 +39,7 @@ public:
 	const FGameplayTag& GetItemType() const {return ItemType;}
 
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
+	INVENTORY_API AActor* SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
 	const TFragment* GetFragmentOfType() const

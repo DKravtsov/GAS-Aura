@@ -4,6 +4,7 @@
 #include "Items/Manifest/InventoryItemManifest.h"
 
 #include "Items/InventoryItem.h"
+#include "Items/Components/InventoryItemComponent.h"
 
 
 FInventoryItemManifest::FInventoryItemManifest()
@@ -12,8 +13,27 @@ FInventoryItemManifest::FInventoryItemManifest()
 
 UInventoryItem* FInventoryItemManifest::Manifest(UObject* NewOuter)
 {
-	auto NewItem = NewObject<UInventoryItem>(NewOuter, UInventoryItem::StaticClass());
+	const auto NewItem = NewObject<UInventoryItem>(NewOuter, UInventoryItem::StaticClass());
 	NewItem->SetItemManifest(*this);
 
 	return NewItem;
+}
+
+AActor* FInventoryItemManifest::SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation) const
+{
+	if (!PickupActorClass || !IsValid(WorldContextObject) || !GEngine)
+		return nullptr;
+
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	if (AActor* SpawnedActor = World ? World->SpawnActor<AActor>(PickupActorClass, SpawnLocation, SpawnRotation, SpawnParams) : nullptr)
+	{
+		UInventoryItemComponent* ItemComponent = SpawnedActor->FindComponentByClass<UInventoryItemComponent>();
+		check(ItemComponent != nullptr);
+		ItemComponent->InitItemManifestFrom(*this);
+
+		return SpawnedActor;
+	}
+	return nullptr;
 }

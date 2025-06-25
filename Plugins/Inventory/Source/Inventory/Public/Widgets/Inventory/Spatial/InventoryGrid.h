@@ -114,6 +114,8 @@ public:
 
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
 
+	void DropHoverItemOnGround();
+
 private:
 
 	void ConstructGrid();
@@ -202,5 +204,4 @@ private:
 	void OnPopupMenuConsume(const int32 GridIndex);
 	void OnPopupMenuDrop(const int32 GridIndex);
 
-	void DropHoverItemOnGround();
 };

@@ -128,11 +128,21 @@ void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
 
 void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCount)
 {
+	check(GetOwner()->HasAuthority());
+	check(IsValid(Item));
+	
 	FVector SpawnLocation;
 	FRotator SpawnRotation;
 	GetDroppedItemSpawnLocationAndRotation(Item->GetItemType(),  SpawnLocation, SpawnRotation);
 
-	// Item->GetItemManifest(). Do spawn the actor at SpawnLocation
+	FInventoryItemManifest& ItemManifest = Item->GetItemManifestMutable();
+	if (const auto StackableFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+	{
+		// Note: we actually don't care about StackCount stored in a manifest until we pick up or drop an item.
+		// So, we update it here to be copied into a new item if applicable.
+		StackableFragment->SetStackCount(StackCount);
+	}
+	std::ignore = ItemManifest.SpawnPickupActor(GetOwner(), SpawnLocation, SpawnRotation);
 }
 
 void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType,

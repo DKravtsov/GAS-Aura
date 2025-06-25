@@ -27,4 +27,18 @@ void UInventoryItemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeP
 	DOREPLIFETIME(UInventoryItemComponent, ItemManifest);
 }
 
+void UInventoryItemComponent::InitItemManifestFrom(const FInventoryItemManifest& ItemManifestToCopy)
+{
+	ItemManifest = ItemManifestToCopy;
+}
+
+void UInventoryItemComponent::BeginPlay()
+{
+	if (!ItemManifest.PickupActorClass)
+	{
+		ItemManifest.PickupActorClass = GetOwner()->GetClass();
+	}
+	Super::BeginPlay();
+}
+
 

@@ -26,6 +26,15 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	ShowEquipmentGrid();
 }
 
+FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (ActiveGrid.IsValid())
+	{
+		ActiveGrid->DropHoverItemOnGround();
+	}
+	return FReply::Handled();
+}
+
 FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInventoryItemComponent* ItemComponent) const
 {
 	 if (const UInventoryGrid* Grid = GetInventoryGridByCategory(UInventoryStatics::GetItemCategory(ItemComponent)))
@@ -63,6 +72,7 @@ void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGrid* Grid, UButton* Butto
 {
 	DisableButton(Button);
 	GridSwitcher->SetActiveWidget(Grid);
+	ActiveGrid = Grid;
 }
 
 UInventoryGrid* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const

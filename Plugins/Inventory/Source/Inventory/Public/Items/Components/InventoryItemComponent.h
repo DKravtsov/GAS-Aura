@@ -31,7 +31,11 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
+	INVENTORY_API void InitItemManifestFrom(const FInventoryItemManifest& ItemManifestToCopy);
+
 protected:
+
+	INVENTORY_API virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Inventory", meta=(DisplayName="On Picked Up"))
 	void BP_PickedUp();

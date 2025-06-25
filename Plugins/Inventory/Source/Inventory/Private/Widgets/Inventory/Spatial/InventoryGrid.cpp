@@ -934,7 +934,7 @@ void UInventoryGrid::DropHoverItemOnGround()
 	if (!IsValid(HoverItem) || !IsValid(HoverItem->GetInventoryItem()))
 		return;
 
-	// TODO: tell the server to drop the item
+	InventoryComponent->DropItem(HoverItem->GetInventoryItem(), HoverItem->GetStackCount());
 
 	ClearHoverItem();
 	ShowDefaultCursor();
