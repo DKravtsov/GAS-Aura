@@ -105,6 +105,18 @@ struct FInventoryItemConsumableFragment: public FInventoryItemFragment
 	virtual void OnConsume(const APlayerController* PC) {}
 };
 
+USTRUCT(BlueprintType)
+struct FInventoryItemDescriptionFragment: public FInventoryItemFragment
+{
+	GENERATED_BODY()
+
+	virtual void Assimilate(class UInventoryCompositeBase* Composite) const;
+
+protected:
+
+	bool MatchesWidgetTag(UInventoryCompositeBase* Composite) const;
+};
+
 namespace InventoryFragmentTags
 {
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Grid);

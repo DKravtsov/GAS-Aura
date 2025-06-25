@@ -8,6 +8,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/WidgetSwitcher.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
@@ -52,10 +53,13 @@ void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 	//ItemDescWidget->Hide();
 	SetToolTip(nullptr);
 
-	FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, ItemDescWidget]()
+	const auto& Manifest = Item->GetItemManifest();
+	FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, &Manifest, ItemDescWidget]()
 	{
 		//ItemDescWidget->Show();
 		SetToolTip(ItemDescWidget);
+
+		Manifest.AssimilateInventoryFragments(ItemDescWidget);
 	});
 	GetOwningPlayer()->GetWorldTimerManager().SetTimer(TimerHandle_Description, TimerDelegate, DescriptionDelay, false);
 }

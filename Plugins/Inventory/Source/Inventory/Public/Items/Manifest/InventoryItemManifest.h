@@ -41,6 +41,8 @@ public:
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
 	INVENTORY_API AActor* SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
+	INVENTORY_API void AssimilateInventoryFragments(class UInventoryCompositeBase* Composite) const;
+
 	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
 	const TFragment* GetFragmentOfType() const
 	{
@@ -81,5 +83,20 @@ public:
 			}
 		}
 		return nullptr;
+	}
+
+	template<class TFragment> requires std::derived_from<TFragment, FInventoryItemFragment>
+	TArray<const TFragment*> GetAllFragmentsOfType() const
+	{
+		TArray<const TFragment*> Result;
+		Result.Reserve(Fragments.Num());
+		for (const auto& Fragment : Fragments)
+		{
+			if (const TFragment* FragmentPtr = Fragment.GetPtr<TFragment>())
+			{
+				Result.Add(FragmentPtr);
+			}
+		}
+		return Result;
 	}
 };

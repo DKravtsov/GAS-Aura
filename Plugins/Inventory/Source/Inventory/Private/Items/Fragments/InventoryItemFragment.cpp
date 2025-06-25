@@ -4,6 +4,7 @@
 #include "Items/Fragments/InventoryItemFragment.h"
 
 #include "NativeGameplayTags.h"
+#include "Widgets/Composite/InventoryCompositeBase.h"
 
 namespace InventoryFragmentTags
 {
@@ -26,4 +27,17 @@ FInventoryItemImageFragment::FInventoryItemImageFragment()
 FInventoryItemStackableFragment::FInventoryItemStackableFragment()
 {
 	SetFragmentTag(InventoryFragmentTags::FragmentTag_Stackable);
+}
+
+void FInventoryItemDescriptionFragment::Assimilate(UInventoryCompositeBase* Composite) const
+{
+	if (MatchesWidgetTag(Composite))
+	{
+		Composite->Expand();
+	}
+}
+
+bool FInventoryItemDescriptionFragment::MatchesWidgetTag(UInventoryCompositeBase* Composite) const
+{
+	return GetFragmentTag().MatchesTagExact(Composite->GetFragmentTag());
 }

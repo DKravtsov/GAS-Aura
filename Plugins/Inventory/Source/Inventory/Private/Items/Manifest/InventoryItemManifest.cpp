@@ -5,6 +5,8 @@
 
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
+#include "Items/Fragments/InventoryItemFragment.h"
+#include "Widgets/Composite/InventoryCompositeBase.h"
 
 
 FInventoryItemManifest::FInventoryItemManifest()
@@ -36,4 +38,20 @@ AActor* FInventoryItemManifest::SpawnPickupActor(const UObject* WorldContextObje
 		return SpawnedActor;
 	}
 	return nullptr;
+}
+
+void FInventoryItemManifest::AssimilateInventoryFragments(UInventoryCompositeBase* Composite) const
+{
+	const auto DescFragments = GetAllFragmentsOfType<FInventoryItemDescriptionFragment>();
+	for (const auto Fragment : DescFragments)
+	{
+
+		Composite->ApplyFunction([Fragment](UInventoryCompositeBase* Widget)
+		{
+			Fragment->Assimilate(Widget);
+		});
+
+		// test member reference
+		Composite->ApplyWorkFunction();
+	}
 }
