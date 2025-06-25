@@ -3,6 +3,7 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 
+#include "Components/CapsuleComponent.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
@@ -118,6 +119,55 @@ void UInventoryComponent::AddRepSubObj(UObject* SubObj)
 	{
 		AddReplicatedSubObject(SubObj);
 	}
+}
+
+void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
+{
+	Server_DropItem(Item, StackCount);
+}
+
+void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCount)
+{
+	FVector SpawnLocation;
+	FRotator SpawnRotation;
+	GetDroppedItemSpawnLocationAndRotation(Item->GetItemType(),  SpawnLocation, SpawnRotation);
+
+	// Item->GetItemManifest(). Do spawn the actor at SpawnLocation
+}
+
+void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType,
+	FVector& SpawnLocation, FRotator& SpawnRotation)
+{
+	const APawn* OwningPawn = OwningPlayerController->GetPawn();
+	FVector RotatedForward = OwningPawn->GetActorForwardVector();
+	RotatedForward = RotatedForward.RotateAngleAxis(FMath::FRandRange(DropSpawnAngleMin, DropSpawnAngleMax), FVector::UpVector);
+	SpawnLocation = OwningPawn->GetActorLocation() + RotatedForward * FMath::FRandRange(DropSpawnDistanceMin, DropSpawnDistanceMax);
+	if (const auto CapsuleComp = OwningPawn->FindComponentByClass<UCapsuleComponent>())
+	{
+		SpawnLocation.Z -= CapsuleComp->GetScaledCapsuleHalfHeight();
+	}
+	SpawnRotation = FRotator::ZeroRotator;
+}
+
+void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
+{
+	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+
+	if (NewStackCount <= 0)
+	{
+		InventoryList.RemoveItem(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+
+	SpawnDroppedItem(Item, StackCount);
+}
+
+bool UInventoryComponent::Server_DropItem_Validate(UInventoryItem* Item, int32 StackCount)
+{
+	return true;
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

@@ -36,6 +36,18 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryWidgetBase> InventoryMenu;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnAngleMin = -85.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnAngleMax = 85.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnDistanceMin = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnDistanceMax = 50.f;
+
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
 
@@ -55,6 +67,8 @@ public:
 
 	void AddRepSubObj(UObject* SubObj);
 
+	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
+
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
 
@@ -63,10 +77,19 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DropItem(UInventoryItem* Item, int32 StackCount);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
+	virtual void GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 	
 private:
 
 	void ConstructInventory();
 	void OpenInventoryMenu();
 	void CloseInventoryMenu();
+
+	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
 };

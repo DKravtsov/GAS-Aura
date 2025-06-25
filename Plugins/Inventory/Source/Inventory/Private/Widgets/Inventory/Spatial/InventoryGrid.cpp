@@ -921,6 +921,23 @@ void UInventoryGrid::OnPopupMenuConsume(const int32 GridIndex)
 
 void UInventoryGrid::OnPopupMenuDrop(const int32 GridIndex)
 {
+	check(GridSlots.IsValidIndex(GridIndex));
+	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+	if( !IsValid(RightClickedItem))
+		return;
+	PickUpItemInInventory(RightClickedItem, GridIndex);
+	DropHoverItemOnGround();
+}
+
+void UInventoryGrid::DropHoverItemOnGround()
+{
+	if (!IsValid(HoverItem) || !IsValid(HoverItem->GetInventoryItem()))
+		return;
+
+	// TODO: tell the server to drop the item
+
+	ClearHoverItem();
+	ShowDefaultCursor();
 }
 
 #if WITH_EDITOR
