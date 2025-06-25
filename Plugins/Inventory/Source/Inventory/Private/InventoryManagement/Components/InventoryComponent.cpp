@@ -126,6 +126,11 @@ void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
 	Server_DropItem(Item, StackCount);
 }
 
+void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
+{
+	Server_ConsumeItem(Item, StackCount);
+}
+
 void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCount)
 {
 	check(GetOwner()->HasAuthority());
@@ -145,8 +150,29 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 	std::ignore = ItemManifest.SpawnPickupActor(GetOwner(), SpawnLocation, SpawnRotation);
 }
 
+void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 StackCount)
+{
+	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+
+	if (NewStackCount <= 0)
+	{
+		InventoryList.RemoveItem(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+	
+	// consume
+}
+
+bool UInventoryComponent::Server_ConsumeItem_Validate(UInventoryItem* Item, int32 StackCount)
+{
+	return true;
+}
+
 void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType,
-	FVector& SpawnLocation, FRotator& SpawnRotation)
+                                                                                FVector& SpawnLocation, FRotator& SpawnRotation)
 {
 	const APawn* OwningPawn = OwningPlayerController->GetPawn();
 	FVector RotatedForward = OwningPawn->GetActorForwardVector();

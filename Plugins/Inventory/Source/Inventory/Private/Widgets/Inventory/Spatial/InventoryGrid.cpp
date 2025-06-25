@@ -9,7 +9,6 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
-#include "Components/MenuAnchor.h"
 #include "Editor/WidgetCompilerLog.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
@@ -124,7 +123,7 @@ FInventorySpaceQueryResult UInventoryGrid::CheckHoverPosition(const FIntPoint& P
 			OccupiedUpperLeftIndexes.Add(GridSlot->GetStartIndex());
 			Result.bHasSpace = false;
 		}
-		return OccupiedUpperLeftIndexes.Num() <= 1; // early exit, if we found more than 1 items
+		return OccupiedUpperLeftIndexes.Num() <= 1; // early exit, if we found more items
 	});
 	
 	// if so, is there only one item in the way? (can we swap?)
@@ -740,7 +739,7 @@ void UInventoryGrid::OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEven
 	}
 }
 
-bool UInventoryGrid::IsHoverItemSameStackableAs(UInventoryItem* ClickedInventoryItem) const
+bool UInventoryGrid::IsHoverItemSameStackableAs(const UInventoryItem* ClickedInventoryItem) const
 {
 	const bool bSameItem = ClickedInventoryItem == HoverItem->GetInventoryItem();
 	const bool bIsStackable = ClickedInventoryItem->IsStackable();
@@ -906,17 +905,35 @@ void UInventoryGrid::OnPopupMenuSplit(const int32 SplitAmount, const int32 GridI
 	check(GridSlots.IsValidIndex(GridIndex));
 	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
 	check(RightClickedItem && RightClickedItem->IsStackable());
-	const int32 NewStackCount = GridSlots[GridIndex]->GetStackCount() - SplitAmount;
+	const int32 UpperLeftIndex =  GridSlots[GridIndex]->GetStartIndex();
+	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - SplitAmount;
 	
-	AssignHoverItem(RightClickedItem, GridIndex, GridIndex);
+	AssignHoverItem(RightClickedItem, UpperLeftIndex, UpperLeftIndex);
 	check(IsValid(HoverItem));
 	HoverItem->UpdateStackCount(SplitAmount);
 	
-	UpdateStackCountInSlot(GridIndex, NewStackCount);
+	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
 }
 
 void UInventoryGrid::OnPopupMenuConsume(const int32 GridIndex)
 {
+	check(GridSlots.IsValidIndex(GridIndex));
+	check(InventoryComponent.IsValid());
+	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+	if( !IsValid(RightClickedItem))
+		return;
+	check(RightClickedItem->IsConsumable());
+
+	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
+	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - 1;
+	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
+	
+	InventoryComponent->ConsumeItem(RightClickedItem);
+
+	if (NewStackCount <= 0)
+	{
+		RemoveItemFromGrid(RightClickedItem, UpperLeftIndex);
+	}
 }
 
 void UInventoryGrid::OnPopupMenuDrop(const int32 GridIndex)
@@ -925,7 +942,8 @@ void UInventoryGrid::OnPopupMenuDrop(const int32 GridIndex)
 	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
 	if( !IsValid(RightClickedItem))
 		return;
-	PickUpItemInInventory(RightClickedItem, GridIndex);
+	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
+	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	DropHoverItemOnGround();
 }
 

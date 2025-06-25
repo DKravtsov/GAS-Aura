@@ -68,6 +68,7 @@ public:
 	void AddRepSubObj(UObject* SubObj);
 
 	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
+	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -81,6 +82,9 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DropItem(UInventoryItem* Item, int32 StackCount);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ConsumeItem(UInventoryItem* Item, int32 StackCount);
+	
 	UFUNCTION(BlueprintNativeEvent)
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 	virtual void GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);

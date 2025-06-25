@@ -194,7 +194,7 @@ private:
 	UFUNCTION()
 	void OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent);
 
-	bool IsHoverItemSameStackableAs(UInventoryItem* ClickedInventoryItem) const;
+	bool IsHoverItemSameStackableAs(const UInventoryItem* ClickedInventoryItem) const;
 
 	static int32 GetMaxStackSize(const UInventoryItem* Item);
 
