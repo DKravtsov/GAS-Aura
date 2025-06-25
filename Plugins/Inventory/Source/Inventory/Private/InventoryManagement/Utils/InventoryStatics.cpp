@@ -5,6 +5,7 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/Components/InventoryItemComponent.h"
+#include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
 UInventoryComponent* UInventoryStatics::GetInventoryComponent(const APlayerController* PlayerController)
 {
@@ -31,4 +32,29 @@ FGameplayTag UInventoryStatics::GetItemCategory(UInventoryItemComponent* ItemCom
 		return FGameplayTag();
 
 	return ItemComponent->GetItemManifest().GetItemCategory();
+}
+
+void UInventoryStatics::ItemHovered(APlayerController* PlayerController, UInventoryItem* Item)
+{
+	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	{
+		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
+		{
+			if (!InventoryMenu->HasHoverItem())
+			{
+				InventoryMenu->OnInventoryHovered(Item);
+			}
+		}
+	}
+}
+
+void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
+{
+	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	{
+		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
+		{
+			InventoryMenu->OnInventoryUnhovered();
+		}
+	}
 }

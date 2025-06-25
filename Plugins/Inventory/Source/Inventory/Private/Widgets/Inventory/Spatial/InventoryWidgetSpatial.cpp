@@ -45,6 +45,21 @@ FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInvent
 	return FInventorySlotAvailabilityResult();
 }
 
+void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
+{
+	
+}
+
+void UInventoryWidgetSpatial::OnInventoryUnhovered()
+{
+	
+}
+
+bool UInventoryWidgetSpatial::HasHoverItem() const
+{
+	return ActiveGrid->HasHoverItem();
+}
+
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
 {
 	SetActiveGrid(InventoryGrid_Equipment, Button_Equipment);

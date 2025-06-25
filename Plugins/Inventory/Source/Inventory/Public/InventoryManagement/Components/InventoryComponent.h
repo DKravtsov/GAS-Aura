@@ -59,6 +59,8 @@ private:
 public:
 	INVENTORY_API UInventoryComponent();
 
+	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
+
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
 

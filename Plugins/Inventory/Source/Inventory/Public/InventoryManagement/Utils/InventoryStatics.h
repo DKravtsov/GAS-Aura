@@ -68,4 +68,10 @@ public:
 			}
 		}
 	}
+
+	UFUNCTION(blueprintCallable, Category = "Inventory")
+	static void ItemHovered(APlayerController* PlayerController, UInventoryItem* Item);
+	
+	UFUNCTION(blueprintCallable, Category = "Inventory")
+	static void ItemUnhovered(APlayerController* PlayerController);
 };

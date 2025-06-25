@@ -958,6 +958,11 @@ void UInventoryGrid::DropHoverItemOnGround()
 	ShowDefaultCursor();
 }
 
+bool UInventoryGrid::HasHoverItem() const
+{
+	return IsValid(HoverItem);
+}
+
 #if WITH_EDITOR
 void UInventoryGrid::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const
 {

@@ -50,6 +50,9 @@ public:
 
 	//~ Begin of UInventoryWidgetBase interface
 	virtual FInventorySlotAvailabilityResult HasRoomForItem(class UInventoryItemComponent* ItemComponent) const override;
+	virtual void OnInventoryHovered(UInventoryItem* Item) override;
+	virtual void OnInventoryUnhovered() override;
+	virtual bool HasHoverItem() const override;
 	//~ End of UInventoryWidgetBase interface
 private:
 

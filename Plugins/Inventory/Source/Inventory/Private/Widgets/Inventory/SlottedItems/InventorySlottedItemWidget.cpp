@@ -5,6 +5,7 @@
 #include "Items/InventoryItem.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 
 FReply UInventorySlottedItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -20,6 +21,16 @@ FReply UInventorySlottedItemWidget::NativeOnMouseMove(const FGeometry& InGeometr
 FReply UInventorySlottedItemWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+}
+
+void UInventorySlottedItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	UInventoryStatics::ItemHovered(GetOwningPlayer(), InventoryItem.Get());
+}
+
+void UInventorySlottedItemWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
 }
 
 void UInventorySlottedItemWidget::SetInventoryItem(UInventoryItem* Item)

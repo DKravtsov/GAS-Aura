@@ -116,6 +116,8 @@ public:
 
 	void DropHoverItemOnGround();
 
+	bool HasHoverItem() const;
+
 private:
 
 	void ConstructGrid();
