@@ -163,7 +163,10 @@ void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item
 		Item->SetTotalStackCount(NewStackCount);
 	}
 	
-	// consume
+	if (auto ConsumableFragment = Item->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemConsumableFragment>())
+	{
+		ConsumableFragment->OnConsume(OwningPlayerController.Get());
+	}
 }
 
 bool UInventoryComponent::Server_ConsumeItem_Validate(UInventoryItem* Item, int32 StackCount)

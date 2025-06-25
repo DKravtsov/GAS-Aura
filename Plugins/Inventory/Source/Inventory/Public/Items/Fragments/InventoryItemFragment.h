@@ -25,7 +25,7 @@ struct FInventoryItemFragment
 
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(Categories="FragmentTag"))
 	FGameplayTag FragmentTag;
 };
 
@@ -96,9 +96,19 @@ public:
 
 };
 
+USTRUCT(BlueprintType)
+struct FInventoryItemConsumableFragment: public FInventoryItemFragment
+{
+	GENERATED_BODY()
+
+	// Real consumption should be implemented by the real project by inheriting from this fragment and overriding this method
+	virtual void OnConsume(const APlayerController* PC) {}
+};
+
 namespace InventoryFragmentTags
 {
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Grid);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Image);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Stackable);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Consumable);
 }
