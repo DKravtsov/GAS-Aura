@@ -89,6 +89,25 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FInventoryItemTextFragment: public FInventoryItemDescriptionFragment
+{
+	GENERATED_BODY()
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FText FragmentText;
+
+public:
+
+	const FText& GetFragmentText() const {return FragmentText;}
+	void SetFragmentText(const FText& NewFragmentText) {FragmentText = NewFragmentText;}
+
+	//~ Begin of FInventoryItemDescriptionFragment interface
+	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
+	//~ End of FInventoryItemDescriptionFragment interface
+};
+
+USTRUCT(BlueprintType)
 struct FInventoryItemStackableFragment: public FInventoryItemFragment
 {
 	GENERATED_BODY()
