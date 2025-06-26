@@ -8,7 +8,7 @@
 #include "InvetoryItemFragments.generated.h"
 
 USTRUCT(BlueprintType)
-struct FAuraPotionInventoryFragment: public FInventoryItemConsumableFragment
+struct FAuraPotionInventoryFragment: public FInventoryConsumeModifier
 {
 	GENERATED_BODY()
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "NativeGameplayTags.h"
+#include "StructUtils/InstancedStruct.h"
 #include "InventoryItemFragment.generated.h"
 
 
@@ -36,11 +37,11 @@ struct FInventoryItemDescriptionFragment: public FInventoryItemFragment
 {
 	GENERATED_BODY()
 
-	virtual void Assimilate(class UInventoryCompositeBase* Composite) const;
+	INVENTORY_API virtual void Assimilate(class UInventoryCompositeBase* Composite) const;
 
 protected:
 
-	bool MatchesWidgetTag(UInventoryCompositeBase* Composite) const;
+	bool MatchesWidgetTag(const UInventoryCompositeBase* Composite) const;
 };
 
 USTRUCT(BlueprintType)
@@ -118,7 +119,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FText LabelText;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(VisibleAnywhere, Category = "Inventory")
 	float Value = 0.f;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -128,10 +129,18 @@ private:
 	int32 MaxFractionalDigits = 1;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float MinValue = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float MaxValue = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
 	uint8 bCollapseLabel:1 = false;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	uint8 bCollapseValue:1 = false;
+
+	uint8 bRandomized:1 = false;
 
 protected:
 
@@ -143,30 +152,12 @@ public:
 	void SetFragmentText(const FText& NewText) {LabelText = NewText;}
 
 	//~ Begin of FInventoryItemDescriptionFragment interface
-	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
+	INVENTORY_API virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
 	//~ End of FInventoryItemDescriptionFragment interface
-};
-
-USTRUCT(BlueprintType)
-struct FInventoryItemRandomValueFragment: public FInventoryItemNumericValueFragment
-{
-	GENERATED_BODY()
-private:
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float MinValue = 0.f;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float MaxValue = 1.f;
-
-	uint8 bRandomized:1 = false;
-
-public:
 
 	//~ Begin of FInventoryItemFragment interface
-	virtual void Manifest() override;
+	INVENTORY_API virtual void Manifest() override;
 	//~ End of FInventoryItemFragment interface
-	
 };
 
 USTRUCT(BlueprintType)
@@ -194,12 +185,35 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemConsumableFragment: public FInventoryItemFragment
+struct FInventoryConsumeModifier : public FInventoryItemNumericValueFragment 
 {
 	GENERATED_BODY()
-
-	// Real consumption should be implemented by the real project by inheriting from this fragment and overriding this method
+	
 	virtual void OnConsume(const APlayerController* PC) const {}
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemConsumableFragment: public FInventoryItemDescriptionFragment
+{
+	GENERATED_BODY()
+	
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FInventoryConsumeModifier>> ConsumeModifiers;
+
+public:
+	// Real consumption should be implemented by the real project by inheriting from this fragment and overriding this method
+	virtual void OnConsume(const APlayerController* PC) const;
+
+	//~ Begin of FInventoryItemDescriptionFragment interface
+	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
+	//~ End of FInventoryItemDescriptionFragment interface
+
+	//~ Begin of FInventoryItemFragment interface
+	virtual void Manifest() override;
+	//~ End of FInventoryItemFragment interface
+
 };
 
 namespace InventoryFragmentTags

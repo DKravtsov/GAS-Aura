@@ -73,9 +73,9 @@ void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Com
 	}
 }
 
-void FInventoryItemRandomValueFragment::Manifest()
+void FInventoryItemNumericValueFragment::Manifest()
 {
-	FInventoryItemNumericValueFragment::Manifest();
+	FInventoryItemDescriptionFragment::Manifest();
 	if (!bRandomized)
 	{
 		SetValue(FMath::FRandRange(MinValue, MaxValue));
@@ -96,7 +96,33 @@ void FInventoryItemDescriptionFragment::Assimilate(UInventoryCompositeBase* Comp
 	}
 }
 
-bool FInventoryItemDescriptionFragment::MatchesWidgetTag(UInventoryCompositeBase* Composite) const
+bool FInventoryItemDescriptionFragment::MatchesWidgetTag(const UInventoryCompositeBase* Composite) const
 {
 	return GetFragmentTag().MatchesTagExact(Composite->GetFragmentTag());
+}
+
+void FInventoryItemConsumableFragment::OnConsume(const APlayerController* PC) const
+{
+	for (const auto& Modifier : ConsumeModifiers)
+	{
+		Modifier.Get().OnConsume(PC);
+	}
+}
+
+void FInventoryItemConsumableFragment::Assimilate(UInventoryCompositeBase* Composite) const
+{
+	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	for (const auto& Modifier : ConsumeModifiers)
+	{
+		Modifier.Get().Assimilate(Composite);
+	}
+}
+
+void FInventoryItemConsumableFragment::Manifest()
+{
+	FInventoryItemDescriptionFragment::Manifest();
+	for (auto& Modifier : ConsumeModifiers)
+	{
+		Modifier.GetMutable().Manifest();
+	}
 }
