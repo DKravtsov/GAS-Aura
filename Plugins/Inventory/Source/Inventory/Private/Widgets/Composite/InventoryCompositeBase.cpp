@@ -5,10 +5,7 @@
 
 void UInventoryCompositeBase::Collapse()
 {
-	if (IsVisible())
-	{
-		SetVisibility(ESlateVisibility::Collapsed);
-	}
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UInventoryCompositeBase::Expand()

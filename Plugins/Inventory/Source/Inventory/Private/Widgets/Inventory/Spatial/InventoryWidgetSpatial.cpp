@@ -67,6 +67,7 @@ void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 void UInventoryWidgetSpatial::OnInventoryUnhovered()
 {
 	//GetOrCreateItemDescription()->Hide();
+	GetOrCreateItemDescription()->Collapse();
 	SetToolTip(nullptr);
 
 	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(TimerHandle_Description);	
