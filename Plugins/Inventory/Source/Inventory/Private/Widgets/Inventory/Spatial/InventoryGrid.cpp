@@ -413,7 +413,7 @@ void UInventoryGrid::AddItem(UInventoryItem* Item)
 
 	UE_LOG(LogTemp, Warning, TEXT("Adding item: [%s]"), *GetNameSafe(Item));
 
-	auto Result = HasRoomForItemInternal(Item->GetItemManifest());
+	const auto Result = HasRoomForItemInternal(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);
 }
 

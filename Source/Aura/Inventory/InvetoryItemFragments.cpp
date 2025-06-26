@@ -6,7 +6,7 @@
 #include "GameplayEffect.h"
 #include "Characters/AuraCharacterBase.h"
 
-void FAuraPotionInventoryFragment::OnConsume(const APlayerController* PC)
+void FAuraPotionInventoryFragment::OnConsume(const APlayerController* PC) const
 {
 	if (PotionEffectClass == nullptr)
 	{

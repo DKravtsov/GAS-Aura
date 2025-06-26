@@ -59,7 +59,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
-	auto NewItem = InventoryList.AddItem(ItemComponent);
+	const auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
@@ -74,7 +74,7 @@ void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemCompone
 	{
 		ItemComponent->PickedUp();
 	}
-	else if (auto StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+	else if (const auto StackableFragment = ItemComponent->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
 	{
 		StackableFragment->SetStackCount(Remainder);
 	}
@@ -88,7 +88,7 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
 {
 	check(IsValid(ItemComponent));
-	const FGameplayTag ItemType = ItemComponent->GetItemManifest().GetItemType();
+	const FGameplayTag& ItemType = ItemComponent->GetItemManifest().GetItemType();
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
@@ -100,7 +100,7 @@ void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemCo
 		{
 			ItemComponent->PickedUp();
 		}
-		else if (auto StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+		else if (const auto StackableFragment = ItemComponent->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
 		{
 			StackableFragment->SetStackCount(Remainder);
 		}
@@ -163,7 +163,7 @@ void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item
 		Item->SetTotalStackCount(NewStackCount);
 	}
 	
-	if (auto ConsumableFragment = Item->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemConsumableFragment>())
+	if (const auto ConsumableFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemConsumableFragment>())
 	{
 		ConsumableFragment->OnConsume(OwningPlayerController.Get());
 	}

@@ -54,7 +54,7 @@ void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 	SetToolTip(nullptr);
 
 	const auto& Manifest = Item->GetItemManifest();
-	FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, &Manifest, ItemDescWidget]()
+	const FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, &Manifest, ItemDescWidget]()
 	{
 		//ItemDescWidget->Show();
 		SetToolTip(ItemDescWidget);

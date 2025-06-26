@@ -18,5 +18,5 @@ struct FAuraPotionInventoryFragment: public FInventoryItemConsumableFragment
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float PotionLevel;
 
-	virtual void OnConsume(const APlayerController* PC) override;
+	virtual void OnConsume(const APlayerController* PC) const override;
 };

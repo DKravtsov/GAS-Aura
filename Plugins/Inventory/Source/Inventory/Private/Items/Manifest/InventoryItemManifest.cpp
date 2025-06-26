@@ -13,7 +13,7 @@ FInventoryItemManifest::FInventoryItemManifest()
 {
 }
 
-UInventoryItem* FInventoryItemManifest::Manifest(UObject* NewOuter)
+UInventoryItem* FInventoryItemManifest::Manifest(UObject* NewOuter) const
 {
 	const auto NewItem = NewObject<UInventoryItem>(NewOuter, UInventoryItem::StaticClass());
 	NewItem->SetItemManifest(*this);

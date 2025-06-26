@@ -33,7 +33,8 @@ public:
 
 	FText GetPickupMessage() { return PickupMessage; }
 
-	FInventoryItemManifest GetItemManifest() const { return ItemManifest; }
+	const FInventoryItemManifest& GetItemManifest() const { return ItemManifest; }
+	FInventoryItemManifest& GetItemManifestMutable() { return ItemManifest; }
 
 	void PickedUp();
 

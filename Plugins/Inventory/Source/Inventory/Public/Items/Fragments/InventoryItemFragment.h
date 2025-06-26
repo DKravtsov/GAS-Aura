@@ -137,7 +137,7 @@ struct FInventoryItemConsumableFragment: public FInventoryItemFragment
 	GENERATED_BODY()
 
 	// Real consumption should be implemented by the real project by inheriting from this fragment and overriding this method
-	virtual void OnConsume(const APlayerController* PC) {}
+	virtual void OnConsume(const APlayerController* PC) const {}
 };
 
 namespace InventoryFragmentTags
