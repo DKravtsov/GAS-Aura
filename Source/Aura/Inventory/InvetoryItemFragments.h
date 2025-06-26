@@ -16,7 +16,10 @@ struct FAuraPotionInventoryFragment: public FInventoryConsumeModifier
 	TSubclassOf<class UGameplayEffect> PotionEffectClass;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float PotionLevel;
+	float PotionLevel = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FGameplayTag SetByCallerTag;
 
 	virtual void OnConsume(const APlayerController* PC) const override;
 };

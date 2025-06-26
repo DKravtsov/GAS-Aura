@@ -119,14 +119,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FText LabelText;
 
-	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+	UPROPERTY(VisibleInstanceOnly, Category = "Inventory")
 	float Value = 0.f;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	int32 MinFractionalDigits = 0;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	int32 MaxFractionalDigits = 1;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float MinValue = 0.f;
@@ -134,10 +128,16 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float MaxValue = 1.f;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
+	int32 MinFractionalDigits = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
+	int32 MaxFractionalDigits = 1;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
 	uint8 bCollapseLabel:1 = false;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
 	uint8 bCollapseValue:1 = false;
 
 	uint8 bRandomized:1 = false;
@@ -145,6 +145,7 @@ private:
 protected:
 
 	void SetValue(float NewValue) {Value = NewValue;}
+	float GetValue() const {return Value;}
 
 public:
 

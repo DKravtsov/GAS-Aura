@@ -3,6 +3,8 @@
 
 #include "InvetoryItemFragments.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "Characters/AuraCharacterBase.h"
 
@@ -15,8 +17,21 @@ void FAuraPotionInventoryFragment::OnConsume(const APlayerController* PC) const
 		return;
 	}
 
-	if (AAuraCharacterBase* Character = IsValid(PC) ? Cast<AAuraCharacterBase>(PC->GetCharacter()) : nullptr; IsValid(Character))
+	// if (AAuraCharacterBase* Character = IsValid(PC) ? Cast<AAuraCharacterBase>(PC->GetCharacter()) : nullptr; IsValid(Character))
+	// {
+	// 	Character->ApplyGameplayEffectToSelf(PotionEffectClass, PotionLevel);
+	// }
+
+	if (!IsValid(PC))
+		return;
+	ACharacter* Character = PC->GetCharacter();
+	
+	if (auto AbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
 	{
-		Character->ApplyGameplayEffectToSelf(PotionEffectClass, PotionLevel);
+		auto EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+		EffectContextHandle.AddSourceObject(Character);
+		auto SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(PotionEffectClass, PotionLevel, EffectContextHandle);
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, SetByCallerTag, GetValue());
+		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 	}
 }
