@@ -9,8 +9,8 @@
 /**
  * 
  */
-UCLASS()
-class INVENTORY_API UInventoryLeaf : public UInventoryCompositeBase
+UCLASS(MinimalAPI, Abstract)
+class UInventoryLeaf : public UInventoryCompositeBase
 {
 	GENERATED_BODY()
 

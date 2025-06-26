@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(MinimalAPI, Abstract)
 class UInventoryComposite : public UInventoryCompositeBase
 {
 	GENERATED_BODY()
