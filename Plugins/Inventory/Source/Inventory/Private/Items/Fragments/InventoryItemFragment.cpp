@@ -5,6 +5,7 @@
 
 #include "NativeGameplayTags.h"
 #include "Widgets/Composite/InventoryCompositeBase.h"
+#include "Widgets/Composite/InventoryLeafImage.h"
 
 namespace InventoryFragmentTags
 {
@@ -22,6 +23,21 @@ FInventoryItemGridFragment::FInventoryItemGridFragment()
 FInventoryItemImageFragment::FInventoryItemImageFragment()
 {
 	SetFragmentTag(InventoryFragmentTags::FragmentTag_Image);
+}
+
+void FInventoryItemImageFragment::Assimilate(UInventoryCompositeBase* Composite) const
+{
+	FInventoryItemDescriptionFragment::Assimilate(Composite);
+
+	if (MatchesWidgetTag(Composite))
+	{
+		if (const auto Image = Cast<UInventoryLeafImage>(Composite))
+		{
+			Image->SetImageFromSoftTexture(Icon);
+			Image->SetBoxSize(IconDimensions);
+			Image->SetImageSize(IconDimensions);
+		}
+	}
 }
 
 FInventoryItemStackableFragment::FInventoryItemStackableFragment()

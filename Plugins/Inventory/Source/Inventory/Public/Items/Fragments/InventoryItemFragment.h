@@ -30,6 +30,18 @@ private:
 };
 
 USTRUCT(BlueprintType)
+struct FInventoryItemDescriptionFragment: public FInventoryItemFragment
+{
+	GENERATED_BODY()
+
+	virtual void Assimilate(class UInventoryCompositeBase* Composite) const;
+
+protected:
+
+	bool MatchesWidgetTag(UInventoryCompositeBase* Composite) const;
+};
+
+USTRUCT(BlueprintType)
 struct FInventoryItemGridFragment : public FInventoryItemFragment
 {
 	GENERATED_BODY()
@@ -53,7 +65,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemImageFragment: public FInventoryItemFragment
+struct FInventoryItemImageFragment: public FInventoryItemDescriptionFragment
 {
 	GENERATED_BODY()
 private:
@@ -70,6 +82,10 @@ public:
 
 	const TSoftObjectPtr<UTexture2D>& GetIcon() const {return Icon;}
 	TSoftObjectPtr<UTexture2D>& GetIconMutable() {return Icon;}
+
+	//~ Begin of FInventoryItemDescriptionFragment interface
+	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
+	//~ End of FInventoryItemDescriptionFragment interface
 };
 
 USTRUCT(BlueprintType)
@@ -103,18 +119,6 @@ struct FInventoryItemConsumableFragment: public FInventoryItemFragment
 
 	// Real consumption should be implemented by the real project by inheriting from this fragment and overriding this method
 	virtual void OnConsume(const APlayerController* PC) {}
-};
-
-USTRUCT(BlueprintType)
-struct FInventoryItemDescriptionFragment: public FInventoryItemFragment
-{
-	GENERATED_BODY()
-
-	virtual void Assimilate(class UInventoryCompositeBase* Composite) const;
-
-protected:
-
-	bool MatchesWidgetTag(UInventoryCompositeBase* Composite) const;
 };
 
 namespace InventoryFragmentTags
