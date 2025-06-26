@@ -6,6 +6,7 @@
 #include "NativeGameplayTags.h"
 #include "Widgets/Composite/InventoryCompositeBase.h"
 #include "Widgets/Composite/InventoryLeafImage.h"
+#include "Widgets/Composite/InventoryLeafLabeledValue.h"
 #include "Widgets/Composite/InventoryLeafText.h"
 
 namespace InventoryFragmentTags
@@ -52,6 +53,33 @@ void FInventoryItemTextFragment::Assimilate(UInventoryCompositeBase* Composite) 
 		{
 			LeafText->SetText(FragmentText);
 		}
+	}
+}
+
+void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Composite) const
+{
+	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	if (MatchesWidgetTag(Composite))
+	{
+		if (const auto LabeledText = Cast<UInventoryLeafLabeledValue>(Composite))
+		{
+			LabeledText->SetLabelText(LabelText, bCollapseLabel);
+			FNumberFormattingOptions Options;
+            Options.MinimumFractionalDigits = MinFractionalDigits;
+            Options.MaximumFractionalDigits = MaxFractionalDigits;
+			Options.UseGrouping = true;
+			LabeledText->SetValueText(FText::AsNumber(Value, &Options), bCollapseValue);
+		}
+	}
+}
+
+void FInventoryItemRandomValueFragment::Manifest()
+{
+	FInventoryItemNumericValueFragment::Manifest();
+	if (!bRandomized)
+	{
+		SetValue(FMath::FRandRange(MinValue, MaxValue));
+		bRandomized = true;
 	}
 }
 

@@ -33,12 +33,12 @@ private:
 	TArray<TInstancedStruct<FInventoryItemFragment>> Fragments;
 	
 public:
-	INVENTORY_API FInventoryItemManifest();
+	FInventoryItemManifest() {}
 
 	const FGameplayTag& GetItemCategory() const {return ItemCategory;}
 	const FGameplayTag& GetItemType() const {return ItemType;}
 
-	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter) const;
+	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
 	INVENTORY_API AActor* SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 	INVENTORY_API void AssimilateInventoryFragments(class UInventoryCompositeBase* Composite) const;
@@ -99,4 +99,8 @@ public:
 		}
 		return Result;
 	}
+
+private:
+
+	void ClearFragments();
 };

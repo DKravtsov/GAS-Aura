@@ -23,6 +23,8 @@ struct FInventoryItemFragment
 	const FGameplayTag& GetFragmentTag() const {return FragmentTag;}
 	void SetFragmentTag(const FGameplayTag& NewFragmentTag) {FragmentTag = NewFragmentTag;}
 
+	virtual void Manifest() {}
+
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(Categories="FragmentTag"))
@@ -105,6 +107,66 @@ public:
 	//~ Begin of FInventoryItemDescriptionFragment interface
 	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
 	//~ End of FInventoryItemDescriptionFragment interface
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemNumericValueFragment: public FInventoryItemDescriptionFragment
+{
+	GENERATED_BODY()
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FText LabelText;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float Value = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MinFractionalDigits = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MaxFractionalDigits = 1;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	uint8 bCollapseLabel:1 = false;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	uint8 bCollapseValue:1 = false;
+
+protected:
+
+	void SetValue(float NewValue) {Value = NewValue;}
+
+public:
+
+	const FText& GetLabelText() const {return LabelText;}
+	void SetFragmentText(const FText& NewText) {LabelText = NewText;}
+
+	//~ Begin of FInventoryItemDescriptionFragment interface
+	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
+	//~ End of FInventoryItemDescriptionFragment interface
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemRandomValueFragment: public FInventoryItemNumericValueFragment
+{
+	GENERATED_BODY()
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float MinValue = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float MaxValue = 1.f;
+
+	uint8 bRandomized:1 = false;
+
+public:
+
+	//~ Begin of FInventoryItemFragment interface
+	virtual void Manifest() override;
+	//~ End of FInventoryItemFragment interface
+	
 };
 
 USTRUCT(BlueprintType)

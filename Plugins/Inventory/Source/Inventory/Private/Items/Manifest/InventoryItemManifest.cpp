@@ -9,15 +9,17 @@
 #include "Widgets/Composite/InventoryCompositeBase.h"
 
 
-FInventoryItemManifest::FInventoryItemManifest()
-{
-}
-
-UInventoryItem* FInventoryItemManifest::Manifest(UObject* NewOuter) const
+UInventoryItem* FInventoryItemManifest::Manifest(UObject* NewOuter)
 {
 	const auto NewItem = NewObject<UInventoryItem>(NewOuter, UInventoryItem::StaticClass());
 	NewItem->SetItemManifest(*this);
 
+	for (auto& Fragment : NewItem->GetItemManifestMutable().Fragments)
+	{
+		Fragment.GetMutable().Manifest();
+	}
+	ClearFragments();
+	
 	return NewItem;
 }
 
@@ -54,4 +56,13 @@ void FInventoryItemManifest::AssimilateInventoryFragments(UInventoryCompositeBas
 		// test member reference
 		Composite->ApplyWorkFunction();
 	}
+}
+
+void FInventoryItemManifest::ClearFragments()
+{
+	for (auto& Fragment : Fragments)
+	{
+		Fragment.Reset();
+	}
+	Fragments.Empty();
 }

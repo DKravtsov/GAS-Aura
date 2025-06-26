@@ -59,7 +59,7 @@ UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemCompon
 	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-		NewEntry.Item = ItemComponent->GetItemManifest().Manifest(OwningActor);
+		NewEntry.Item = ItemComponent->GetItemManifestMutable().Manifest(OwningActor);
 		InventoryComponent->AddRepSubObj(NewEntry.Item);
 		MarkItemDirty(NewEntry);
 		return NewEntry.Item;
