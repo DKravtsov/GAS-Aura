@@ -3,6 +3,7 @@
 
 #include "Items/Components/InventoryItemComponent.h"
 
+#include "Items/InventoryItemData.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -34,6 +35,11 @@ void UInventoryItemComponent::InitItemManifestFrom(const FInventoryItemManifest&
 
 void UInventoryItemComponent::BeginPlay()
 {
+	if (!bOverrideItemManifest && !ItemData.IsNull())
+	{
+		ItemManifest = ItemData.LoadSynchronous()->GetItemManifest();
+	}
+	
 	if (!ItemManifest.PickupActorClass)
 	{
 		ItemManifest.PickupActorClass = GetOwner()->GetClass();

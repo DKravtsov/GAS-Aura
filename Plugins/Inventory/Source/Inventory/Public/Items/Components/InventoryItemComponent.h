@@ -8,16 +8,24 @@
 #include "InventoryItemComponent.generated.h"
 
 
+class UInventoryItemData;
+
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, meta=(BlueprintSpawnableComponent))
 class UInventoryItemComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FText PickupMessage;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSoftObjectPtr<UInventoryItemData> ItemData;
+
+	UPROPERTY(EditInstanceOnly, Category="Inventory", meta=(EditCondition="bOverrideItemManifest"))
 	FInventoryItemManifest ItemManifest;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	FText PickupMessage;
+	UPROPERTY(EditInstanceOnly, Category = "Inventory", meta=(InlineEditConditionToggle))
+	bool bOverrideItemManifest = false;
 	
 public:
 
