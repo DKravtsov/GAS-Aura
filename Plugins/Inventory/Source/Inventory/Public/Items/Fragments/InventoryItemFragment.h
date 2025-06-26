@@ -142,8 +142,10 @@ struct FInventoryItemConsumableFragment: public FInventoryItemFragment
 
 namespace InventoryFragmentTags
 {
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Grid);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Image);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Stackable);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Consumable);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Grid);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Image);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Stackable);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Consumable);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_ItemName);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_ItemDescription);
 }

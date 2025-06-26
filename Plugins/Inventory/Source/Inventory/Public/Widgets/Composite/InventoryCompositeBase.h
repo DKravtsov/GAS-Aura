@@ -15,7 +15,7 @@ class UInventoryCompositeBase : public UUserWidget
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(Categories="FragmentTag"))
 	FGameplayTag FragmentTag;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
