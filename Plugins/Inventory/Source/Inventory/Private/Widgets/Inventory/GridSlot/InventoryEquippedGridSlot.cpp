@@ -17,7 +17,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry,
 {
 	OnMouseEnter( InGeometry, InMouseEvent ); // call BP event directly because we don't call super
 
-	if (!IsAvailable())
+	if (!IsAvailable() || IsValid(EquippedSlottedItem))
 		return;
 	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
 	{
@@ -33,7 +33,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouse
 {
 	OnMouseLeave(InMouseEvent); // call BP event directly because we don't call super
 	
-	if (!IsAvailable())
+	if (!IsAvailable() || IsValid(EquippedSlottedItem))
 		return;
 	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
 	{
