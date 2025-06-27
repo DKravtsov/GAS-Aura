@@ -35,7 +35,7 @@ public:
 	//~ End of UObject interface
 
 	template<typename TFragment>
-	static const TFragment* GetFragment(UInventoryItem* Item, const FGameplayTag& FragmentTag)
+	static const TFragment* GetFragment(const UInventoryItem* Item, const FGameplayTag& FragmentTag)
 	{
 		if (Item != nullptr)
 		{
@@ -47,7 +47,7 @@ public:
 
 	bool IsStackable() const;
 	bool IsConsumable() const;
-	bool IsEqippable() const;
+	bool IsEquipable() const;
 
 	const FGameplayTag& GetItemType() const;
 

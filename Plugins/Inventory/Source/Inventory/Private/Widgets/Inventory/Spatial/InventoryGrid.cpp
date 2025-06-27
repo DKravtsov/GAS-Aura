@@ -96,7 +96,7 @@ void UInventoryGrid::OnTileParametersUpdated(const FInventoryTileParameters& Par
 	UnHighlightSlots();
 	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex))
 	{
-		if (const auto GridFragment = GetGridFragmentFromInventoryItem(CurrentQueryResult.ValidItem.Get()))
+		if (const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(CurrentQueryResult.ValidItem.Get()))
 		{
 			ChangeHoverType(CurrentQueryResult.UpperLeftIndex, GridFragment->GetGridSize(), EInventoryGridSlotVisualState::GrayedOut);
 		}
@@ -428,10 +428,10 @@ void UInventoryGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Re
 
 void UInventoryGrid::AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable,	const int32 StackAmount)
 {
-	const auto GridFragment = GetGridFragmentFromInventoryItem(Item);
+	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(Item);
 	if (GridFragment == nullptr)
 		return;
-	const auto ImageFragment = GetImageFragmentFromInventoryItem(Item);
+	const auto ImageFragment = UInventoryWidgetUtils::GetImageFragmentFromInventoryItem(Item);
 	if (ImageFragment == nullptr)
 		return;
 
@@ -485,16 +485,6 @@ void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryIte
 	}
 }
 
-const FInventoryItemGridFragment* UInventoryGrid::GetGridFragmentFromInventoryItem(UInventoryItem* NewItem)
-{
-	return UInventoryItem::GetFragment<FInventoryItemGridFragment>(NewItem, InventoryFragmentTags::FragmentTag_Grid);
-}
-
-const FInventoryItemImageFragment* UInventoryGrid::GetImageFragmentFromInventoryItem(UInventoryItem* Item)
-{
-	return UInventoryItem::GetFragment<FInventoryItemImageFragment>(Item, InventoryFragmentTags::FragmentTag_Image);
-}
-
 void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
 {
 	check(GridSlots.IsValidIndex(Index));
@@ -504,7 +494,7 @@ void UInventoryGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index,
 		GridSlots[Index]->SetStackCount(StackAmount);
 	}
 
-	const FInventoryItemGridFragment* GridFragment = GetGridFragmentFromInventoryItem(NewItem);
+	const FInventoryItemGridFragment* GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(NewItem);
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
 
 	UInventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns,
@@ -634,10 +624,10 @@ void UInventoryGrid::SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, con
 
 void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
 {
-	const auto GridFragment = GetGridFragmentFromInventoryItem(ClickedItem);
+	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(ClickedItem);
 	if (GridFragment == nullptr)
 		return;
-	const auto ImageFragment = GetImageFragmentFromInventoryItem(ClickedItem);
+	const auto ImageFragment = UInventoryWidgetUtils::GetImageFragmentFromInventoryItem(ClickedItem);
 	if (ImageFragment == nullptr)
 		return;
 
@@ -673,7 +663,7 @@ void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 Gr
 
 void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex)
 {
-	const auto GridFragment = GetGridFragmentFromInventoryItem(ClickedItem);
+	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(ClickedItem);
 	if (GridFragment == nullptr)
 		return;
 
@@ -878,7 +868,7 @@ void UInventoryGrid::FillInStacksOrConsumeHover(const int32 ClickedStackCount, c
 		ClearHoverItem();
 		ShowDefaultCursor();
 
-		const auto GridFragment = GetGridFragmentFromInventoryItem(GridSlots[GridIndex]->GetInventoryItem().Get());
+		const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(GridSlots[GridIndex]->GetInventoryItem().Get());
 		const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
 		HighlightSlots(GridIndex, Dimensions);
 	}

@@ -5,6 +5,7 @@
 
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Components/Widget.h"
+#include "Items/InventoryItem.h"
 
 int32 UInventoryWidgetUtils::GetIndexFromPosition(const FIntPoint& Position, const int32 Columns)
 {
@@ -38,4 +39,27 @@ bool UInventoryWidgetUtils::IsWithinBounds(const FVector2D& WidgetPosition, cons
 {
 	return MousePosition.X >= WidgetPosition.X && MousePosition.X <= (WidgetPosition.X + WidgetSize.X) &&
 		MousePosition.Y >= WidgetPosition.Y && MousePosition.Y <= (WidgetPosition.Y + WidgetSize.Y);
+}
+
+const FInventoryItemImageFragment* UInventoryWidgetUtils::GetImageFragmentFromInventoryItem(const UInventoryItem* Item)
+{
+	return UInventoryItem::GetFragment<FInventoryItemImageFragment>(Item, InventoryFragmentTags::FragmentTag_Image);
+}
+
+const FInventoryItemGridFragment* UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(const UInventoryItem* Item)
+{
+	return UInventoryItem::GetFragment<FInventoryItemGridFragment>(Item, InventoryFragmentTags::FragmentTag_Grid);
+}
+
+FIntPoint UInventoryWidgetUtils::GetGridDimensionsOfItem(const UInventoryItem* Item)
+{
+	const auto GridFragment = GetGridFragmentFromInventoryItem(Item);
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
+	return Dimensions;
+}
+
+FVector2D UInventoryWidgetUtils::GetItemDrawSize(const UInventoryItem* Item, const float TileSize)
+{
+	const auto GridFragment = GetGridFragmentFromInventoryItem(Item);
+	return GridFragment ? GetDrawSize(*GridFragment, TileSize) : FVector2D::ZeroVector;
 }

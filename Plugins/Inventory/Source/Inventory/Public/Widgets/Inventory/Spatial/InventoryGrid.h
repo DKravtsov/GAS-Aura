@@ -135,15 +135,11 @@ private:
 	                                                     const FInventoryItemImageFragment& ImageFragment, bool bStackable, int32 StackAmount);
 	void AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount);
 
-	FVector2D GetDrawSize(const struct FInventoryItemGridFragment& GridFragment) const;
 	void SetSlottedItemImage(const UInventorySlottedItemWidget* SlottedItem, const FInventoryItemGridFragment& GridFragment,
 	                         const FInventoryItemImageFragment& ImageFragment) const;
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
 	
-	static const FInventoryItemImageFragment* GetImageFragmentFromInventoryItem(UInventoryItem* Item);
-	static const FInventoryItemGridFragment* GetGridFragmentFromInventoryItem(UInventoryItem* NewItem);
-
 	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
 
 	bool HasRoomAtIndex(const UInventoryGridSlot* GridSlot, const FIntPoint& Dimensions,

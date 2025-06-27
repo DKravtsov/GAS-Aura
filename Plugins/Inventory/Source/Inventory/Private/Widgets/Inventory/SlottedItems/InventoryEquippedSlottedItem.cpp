@@ -5,7 +5,7 @@
 
 FReply UInventoryEquippedSlottedItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	EquippedSlottedItemClicked.Broadcast(this);
+	OnEquippedSlottedItemClicked.Broadcast(this);
 	return FReply::Handled();
 }
 

@@ -34,6 +34,15 @@ FGameplayTag UInventoryStatics::GetItemCategory(UInventoryItemComponent* ItemCom
 	return ItemComponent->GetItemManifest().GetItemCategory();
 }
 
+UInventoryWidgetBase* UInventoryStatics::GetInventoryWidget(const APlayerController* PlayerController)
+{
+	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	{
+		return InventoryComponent->GetInventoryMenu();
+	}
+	return nullptr;
+}
+
 void UInventoryStatics::ItemHovered(APlayerController* PlayerController, UInventoryItem* Item)
 {
 	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
@@ -50,7 +59,7 @@ void UInventoryStatics::ItemHovered(APlayerController* PlayerController, UInvent
 
 void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 {
-	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
 	{
 		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
 		{
@@ -59,11 +68,11 @@ void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 	}
 }
 
-class UInventoryHoverProxy* UInventoryStatics::GetHoverItem(APlayerController* PlayerController)
+class UInventoryHoverProxy* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
 {
-	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
 	{
-		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
+		if (const UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
 		{
 			return InventoryMenu->GetHoverItem();
 		}

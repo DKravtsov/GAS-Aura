@@ -30,7 +30,7 @@ bool UInventoryItem::IsConsumable() const
 	return GetItemManifest().GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Consumable);
 }
 
-bool UInventoryItem::IsEqippable() const
+bool UInventoryItem::IsEquipable() const
 {
 	return GetItemManifest().GetItemType().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment);
 }

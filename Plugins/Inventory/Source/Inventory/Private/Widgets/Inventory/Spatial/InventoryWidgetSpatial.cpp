@@ -170,6 +170,6 @@ bool UInventoryWidgetSpatial::CanEquipHoverItem(UInventoryEquippedGridSlot* Equi
 
 	UInventoryItem* HeldItem = HoverItem->GetInventoryItem();
 	return HasHoverItem() && IsValid(HeldItem)
-		&& !HoverItem->IsStackable() && HeldItem->IsEqippable()
+		&& !HoverItem->IsStackable() && HeldItem->IsEquipable()
 		&& HeldItem->GetItemType().MatchesTag(EquipmentTypeTag);
 }

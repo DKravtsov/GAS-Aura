@@ -18,7 +18,7 @@ class UInventoryEquippedSlottedItem : public UInventorySlottedItemWidget
 	GENERATED_BODY()
 public:
 
-	FEquippedSlottedItemClickedSignature EquippedSlottedItemClicked;
+	FEquippedSlottedItemClickedSignature OnEquippedSlottedItemClicked;
 
 private:
 	UPROPERTY()
