@@ -16,6 +16,7 @@
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItem.h"
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
+#include "Inventory.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
 {

@@ -3,6 +3,7 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 
+#include "Inventory.h"
 #include "Components/CapsuleComponent.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -133,15 +134,18 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
 
 void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT;
 	Server_EquipItem(ItemToEquip, ItemToUnequip);
 	if (OwningPlayerController->GetNetMode() != NM_DedicatedServer)
 	{
+		LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 		OnItemEquipped.Broadcast(ItemToEquip);
 	}
 }
 
 void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	Multicast_EquipItem(ItemToEquip, ItemToUnequip);
 }
 
@@ -152,6 +156,7 @@ bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip,
 
 void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	OnItemUnequipped.Broadcast(ItemToUnequip);
 	OnItemEquipped.Broadcast(ItemToEquip);
 }
