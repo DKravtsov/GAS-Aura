@@ -21,7 +21,7 @@ class UInventoryItemComponent : public UActorComponent
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSoftObjectPtr<UInventoryItemData> ItemData;
 
-	UPROPERTY(EditInstanceOnly, Category="Inventory", meta=(EditCondition="bOverrideItemManifest"))
+	UPROPERTY(EditInstanceOnly, Category="Inventory", meta=(EditCondition="bOverrideItemManifest"), Replicated)
 	FInventoryItemManifest ItemManifest;
 
 	UPROPERTY(EditInstanceOnly, Category = "Inventory", meta=(InlineEditConditionToggle))
