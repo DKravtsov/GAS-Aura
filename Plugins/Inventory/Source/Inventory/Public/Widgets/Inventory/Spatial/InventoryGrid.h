@@ -205,4 +205,5 @@ private:
 	void OnPopupMenuConsume(const int32 GridIndex);
 	void OnPopupMenuDrop(const int32 GridIndex);
 
+	static FSlateBrush GetTempBrush();
 };

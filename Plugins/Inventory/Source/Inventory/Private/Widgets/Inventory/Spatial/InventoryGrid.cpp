@@ -458,21 +458,32 @@ UInventorySlottedItemWidget* UInventoryGrid::CreateSlottedItemWidget(UInventoryI
 	return SlottedItem;
 }
 
-FVector2D UInventoryGrid::GetDrawSize(const FInventoryItemGridFragment& GridFragment) const
-{
-	const float IconTileSize = TileSize - GridFragment.GetGridPadding() * 2; 
-	return GridFragment.GetGridSize() * IconTileSize;
-}
-
 void UInventoryGrid::SetSlottedItemImage(const UInventorySlottedItemWidget* SlottedItem, const FInventoryItemGridFragment& GridFragment, const FInventoryItemImageFragment& ImageFragment) const
 {
-	FSlateBrush ImageBrush;
-	// ToDo: async loading
-	ImageBrush.SetResourceObject(ImageFragment.GetIcon().LoadSynchronous());
-	ImageBrush.DrawAs = ESlateBrushDrawType::Image;
-	ImageBrush.ImageSize = GetDrawSize(GridFragment);
+	SlottedItem->SetImageBrush(GetTempBrush());
+	
+	const FVector2D DrawSize = UInventoryWidgetUtils::GetDrawSize(GridFragment, TileSize);
+	ImageFragment.GetIcon().LoadAsync(FLoadSoftObjectPathAsyncDelegate::CreateLambda([DrawSize, SlottedItem](const FSoftObjectPath& SoftPath, UObject* LoadedObject)
+	{
+		if (!IsValid(LoadedObject))
+		{
+			UE_LOG(LogInventory, Error, TEXT("Loading failed: [%s]"), *SoftPath.ToString());
+			return;
+		}
+		FSlateBrush ImageBrush;
+		ImageBrush.SetResourceObject(LoadedObject);
+		ImageBrush.DrawAs = ESlateBrushDrawType::Image;
+		ImageBrush.ImageSize = DrawSize;
+		SlottedItem->SetImageBrush(ImageBrush);
+	}));
+}
 
-	SlottedItem->SetImageBrush(ImageBrush);
+FSlateBrush UInventoryGrid::GetTempBrush()
+{
+	FSlateBrush Brush;
+	Brush.DrawAs = ESlateBrushDrawType::Image;
+	Brush.ImageSize = FVector2D{1,1};
+	return Brush;
 }
 
 void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const
@@ -636,15 +647,23 @@ void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 Gr
 		HoverItem = CreateWidget<UInventoryHoverProxy>(GetOwningPlayer(), HoverItemClass);
 	}
 
-	const FVector2D DrawSize = GetDrawSize(*GridFragment);
+	const FVector2D DrawSize = UInventoryWidgetUtils::GetDrawSize(*GridFragment, TileSize) * UWidgetLayoutLibrary::GetViewportScale(this);;
 
-	FSlateBrush IconBrush;
-	// ToDo: async loading
-	IconBrush.SetResourceObject(ImageFragment->GetIcon().LoadSynchronous());
-	IconBrush.DrawAs = ESlateBrushDrawType::Image;
-	IconBrush.ImageSize = DrawSize *UWidgetLayoutLibrary::GetViewportScale(this);
+	ImageFragment->GetIcon().LoadAsync(FLoadSoftObjectPathAsyncDelegate::CreateLambda([DrawSize, this](const FSoftObjectPath& SoftPath, UObject* LoadedObject)
+	{
+		if (!IsValid(LoadedObject))
+		{
+			UE_LOG(LogInventory, Error, TEXT("Loading failed: [%s]"), *SoftPath.ToString());
+			return;
+		}
+		FSlateBrush ImageBrush;
+		ImageBrush.SetResourceObject(LoadedObject);
+		ImageBrush.DrawAs = ESlateBrushDrawType::Image;
+		ImageBrush.ImageSize = DrawSize;
+		HoverItem->SetImageBrush(ImageBrush);
+	}));
 
-	HoverItem->SetImageBrush(IconBrush);
+	HoverItem->SetImageBrush(GetTempBrush());
 	HoverItem->SetGridDimensions(GridFragment->GetGridSize());
 	HoverItem->SetInventoryItem(ClickedItem);
 	HoverItem->SetIsStackable(ClickedItem->IsStackable());
