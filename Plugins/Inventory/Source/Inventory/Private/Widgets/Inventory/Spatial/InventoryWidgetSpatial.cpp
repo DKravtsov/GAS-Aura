@@ -13,6 +13,7 @@
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
 #include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
+#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItem.h"
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
 
@@ -95,6 +96,11 @@ UInventoryHoverProxy* UInventoryWidgetSpatial::GetHoverItem() const
 	return ActiveGrid.IsValid() ? ActiveGrid->GetHoverItem() : nullptr;
 }
 
+float UInventoryWidgetSpatial::GetTileSize() const
+{
+	return ActiveGrid.IsValid() ? ActiveGrid->GetTileSize() : 0.f;
+}
+
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
 {
 	SetActiveGrid(InventoryGrid_Equipment, Button_Equipment);
@@ -117,10 +123,20 @@ void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot
 		return;
 
 	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
+	const float TileSize = GetTileSize();
+	if (UInventoryEquippedSlottedItem* EquippedSlottedItem = GridSlot->OnItemEquipped(GetHoverItem()->GetInventoryItem(), EquipmentTypeTag, TileSize))
+	{
+		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
+
+		// Clear the Hover Item
+
+		// Inform the server that we've equipped an item (potentially unequipping an item as well)
+	}
+}
+
+void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* SlottedItem)
+{
 	
-	
-	// Clear the Hover Item
-	// Inform the server that we've equipped an item (potentially unequipping an item as well)
 }
 
 void UInventoryWidgetSpatial::DisableButton(UButton* Button)

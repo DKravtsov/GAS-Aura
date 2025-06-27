@@ -6,6 +6,7 @@
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 #include "InventoryWidgetSpatial.generated.h"
 
+class UInventoryEquippedSlottedItem;
 class UButton;
 class UWidgetSwitcher;
 class UInventoryGrid;
@@ -68,6 +69,7 @@ public:
 	virtual void OnInventoryUnhovered() override;
 	virtual bool HasHoverItem() const override;
 	virtual UInventoryHoverProxy* GetHoverItem() const override;
+	virtual float GetTileSize() const override;
 	//~ End of UInventoryWidgetBase interface
 private:
 
@@ -82,6 +84,9 @@ private:
 
 	UFUNCTION()
 	void EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag);
+
+	UFUNCTION()
+	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* SlottedItem);
 
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);

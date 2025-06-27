@@ -98,6 +98,8 @@ public:
 		return FIntPoint(Index % Columns, Index / Columns);
 	}
 
+	float GetTileSize() const { return TileSize; }
+
 	UFUNCTION()
 	INVENTORY_API void AddItem(UInventoryItem* Item);
 

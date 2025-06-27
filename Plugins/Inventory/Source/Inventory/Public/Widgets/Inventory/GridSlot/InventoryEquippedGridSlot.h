@@ -26,7 +26,16 @@ private:
 	FGameplayTag EquipmentTypeTag;
 
 	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class UOverlay> Overlay_Root;
+	
+	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UImage> Image_GrayedOutIcon;
+
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<class UInventoryEquippedSlottedItem> EquippedSlottedItemClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryEquippedSlottedItem> EquippedSlottedItem;
 	
 public:
 
