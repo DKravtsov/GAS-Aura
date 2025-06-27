@@ -22,4 +22,5 @@ public:
 	INVENTORY_API virtual void OnInventoryHovered(UInventoryItem* Item) {}
 	INVENTORY_API virtual void OnInventoryUnhovered() {}
 	INVENTORY_API virtual bool HasHoverItem() const { return false; }
+	INVENTORY_API virtual class UInventoryHoverProxy* GetHoverItem() const { return nullptr; }
 };

@@ -117,6 +117,7 @@ public:
 	void DropHoverItemOnGround();
 
 	bool HasHoverItem() const;
+	UInventoryHoverProxy* GetHoverItem() const {return HoverItem;}
 
 private:
 

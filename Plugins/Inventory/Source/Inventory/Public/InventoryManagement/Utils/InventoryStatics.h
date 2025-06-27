@@ -74,4 +74,7 @@ public:
 	
 	UFUNCTION(blueprintCallable, Category = "Inventory")
 	static void ItemUnhovered(APlayerController* PlayerController);
+
+	UFUNCTION(blueprintCallable, Category = "Inventory")
+	static class UInventoryHoverProxy* GetHoverItem(APlayerController* PlayerController);
 };

@@ -34,16 +34,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;
 
-	int32 TileIndex = INDEX_NONE;
-	int32 StackCount = 0;
-	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
-
-	TWeakObjectPtr<class UInventoryItem> InventoryItem;
-
-	EInventoryGridSlotVisualState GridSlotState;
-
-	bool bIsAvailable = true;
-
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	FSlateBrush DefaultBrush;
 
@@ -55,6 +45,16 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	FSlateBrush GrayedOutBrush;
+
+	int32 TileIndex = INDEX_NONE;
+	int32 StackCount = 0;
+	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
+
+	TWeakObjectPtr<class UInventoryItem> InventoryItem;
+
+	EInventoryGridSlotVisualState GridSlotState;
+
+	bool bIsAvailable = true;
 	
 public:
 
@@ -82,6 +82,7 @@ public:
 	void SetGridSlotState(EInventoryGridSlotVisualState NewState);
 
 	//~ Begin of UUserWidget interface
+	virtual void NativePreConstruct() override;
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

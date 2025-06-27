@@ -42,6 +42,13 @@ void UInventoryGridSlot::SetGridSlotState(EInventoryGridSlotVisualState NewState
 	}
 }
 
+void UInventoryGridSlot::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+	Image_GridSlot->SetBrush(DefaultBrush);
+}
+
 void UInventoryGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);

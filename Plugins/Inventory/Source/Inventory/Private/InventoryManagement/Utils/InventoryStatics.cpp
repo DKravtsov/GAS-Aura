@@ -58,3 +58,15 @@ void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 		}
 	}
 }
+
+class UInventoryHoverProxy* UInventoryStatics::GetHoverItem(APlayerController* PlayerController)
+{
+	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	{
+		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
+		{
+			return InventoryMenu->GetHoverItem();
+		}
+	}
+	return nullptr;
+}

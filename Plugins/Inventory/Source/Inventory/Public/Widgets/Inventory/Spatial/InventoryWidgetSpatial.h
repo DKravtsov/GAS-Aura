@@ -48,6 +48,9 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UCanvasPanel> CanvasPanel;
 
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class UInventoryEquippedGridSlot>> EquippedGridSlots;
+
 	TWeakObjectPtr<UInventoryGrid> ActiveGrid;
 
 	FTimerHandle TimerHandle_Description;
@@ -64,6 +67,7 @@ public:
 	virtual void OnInventoryHovered(UInventoryItem* Item) override;
 	virtual void OnInventoryUnhovered() override;
 	virtual bool HasHoverItem() const override;
+	virtual UInventoryHoverProxy* GetHoverItem() const override;
 	//~ End of UInventoryWidgetBase interface
 private:
 
@@ -75,6 +79,9 @@ private:
 
 	UFUNCTION()
 	void ShowCraftingGrid();
+
+	UFUNCTION()
+	void EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag);
 
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);
