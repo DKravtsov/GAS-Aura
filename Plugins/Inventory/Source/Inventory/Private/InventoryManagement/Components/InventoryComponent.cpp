@@ -131,6 +131,31 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
 	Server_ConsumeItem(Item, StackCount);
 }
 
+void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+{
+	Server_EquipItem(ItemToEquip, ItemToUnequip);
+	if (OwningPlayerController->GetNetMode() != NM_DedicatedServer)
+	{
+		OnItemEquipped.Broadcast(ItemToEquip);
+	}
+}
+
+void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+{
+	Multicast_EquipItem(ItemToEquip, ItemToUnequip);
+}
+
+bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+{
+	return true;
+}
+
+void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+{
+	OnItemUnequipped.Broadcast(ItemToUnequip);
+	OnItemEquipped.Broadcast(ItemToEquip);
+}
+
 void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCount)
 {
 	check(GetOwner()->HasAuthority());

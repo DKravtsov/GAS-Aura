@@ -120,6 +120,7 @@ public:
 
 	bool HasHoverItem() const;
 	UInventoryHoverProxy* GetHoverItem() const {return HoverItem;}
+	void ClearHoverItem();
 
 private:
 
@@ -174,7 +175,6 @@ private:
 	FIntPoint CalculateStartingCoordinates(const FIntPoint& Coordinate, const FIntPoint& Dimensions, EInventoryTileQuadrant Quadrant) const;
 
 	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
-	void ClearHoverItem();
 	void SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex);
 	void SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex);
 	void FillInStacksOrConsumeHover(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex);

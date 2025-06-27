@@ -13,6 +13,7 @@ struct FInventorySlotAvailabilityResult;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInventorySlotAvailabilityResult&, Result);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UInventoryItem*, Item);
 
 class UInventoryWidgetBase;
 
@@ -27,6 +28,8 @@ public:
 	FInventoryItemChangeSignature OnItemRemoved;
 	FInventoryHasNoRoomSignature OnNoRoomInInventory;
 	FStackChangedSignature OnStackChanged;
+	FItemEquipStatusChangedSignature OnItemEquipped;
+	FItemEquipStatusChangedSignature OnItemUnequipped;
 
 private:
 	
@@ -72,6 +75,8 @@ public:
 	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
 
+	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
 
@@ -86,6 +91,12 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ConsumeItem(UInventoryItem* Item, int32 StackCount);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);

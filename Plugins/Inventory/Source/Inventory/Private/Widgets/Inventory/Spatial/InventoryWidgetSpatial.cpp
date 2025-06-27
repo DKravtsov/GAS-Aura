@@ -6,8 +6,8 @@
 #include "Inventory.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
-#include "Components/CanvasPanel.h"
 #include "Components/WidgetSwitcher.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
@@ -124,13 +124,18 @@ void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot
 
 	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
 	const float TileSize = GetTileSize();
-	if (UInventoryEquippedSlottedItem* EquippedSlottedItem = GridSlot->OnItemEquipped(GetHoverItem()->GetInventoryItem(), EquipmentTypeTag, TileSize))
+	UInventoryItem* ItemToEquip = GetHoverItem()->GetInventoryItem();
+	if (UInventoryEquippedSlottedItem* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentTypeTag, TileSize))
 	{
 		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
 
-		// Clear the Hover Item
+		InventoryGrid_Equipment->ClearHoverItem();
 
 		// Inform the server that we've equipped an item (potentially unequipping an item as well)
+		UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+		check(IsValid(InventoryComponent));
+
+		InventoryComponent->EquipItem(ItemToEquip, nullptr);
 	}
 }
 
@@ -185,7 +190,7 @@ bool UInventoryWidgetSpatial::CanEquipHoverItem(UInventoryEquippedGridSlot* Equi
 		return false;
 
 	UInventoryItem* HeldItem = HoverItem->GetInventoryItem();
-	return HasHoverItem() && IsValid(HeldItem)
+	return IsValid(HeldItem)
 		&& !HoverItem->IsStackable() && HeldItem->IsEquipable()
 		&& HeldItem->GetItemType().MatchesTag(EquipmentTypeTag);
 }

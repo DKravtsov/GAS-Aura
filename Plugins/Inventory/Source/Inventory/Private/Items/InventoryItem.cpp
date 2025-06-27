@@ -32,7 +32,7 @@ bool UInventoryItem::IsConsumable() const
 
 bool UInventoryItem::IsEquipable() const
 {
-	return GetItemManifest().GetItemType().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment);
+	return GetItemManifest().GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment);
 }
 
 const FGameplayTag& UInventoryItem::GetItemType() const
