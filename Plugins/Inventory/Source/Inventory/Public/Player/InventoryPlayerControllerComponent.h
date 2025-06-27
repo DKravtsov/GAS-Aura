@@ -8,7 +8,7 @@
 
 class UInputAction;
 
-UCLASS(MinimalAPI, ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent))
+UCLASS(MinimalAPI, ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Within=PlayerController)
 class UInventoryPlayerControllerComponent : public UActorComponent
 {
 	GENERATED_BODY()
