@@ -49,3 +49,18 @@ void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
 {
 	Image_GrayedOutIcon->SetBrush(Brush);
 }
+
+UInventoryEquippedSlottedItem* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
+{
+	// Check the Equipment Type TagAdd commentMore actions
+	// Get Grid Dimensions
+	// Calculate the Draw Size for the Equipped Slotted Item
+	// Create the Equipped Slotted Item widget
+	// Set the Slotted Item's Inventory Item
+	// Set the Slotted Item's Equipment Type Tag
+	// Hide the Stack Count widget on the Slotted Item
+	// Set Inventory Item on this class (the Equipped Grid Slot)
+	// Set the Image Brush on the Equipped Slotted Item
+	// Add the Slotted Item as a child to this widget's Overlay
+	// Return the Equipped Slotted Item widget
+}

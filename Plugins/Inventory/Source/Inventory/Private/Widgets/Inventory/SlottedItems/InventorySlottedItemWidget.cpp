@@ -13,11 +13,6 @@ FReply UInventorySlottedItemWidget::NativeOnMouseButtonDown(const FGeometry& InG
 	return FReply::Handled();
 }
 
-FReply UInventorySlottedItemWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-	return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
-}
-
 FReply UInventorySlottedItemWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);

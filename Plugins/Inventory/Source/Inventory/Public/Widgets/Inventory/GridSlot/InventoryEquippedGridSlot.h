@@ -38,4 +38,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	void SetGrayedIconBrush(const FSlateBrush& Brush);
+
+	class UInventoryEquippedSlottedItem* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
 };
