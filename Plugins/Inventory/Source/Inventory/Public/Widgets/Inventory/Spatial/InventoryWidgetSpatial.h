@@ -70,6 +70,7 @@ public:
 	virtual bool HasHoverItem() const override;
 	virtual UInventoryHoverProxy* GetHoverItem() const override;
 	virtual float GetTileSize() const override;
+	virtual void OnCloseMenu() override;
 	//~ End of UInventoryWidgetBase interface
 private:
 

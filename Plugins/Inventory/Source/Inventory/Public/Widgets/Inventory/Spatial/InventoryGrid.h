@@ -123,6 +123,8 @@ public:
 	void ClearHoverItem();
 	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 
+	void OnHide();
+
 private:
 
 	void ConstructGrid();
@@ -131,7 +133,7 @@ private:
 	UFUNCTION()
 	void OnStackChanged(const FInventorySlotAvailabilityResult& Result);
 
-	FInventorySlotAvailabilityResult HasRoomForItemInternal(const struct FInventoryItemManifest& ItemManifest) const;
+	FInventorySlotAvailabilityResult HasRoomForItemInternal(const struct FInventoryItemManifest& ItemManifest, int32 StackCountOverride = -1) const;
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	UInventorySlottedItemWidget* CreateSlottedItemWidget(UInventoryItem* Item, int32 Index,
@@ -207,4 +209,6 @@ private:
 	void OnPopupMenuDrop(const int32 GridIndex);
 
 	static FSlateBrush GetTempBrush();
+
+	void PutHoverItemDown();
 };

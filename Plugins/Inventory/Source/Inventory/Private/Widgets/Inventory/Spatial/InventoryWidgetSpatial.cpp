@@ -102,6 +102,14 @@ float UInventoryWidgetSpatial::GetTileSize() const
 	return ActiveGrid.IsValid() ? ActiveGrid->GetTileSize() : 0.f;
 }
 
+void UInventoryWidgetSpatial::OnCloseMenu()
+{
+	if (ActiveGrid.IsValid())
+	{
+		ActiveGrid->OnHide();
+	}
+}
+
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
 {
 	SetActiveGrid(InventoryGrid_Equipment, Button_Equipment);
@@ -181,6 +189,10 @@ void UInventoryWidgetSpatial::DisableButton(UButton* Button)
 
 void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGrid* Grid, UButton* Button)
 {
+	if (ActiveGrid.IsValid())
+	{
+		ActiveGrid->OnHide();
+	}
 	DisableButton(Button);
 	GridSwitcher->SetActiveWidget(Grid);
 	ActiveGrid = Grid;

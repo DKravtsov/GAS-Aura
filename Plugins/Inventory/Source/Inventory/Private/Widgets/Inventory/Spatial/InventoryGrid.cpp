@@ -255,7 +255,7 @@ FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItem(const UInventory
 	return HasRoomForItemInternal(ItemComponent->GetItemManifest());
 }
 
-FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest) const
+FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
 	FInventorySlotAvailabilityResult Result;
 
@@ -269,7 +269,7 @@ FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItemInternal(const FI
 	// Determine how many stacks to add.
 
 	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
-	int32 AmountToFill = StackableFragment ? StackableFragment->GetStackCount() : 1;
+	int32 AmountToFill = StackableFragment ? (StackCountOverride >= 0 ? StackCountOverride : StackableFragment->GetStackCount()) : 1;
 
 	TSet<int32> CheckedIndexes;
 	
@@ -486,6 +486,19 @@ FSlateBrush UInventoryGrid::GetTempBrush()
 	return Brush;
 }
 
+void UInventoryGrid::PutHoverItemDown()
+{
+	if (!HasHoverItem())
+		return;
+
+	FInventorySlotAvailabilityResult Result = HasRoomForItemInternal(HoverItem->GetInventoryItem()->GetItemManifest(), HoverItem->GetStackCount());
+	Result.Item = HoverItem->GetInventoryItem();
+
+	OnStackChanged(Result);
+
+	ClearHoverItem();
+}
+
 void UInventoryGrid::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const
 {
 	const FIntPoint Pos = GetPositionFromIndex(Index);
@@ -678,6 +691,12 @@ void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 Gr
 	{
 		HoverItem->SetPreviousGridIndex(PrevGridIndex);
 	}
+}
+
+void UInventoryGrid::OnHide()
+{
+	PutHoverItemDown();
+	ShowDefaultCursor();
 }
 
 void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex)

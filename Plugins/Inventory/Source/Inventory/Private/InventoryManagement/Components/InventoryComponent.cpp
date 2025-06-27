@@ -307,7 +307,9 @@ void UInventoryComponent::CloseInventoryMenu()
 	if (!IsValid(InventoryMenu))
 		return;
 	InventoryMenu->SetVisibility(ESlateVisibility::Collapsed);
+	InventoryMenu->OnCloseMenu();
 	bInventoryMenuOpen = false;
+
 
 	// TODO Consider to choose input mode by parent project
 	
@@ -323,6 +325,7 @@ void UInventoryComponent::CloseInventoryMenu()
 	if (OwningPlayerController.IsValid())
 	{
 		FInputModeGameAndUI InputMode;
+		InputMode.SetHideCursorDuringCapture(false);
 		OwningPlayerController->SetInputMode(InputMode);
 	}
 }
