@@ -86,7 +86,7 @@ private:
 	void EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag);
 
 	UFUNCTION()
-	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* SlottedItem);
+	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* EquippedSlottedItem);
 
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);
@@ -95,5 +95,12 @@ private:
 
 	UInventoryItemDescription* GetOrCreateItemDescription();
 
-	bool CanEquipHoverItem(UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag);
+	bool CanEquipHoverItem(const UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
+
+	UInventoryEquippedGridSlot* FindSlotWithEquippedItem(UInventoryItem* EquippedItem) const;
+	void ClearSlotOfItem(UInventoryEquippedGridSlot* EquippedGridSlot);
+	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItem* EquippedSlottedItem);
+	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItem* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
+
+	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip) const;
 };

@@ -121,6 +121,7 @@ public:
 	bool HasHoverItem() const;
 	UInventoryHoverProxy* GetHoverItem() const {return HoverItem;}
 	void ClearHoverItem();
+	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 
 private:
 
@@ -164,7 +165,7 @@ private:
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void PutDownItemInInventoryAtIndex(const int32 GridIndex);
 	void ShowDefaultCursor() const;
-	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
+
 	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);

@@ -118,3 +118,9 @@ UInventoryEquippedSlottedItem* UInventoryEquippedGridSlot::OnItemEquipped(UInven
 	
 	return EquippedSlottedItem;
 }
+
+void UInventoryEquippedGridSlot::ClearEquippedSlot()
+{
+	SetInventoryItem(nullptr);
+	EquippedSlottedItem = nullptr;
+}

@@ -48,5 +48,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	void SetGrayedIconBrush(const FSlateBrush& Brush);
 
-	class UInventoryEquippedSlottedItem* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
+	UInventoryEquippedSlottedItem* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
+
+	void SetEquippedSlottedItem(UInventoryEquippedSlottedItem* Item) {EquippedSlottedItem = Item;}
+	void ClearEquippedSlot();
 };

@@ -134,11 +134,12 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
 
 void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT;
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	Server_EquipItem(ItemToEquip, ItemToUnequip);
 	if (OwningPlayerController->GetNetMode() != NM_DedicatedServer)
 	{
-		LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+		LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+		OnItemUnequipped.Broadcast(ItemToUnequip);
 		OnItemEquipped.Broadcast(ItemToEquip);
 	}
 }
@@ -157,6 +158,7 @@ bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip,
 void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	OnItemUnequipped.Broadcast(ItemToUnequip);
 	OnItemEquipped.Broadcast(ItemToEquip);
 }
