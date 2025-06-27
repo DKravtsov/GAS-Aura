@@ -126,3 +126,64 @@ void FInventoryItemConsumableFragment::Manifest()
 		Modifier.GetMutable().Manifest();
 	}
 }
+
+void FInventoryItemEquipmentFragment::OnEquip(const APlayerController* PC)
+{
+	if (bEquipped)
+		return;
+	bEquipped = true;
+	for (auto& Modifier : EquipModifiers)
+	{
+		Modifier.GetMutable<>().OnEquip(PC);
+	}
+}
+
+void FInventoryItemEquipmentFragment::OnUnequip(const APlayerController* PC)
+{
+	if (!bEquipped)
+		return;
+	bEquipped = false;
+	for (auto& Modifier : EquipModifiers)
+	{
+		Modifier.Get().OnUnequip(PC);
+	}
+}
+
+void FInventoryItemEquipmentFragment::Assimilate(UInventoryCompositeBase* Composite) const
+{
+	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	for (const auto& Modifier : EquipModifiers)
+	{
+		Modifier.Get().Assimilate(Composite);
+	}
+}
+
+void FInventoryItemEquipmentFragment::Manifest()
+{
+	FInventoryItemDescriptionFragment::Manifest();
+	for (auto& Modifier : EquipModifiers)
+	{
+		Modifier.GetMutable().Manifest();
+	}
+}
+
+void FInventoryExampleEquipModifier::OnEquip(const APlayerController* PC) const
+{
+	
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		5.f,
+		FColor::Green,
+		FString::Printf(TEXT("Item Equipped. Strength increased by: %s"),
+		*FString::SanitizeFloat(GetValue())));
+}
+
+void FInventoryExampleEquipModifier::OnUnequip(const APlayerController* PC) const
+{
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		5.f,
+		FColor::Green,
+		FString::Printf(TEXT("Item unequipped. Strength decreased by: %s"),
+		*FString::SanitizeFloat(GetValue())));
+}

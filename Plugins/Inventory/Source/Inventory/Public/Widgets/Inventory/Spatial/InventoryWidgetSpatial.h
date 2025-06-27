@@ -89,4 +89,6 @@ private:
 	UInventoryGrid* GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const;
 
 	UInventoryItemDescription* GetOrCreateItemDescription();
+
+	bool CanEquipHoverItem(UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag);
 };

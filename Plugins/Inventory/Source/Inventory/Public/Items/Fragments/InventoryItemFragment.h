@@ -185,6 +185,10 @@ public:
 
 };
 
+/*
+ *    Consumable  
+ */
+
 USTRUCT(BlueprintType)
 struct FInventoryConsumeModifier : public FInventoryItemNumericValueFragment 
 {
@@ -205,7 +209,7 @@ private:
 
 public:
 	// Real consumption should be implemented by the real project by inheriting from this fragment and overriding this method
-	virtual void OnConsume(const APlayerController* PC) const;
+	void OnConsume(const APlayerController* PC) const;
 
 	//~ Begin of FInventoryItemDescriptionFragment interface
 	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
@@ -216,6 +220,57 @@ public:
 	//~ End of FInventoryItemFragment interface
 
 };
+
+/*
+ *     Equipment
+ */
+
+
+USTRUCT(BlueprintType)
+struct FInventoryEquipModifier : public FInventoryItemNumericValueFragment 
+{
+	GENERATED_BODY()
+	
+	virtual void OnEquip(const APlayerController* PC) const {}
+	virtual void OnUnequip(const APlayerController* PC) const {}
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemEquipmentFragment: public FInventoryItemDescriptionFragment
+{
+	GENERATED_BODY()
+	
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(ExcludeBaseStruct))
+	TArray<TInstancedStruct<FInventoryEquipModifier>> EquipModifiers;
+
+	bool bEquipped = false;
+
+public:
+
+	void OnEquip(const APlayerController* PC);
+	void OnUnequip(const APlayerController* PC);
+
+	//~ Begin of FInventoryItemDescriptionFragment interface
+	virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
+	//~ End of FInventoryItemDescriptionFragment interface
+
+	//~ Begin of FInventoryItemFragment interface
+	virtual void Manifest() override;
+	//~ End of FInventoryItemFragment interface
+
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryExampleEquipModifier : public FInventoryEquipModifier 
+{
+	GENERATED_BODY()
+	
+	virtual void OnEquip(const APlayerController* PC) const override;
+	virtual void OnUnequip(const APlayerController* PC) const override;
+};
+
 
 namespace InventoryFragmentTags
 {
