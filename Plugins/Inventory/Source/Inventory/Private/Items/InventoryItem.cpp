@@ -27,7 +27,12 @@ bool UInventoryItem::IsStackable() const
 
 bool UInventoryItem::IsConsumable() const
 {
-	return GetItemManifest().GetItemCategory().MatchesTag(InventoryTags::Inventory_ItemCategory_Consumable);
+	return GetItemManifest().GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Consumable);
+}
+
+bool UInventoryItem::IsEqippable() const
+{
+	return GetItemManifest().GetItemType().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment);
 }
 
 const FGameplayTag& UInventoryItem::GetItemType() const

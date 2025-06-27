@@ -12,6 +12,7 @@
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
 #include "Widgets/Inventory/Spatial/InventoryGrid.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
 
@@ -111,6 +112,15 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 
 void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag)
 {
+	// Check to see if we can equip the Hover ItemAdd commentMore actions
+	if (!CanEquipHoverItem(GridSlot, EquipmentTypeTag))
+		return;
+
+	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
+	
+	
+	// Clear the Hover Item
+	// Inform the server that we've equipped an item (potentially unequipping an item as well)
 }
 
 void UInventoryWidgetSpatial::DisableButton(UButton* Button)
@@ -130,11 +140,11 @@ void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGrid* Grid, UButton* Butto
 
 UInventoryGrid* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const
 {
-	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Equipment))
+	if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment))
 		return InventoryGrid_Equipment;
-	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Consumable))
+	if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Consumable))
 		return InventoryGrid_Consumable;
-	if (ItemCategory.MatchesTag(InventoryTags::Inventory_ItemCategory_Crafting))
+	if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Crafting))
 		return InventoryGrid_Crafting;
 	return nullptr;
 }
@@ -147,4 +157,19 @@ UInventoryItemDescription* UInventoryWidgetSpatial::GetOrCreateItemDescription()
 		//CanvasPanel->AddChildToCanvas(ItemDescription);
 	}
 	return ItemDescription;
+}
+
+bool UInventoryWidgetSpatial::CanEquipHoverItem(UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag)
+{
+	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid())
+		return false;
+
+	UInventoryHoverProxy* HoverItem = GetHoverItem();
+	if (!IsValid(HoverItem))
+		return false;
+
+	UInventoryItem* HeldItem = HoverItem->GetInventoryItem();
+	return HasHoverItem() && IsValid(HeldItem)
+		&& !HoverItem->IsStackable() && HeldItem->IsEqippable()
+		&& HeldItem->GetItemType().MatchesTag(EquipmentTypeTag);
 }
