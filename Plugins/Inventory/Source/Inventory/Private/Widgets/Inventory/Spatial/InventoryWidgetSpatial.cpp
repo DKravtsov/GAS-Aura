@@ -64,13 +64,13 @@ FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInvent
 void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 {
 	auto ItemDescWidget = GetOrCreateItemDescription();
-	//ItemDescWidget->Hide();
+	ItemDescWidget->Hide();
 	SetToolTip(nullptr);
 
 	const auto& Manifest = Item->GetItemManifest();
 	const FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, &Manifest, ItemDescWidget]()
 	{
-		//ItemDescWidget->Show();
+		ItemDescWidget->Show();
 		SetToolTip(ItemDescWidget);
 
 		Manifest.AssimilateInventoryFragments(ItemDescWidget);
@@ -80,8 +80,8 @@ void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 
 void UInventoryWidgetSpatial::OnInventoryUnhovered()
 {
-	//GetOrCreateItemDescription()->Hide();
-	GetOrCreateItemDescription()->Collapse();
+	GetOrCreateItemDescription()->Hide();
+	//GetOrCreateItemDescription()->Collapse();
 	SetToolTip(nullptr);
 
 	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(TimerHandle_Description);	

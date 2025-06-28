@@ -32,4 +32,6 @@ public:
 	void Test_Function_Three(UInventoryCompositeBase* Composite);
 
 	virtual void ApplyWorkFunction() override;
+
+	const TArray<TObjectPtr<UInventoryCompositeBase>>& GetChildren() const { return Children; }
 };

@@ -17,5 +17,9 @@ void UInventoryItemDescription::Show()
 
 void UInventoryItemDescription::Hide()
 {
+	for (const auto& Child : GetChildren())
+	{
+		Child->Collapse();
+	}
 	SetVisibility(ESlateVisibility::Collapsed);
 }
