@@ -28,6 +28,8 @@ class AInventoryProxyMeshActor : public AActor
 public:
 	AInventoryProxyMeshActor();
 
+	USkeletalMeshComponent* GetMesh() const {return Mesh;}
+
 protected:
 	virtual void BeginPlay() override;
 
