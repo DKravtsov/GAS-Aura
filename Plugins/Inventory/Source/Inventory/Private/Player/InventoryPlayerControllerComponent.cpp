@@ -100,6 +100,10 @@ void UInventoryPlayerControllerComponent::PrimaryInteract()
 	if (const auto ItemComponent = UInventoryStatics::GetInventoryItemComponent(CurrentInteractableActor.Get()))
 	{
 		InventoryComponent->TryAddItem(ItemComponent);
+		if (IsValid(HUDWidget))
+		{
+			HUDWidget->HidePickupMessage();
+		}
 	}
 }
 
