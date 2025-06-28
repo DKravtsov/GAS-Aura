@@ -5,6 +5,8 @@
 
 #include "GameFramework/Character.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
+#include "Items/InventoryItem.h"
+#include "Items/Fragments/InventoryItemFragment.h"
 
 
 UInventoryEquipmentComponent::UInventoryEquipmentComponent()
@@ -46,10 +48,30 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 
 void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 {
+	if (!IsValid(EquippedItem))
+		return;
+	if (!OwningPlayerController->HasAuthority())
+		return;
+
+	FInventoryItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
+	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
+	{
+		EquipmentFragment->OnEquip(OwningPlayerController.Get());
+	}
 }
 
-void UInventoryEquipmentComponent::OnItemUnequipped(UInventoryItem* EquippedItem)
+void UInventoryEquipmentComponent::OnItemUnequipped(UInventoryItem* UnequippedItem)
 {
+	if (!IsValid(UnequippedItem))
+		return;
+	if (!OwningPlayerController->HasAuthority())
+		return;
+
+	FInventoryItemManifest& ItemManifest = UnequippedItem->GetItemManifestMutable();
+	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
+	{
+		EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+	}
 }
 
 

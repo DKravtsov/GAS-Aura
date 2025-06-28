@@ -8,6 +8,7 @@
 #include "Widgets/Utils/InventoryWidgetUtils.h"
 #include "InventoryStatics.generated.h"
 
+class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
 class UInventoryComponent;
 /**
@@ -22,6 +23,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API UInventoryComponent* GetInventoryComponent(const APlayerController* PlayerController);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static INVENTORY_API UInventoryEquipmentComponent* GetEquipmentComponent(const APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API UInventoryItemComponent* GetInventoryItemComponent(const AActor* Actor);

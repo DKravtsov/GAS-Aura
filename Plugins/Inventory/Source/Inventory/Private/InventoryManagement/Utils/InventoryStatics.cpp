@@ -3,6 +3,7 @@
 
 #include "InventoryManagement/Utils/InventoryStatics.h"
 
+#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
@@ -13,6 +14,16 @@ UInventoryComponent* UInventoryStatics::GetInventoryComponent(const APlayerContr
 	{
 		UInventoryComponent* InventoryComponent = PlayerController->FindComponentByClass<UInventoryComponent>();
 		return InventoryComponent;
+	}
+	return nullptr;
+}
+
+UInventoryEquipmentComponent* UInventoryStatics::GetEquipmentComponent(const APlayerController* PlayerController)
+{
+	if (IsValid(PlayerController))
+	{
+		UInventoryEquipmentComponent* EquipmentComponent = PlayerController->FindComponentByClass<UInventoryEquipmentComponent>();
+		return EquipmentComponent;
 	}
 	return nullptr;
 }

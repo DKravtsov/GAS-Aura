@@ -134,7 +134,7 @@ void FInventoryItemEquipmentFragment::OnEquip(const APlayerController* PC)
 	bEquipped = true;
 	for (auto& Modifier : EquipModifiers)
 	{
-		Modifier.GetMutable<>().OnEquip(PC);
+		Modifier.Get().OnEquip(PC);
 	}
 }
 
@@ -183,7 +183,7 @@ void FInventoryExampleEquipModifier::OnUnequip(const APlayerController* PC) cons
 	GEngine->AddOnScreenDebugMessage(
 		-1,
 		5.f,
-		FColor::Green,
+		FColor::Yellow,
 		FString::Printf(TEXT("Item unequipped. Strength decreased by: %s"),
 		*FString::SanitizeFloat(GetValue())));
 }
