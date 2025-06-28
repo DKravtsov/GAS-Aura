@@ -17,6 +17,13 @@ UInventoryEquipmentComponent::UInventoryEquipmentComponent()
 	
 }
 
+AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const
+{
+	if (const auto FoundActor = EquippedActors.Find(EquipmentType))
+		return FoundActor->Get();
+	return nullptr;
+}
+
 void UInventoryEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -62,6 +69,15 @@ AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
 	return SpawnedActor;
 }
 
+void UInventoryEquipmentComponent::RemoveEquippedActorOfType(const FGameplayTag& EquipmentType)
+{
+	TObjectPtr<AInventoryEquipActor> EquippedActor = nullptr;
+	if (EquippedActors.RemoveAndCopyValue(EquipmentType, EquippedActor))
+	{
+		EquippedActor->Destroy();
+	}
+}
+
 void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 {
 	if (!IsValid(EquippedItem))
@@ -76,10 +92,9 @@ void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 	{
 		EquipmentFragment->OnEquip(OwningPlayerController.Get());
 
-		AInventoryEquipActor* SpawnedActor = SpawnEquippedActor(*EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get());
-		if (SpawnedActor)
+		if (AInventoryEquipActor* SpawnedActor = SpawnEquippedActor(*EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get()))
 		{
-			EquippedActors.Emplace(SpawnedActor);
+			EquippedActors.Emplace(EquipmentFragment->GetEquipmentType(), SpawnedActor);
 		}
 	}
 }
@@ -95,6 +110,8 @@ void UInventoryEquipmentComponent::OnItemUnequipped(UInventoryItem* UnequippedIt
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
 	{
 		EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+		
+		RemoveEquippedActorOfType(EquipmentFragment->GetEquipmentType());
 	}
 }
 

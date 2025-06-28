@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "InventoryEquipmentComponent.generated.h"
 
@@ -19,12 +20,15 @@ class UInventoryEquipmentComponent : public UActorComponent
 	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
 
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<class AInventoryEquipActor>> EquippedActors;
+	TMap<FGameplayTag, TObjectPtr<class AInventoryEquipActor>> EquippedActors;
 
 public:
 
 	UInventoryEquipmentComponent();
 
+
+	AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
+	
 protected:
 
 	virtual void BeginPlay() override;
@@ -39,5 +43,6 @@ private:
 
 	void InitInventoryComponent();
 
-	class AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
+	AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
+	void RemoveEquippedActorOfType(const FGameplayTag& EquipmentType);
 };
