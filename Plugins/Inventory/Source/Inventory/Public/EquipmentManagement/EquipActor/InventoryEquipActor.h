@@ -7,7 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "InventoryEquipActor.generated.h"
 
-UCLASS(MinimalAPI, Blueprintable, Abstract)
+UCLASS(MinimalAPI, Blueprintable, Abstract, NotPlaceable)
 class AInventoryEquipActor : public AActor
 {
 	GENERATED_BODY()
