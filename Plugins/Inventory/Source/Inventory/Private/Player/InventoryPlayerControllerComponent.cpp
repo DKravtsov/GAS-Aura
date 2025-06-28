@@ -123,6 +123,17 @@ void UInventoryPlayerControllerComponent::ToggleInventory()
 	if (InventoryComponent.IsValid())
 	{
 		InventoryComponent->ToggleInventoryMenu();
+		if (IsValid(HUDWidget))
+		{
+			if (InventoryComponent->IsMenuOpen())
+			{
+				HUDWidget->SetVisibility(ESlateVisibility::Hidden);
+			}
+			else
+			{
+				HUDWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+			}
+		}
 	}
 }
 

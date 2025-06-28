@@ -67,6 +67,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
 
+	bool IsMenuOpen() const { return bInventoryMenuOpen; }
+
 	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
 
