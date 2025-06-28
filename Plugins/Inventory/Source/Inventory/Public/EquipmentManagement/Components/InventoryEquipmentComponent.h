@@ -41,7 +41,11 @@ private:
 	UFUNCTION()
 	void OnItemUnequipped(UInventoryItem* UnequippedItem);
 
+	UFUNCTION()
+	void OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
+
 	void InitInventoryComponent();
+	void InitPlayerController();
 
 	AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
 	void RemoveEquippedActorOfType(const FGameplayTag& EquipmentType);

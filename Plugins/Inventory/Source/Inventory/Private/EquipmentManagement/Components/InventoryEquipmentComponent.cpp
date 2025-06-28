@@ -27,13 +27,29 @@ AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipment
 void UInventoryEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	InitPlayerController();
+}
 
+void UInventoryEquipmentComponent::InitPlayerController()
+{
 	if (OwningPlayerController = Cast<APlayerController>(GetOwner()); OwningPlayerController.IsValid())
 	{
 		if (ACharacter* OwnerCharacter = OwningPlayerController->GetCharacter())
 		{
-			OwningSkeletalMesh = OwnerCharacter->GetMesh();
+			OnPossessedPawnChanged(nullptr, OwnerCharacter);
 		}
+		else
+		{
+			OwningPlayerController->OnPossessedPawnChanged.AddDynamic(this, &UInventoryEquipmentComponent::OnPossessedPawnChanged);
+		}
+	}
+}
+
+void UInventoryEquipmentComponent::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+{
+	if (const ACharacter* OwnerCharacter = OwningPlayerController->GetCharacter())
+	{
+		OwningSkeletalMesh = OwnerCharacter->GetMesh();
 		InitInventoryComponent();
 	}
 }
