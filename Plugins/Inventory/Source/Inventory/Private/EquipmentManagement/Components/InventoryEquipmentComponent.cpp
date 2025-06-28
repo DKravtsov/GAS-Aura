@@ -17,6 +17,20 @@ UInventoryEquipmentComponent::UInventoryEquipmentComponent()
 	
 }
 
+void UInventoryEquipmentComponent::SetOwningSkeletalMesh(USkeletalMeshComponent* NewOwningSkeletalMesh)
+{
+	OwningSkeletalMesh = NewOwningSkeletalMesh;
+}
+
+void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerController)
+{
+	if (IsValid(PlayerController))
+	{
+		OwningPlayerController = PlayerController;
+	}
+	InitInventoryComponent();
+}
+
 AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const
 {
 	if (const auto FoundActor = EquippedActors.Find(EquipmentType))
@@ -106,7 +120,10 @@ void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 	FInventoryItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
 	{
-		EquipmentFragment->OnEquip(OwningPlayerController.Get());
+		if (!bIsProxy)
+		{
+			EquipmentFragment->OnEquip(OwningPlayerController.Get());
+		}
 
 		if (AInventoryEquipActor* SpawnedActor = SpawnEquippedActor(*EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get()))
 		{
@@ -125,7 +142,10 @@ void UInventoryEquipmentComponent::OnItemUnequipped(UInventoryItem* UnequippedIt
 	FInventoryItemManifest& ItemManifest = UnequippedItem->GetItemManifestMutable();
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
 	{
-		EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+		if (!bIsProxy)
+		{
+			EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+		}
 		
 		RemoveEquippedActorOfType(EquipmentFragment->GetEquipmentType());
 	}

@@ -22,10 +22,16 @@ class UInventoryEquipmentComponent : public UActorComponent
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<class AInventoryEquipActor>> EquippedActors;
 
+	bool bIsProxy = false;
+
 public:
 
 	UInventoryEquipmentComponent();
 
+	void SetOwningSkeletalMesh(USkeletalMeshComponent* NewOwningSkeletalMesh);
+	void SetIsProxy(bool bProxy) {bIsProxy = bProxy;}
+
+	void InitializeOwner(APlayerController* PlayerController);
 
 	AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
 	
