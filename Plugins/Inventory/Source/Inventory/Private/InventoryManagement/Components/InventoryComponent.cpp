@@ -136,12 +136,15 @@ void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem*
 {
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	Server_EquipItem(ItemToEquip, ItemToUnequip);
-	if (OwningPlayerController->GetNetMode() != NM_DedicatedServer)
-	{
-		LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-		OnItemUnequipped.Broadcast(ItemToUnequip);
-		OnItemEquipped.Broadcast(ItemToEquip);
-	}
+
+	// This doesn't look right, so, I've commented out next lines. #todo need to check
+	
+	// if (OwningPlayerController->GetNetMode() != NM_DedicatedServer)
+	// {
+	// 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+	// 	OnItemUnequipped.Broadcast(ItemToUnequip);
+	// 	OnItemEquipped.Broadcast(ItemToEquip);
+	// }
 }
 
 void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
