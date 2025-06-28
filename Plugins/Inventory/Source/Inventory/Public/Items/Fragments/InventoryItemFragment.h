@@ -242,12 +242,27 @@ struct FInventoryItemEquipmentFragment: public FInventoryItemDescriptionFragment
 	
 private:
 
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems.Equipment"))
+	FGameplayTag EquipmentType;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSoftClassPtr<class AInventoryEquipActor> EquippedActorClass;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FName SocketAttachPoint;
+
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(ExcludeBaseStruct))
 	TArray<TInstancedStruct<FInventoryEquipModifier>> EquipModifiers;
+
+	TWeakObjectPtr<AInventoryEquipActor> EquippedActor;
 
 	bool bEquipped = false;
 
 public:
+	
+	const FGameplayTag& GetEquipmentType() const {return EquipmentType;}
+	
+	void SetEquippedActor(AInventoryEquipActor* EquipActor);
 
 	void OnEquip(const APlayerController* PC);
 	void OnUnequip(const APlayerController* PC);
@@ -260,6 +275,8 @@ public:
 	virtual void Manifest() override;
 	//~ End of FInventoryItemFragment interface
 
+	AInventoryEquipActor* SpawnEquippedActor(USkeletalMeshComponent* ParentMesh) const;
+	void DestroyEquipActor() const;
 };
 
 USTRUCT(BlueprintType)

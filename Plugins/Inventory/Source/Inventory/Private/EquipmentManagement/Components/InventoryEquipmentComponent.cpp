@@ -3,6 +3,7 @@
 
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 
+#include "EquipmentManagement/EquipActor/InventoryEquipActor.h"
 #include "GameFramework/Character.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
@@ -46,17 +47,40 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 	}
 }
 
+AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
+	FInventoryItemEquipmentFragment& EquipmentFragment,
+	const FInventoryItemManifest& ItemManifest,
+	USkeletalMeshComponent* ParentMesh)
+{
+	AInventoryEquipActor* SpawnedActor = EquipmentFragment.SpawnEquippedActor(ParentMesh);
+	if (SpawnedActor)
+	{
+		SpawnedActor->SetOwner(GetOwner());
+		SpawnedActor->SetEquipmentType(EquipmentFragment.GetEquipmentType());
+		EquipmentFragment.SetEquippedActor(SpawnedActor);
+	}
+	return SpawnedActor;
+}
+
 void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 {
 	if (!IsValid(EquippedItem))
 		return;
 	if (!OwningPlayerController->HasAuthority())
 		return;
+	if (!OwningSkeletalMesh.IsValid())
+		return;
 
 	FInventoryItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
 	{
 		EquipmentFragment->OnEquip(OwningPlayerController.Get());
+
+		AInventoryEquipActor* SpawnedActor = SpawnEquippedActor(*EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get());
+		if (SpawnedActor)
+		{
+			EquippedActors.Emplace(SpawnedActor);
+		}
 	}
 }
 

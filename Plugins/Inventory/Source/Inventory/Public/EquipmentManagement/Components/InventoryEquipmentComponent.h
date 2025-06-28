@@ -18,6 +18,9 @@ class UInventoryEquipmentComponent : public UActorComponent
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
 
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class AInventoryEquipActor>> EquippedActors;
+
 public:
 
 	UInventoryEquipmentComponent();
@@ -35,4 +38,6 @@ private:
 	void OnItemUnequipped(UInventoryItem* UnequippedItem);
 
 	void InitInventoryComponent();
+
+	class AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
 };

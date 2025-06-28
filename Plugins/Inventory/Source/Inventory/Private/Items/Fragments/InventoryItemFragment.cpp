@@ -4,6 +4,7 @@
 #include "Items/Fragments/InventoryItemFragment.h"
 
 #include "NativeGameplayTags.h"
+#include "EquipmentManagement/EquipActor/InventoryEquipActor.h"
 #include "Widgets/Composite/InventoryCompositeBase.h"
 #include "Widgets/Composite/InventoryLeafImage.h"
 #include "Widgets/Composite/InventoryLeafLabeledValue.h"
@@ -127,6 +128,11 @@ void FInventoryItemConsumableFragment::Manifest()
 	}
 }
 
+void FInventoryItemEquipmentFragment::SetEquippedActor(AInventoryEquipActor* EquipActor)
+{
+	EquippedActor = EquipActor;
+}
+
 void FInventoryItemEquipmentFragment::OnEquip(const APlayerController* PC)
 {
 	if (bEquipped)
@@ -164,6 +170,33 @@ void FInventoryItemEquipmentFragment::Manifest()
 	for (auto& Modifier : EquipModifiers)
 	{
 		Modifier.GetMutable().Manifest();
+	}
+}
+
+AInventoryEquipActor* FInventoryItemEquipmentFragment::SpawnEquippedActor(USkeletalMeshComponent* ParentMesh) const
+{
+	if (!IsValid(ParentMesh) || !IsValid(EquippedActorClass.LoadSynchronous()))
+		return nullptr;
+
+	UWorld* World = ParentMesh->GetWorld();
+	if (!IsValid(World))
+		return nullptr;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Instigator = Cast<APawn>(ParentMesh->GetOwner());
+	AInventoryEquipActor* SpawnedActor = World->SpawnActor<AInventoryEquipActor>(EquippedActorClass.Get(), SpawnParams);
+	if (IsValid(SpawnedActor))
+	{
+		SpawnedActor->AttachToComponent(ParentMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketAttachPoint);
+	}
+	return SpawnedActor;
+}
+
+void FInventoryItemEquipmentFragment::DestroyEquipActor() const
+{
+	if (EquippedActor.IsValid())
+	{
+		EquippedActor->Destroy();
 	}
 }
 
