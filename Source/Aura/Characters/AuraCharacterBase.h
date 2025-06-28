@@ -30,6 +30,9 @@ protected:
     TObjectPtr<class USkeletalMeshComponent> Weapon;
 
     UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
+    FName WeaponSocketName = FName("WeaponHandSocket");
+
+    UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
     FName WeaponTipSocketName;
 
     UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly)
@@ -106,6 +109,12 @@ public:
     //~ End of ICombatInterface interface
 
     int32 GetCharacterLevel() const;
+
+    //~ Begin of UObject interface
+#if WITH_EDITOR
+    virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif //WITH_EDITOR
+    //~End of UObject interface
 
 protected:
 

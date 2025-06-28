@@ -17,6 +17,7 @@
 #include "Game/AuraGameModeBase.h"
 #include "Characters/CombatInterface.h"
 #include "Engine/DamageEvents.h"
+#include "Engine/OverlapResult.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UOverlayWidgetController* UAuraBlueprintFunctionLibrary::GetOverlayWidgetController(const UObject* WorldContextObject)

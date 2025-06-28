@@ -19,7 +19,7 @@ void UAuraPassiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UAuraPassiveSkill::ReceiveDeactivate(const FGameplayTag& AbilityTag)
 {
-	if (AbilityTags.HasTagExact(AbilityTag))
+	if (GetAssetTags().HasTagExact(AbilityTag))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}

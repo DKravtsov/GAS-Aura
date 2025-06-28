@@ -5,13 +5,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "Interaction/InteractableInterface.h"
 #include "Player/Input/AuraInputComponent.h"
+#include "Player/InventoryPlayerControllerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Aura.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
 #include "AuraGameplayTags.h"
 #include "CameraOcclusionComponent.h"
-#include "DebugHelper.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
@@ -21,6 +21,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Components/DamageTextComponent.h"
 #include "GameFramework/Pawn.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
+#include "Player/InventoryPlayerControllerComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -31,6 +33,8 @@ AAuraPlayerController::AAuraPlayerController()
     CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>("CameraOcclusionAwarenessComponent");
     CameraOcclusionComponent->SetAutoActivate(false);
     CameraOcclusionComponent->SetIsReplicated(true);
+
+    InventoryControllerComponent = CreateDefaultSubobject<UInventoryPlayerControllerComponent>("InventoryControllerComponent");
 }
 
 void AAuraPlayerController::Tick(float DeltaTime)
@@ -96,6 +100,8 @@ void AAuraPlayerController::BeginPlay()
         InputSubsystem->AddMappingContext(InputContext, 0);
     }
 
+    InventoryComponent = FindComponentByClass<UInventoryComponent>();
+
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
 
@@ -119,6 +125,8 @@ void AAuraPlayerController::SetupInputComponent()
         &AAuraPlayerController::AbilityInputTagPressed, 
         &AAuraPlayerController::AbilityInputTagReleased,
         &AAuraPlayerController::AbilityInputTagHeld);
+
+    InventoryControllerComponent->SetupInputComponent(AuraInputComponent);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputValue)
@@ -160,6 +168,7 @@ void AAuraPlayerController::TraceUnderCursor()
     
     if (!GetHitResultUnderCursor(TraceChannel, false, CursorHit))
     {
+        InventoryControllerComponent->UpdateInteractionTraceResult(nullptr);
         return;
     }
 
@@ -193,6 +202,9 @@ void AAuraPlayerController::TraceUnderCursor()
             TargetingStatus = ETargetingStatus::None;
         }
     }
+
+    // Note: This requires that interactable items also implement IInteractableInterface
+    InventoryControllerComponent->UpdateInteractionTraceResult(CurrentActorUnderCursor);
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
@@ -362,6 +374,14 @@ void AAuraPlayerController::ShowMagicCircle(UMaterialInterface* DecalMaterial)
 void AAuraPlayerController::HideMagicCircle()
 {
     ClientHideMagicCircle();
+}
+
+void AAuraPlayerController::ToggleInventory()
+{
+    if (InventoryComponent.IsValid())
+    {
+        InventoryComponent->ToggleInventoryMenu();
+    }
 }
 
 void AAuraPlayerController::ClientShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial)
