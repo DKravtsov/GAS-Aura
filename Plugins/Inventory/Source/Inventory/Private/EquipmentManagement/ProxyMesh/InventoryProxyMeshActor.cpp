@@ -26,7 +26,7 @@ AInventoryProxyMeshActor::AInventoryProxyMeshActor()
 void AInventoryProxyMeshActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	DelayedInitialize();
 }
 
 void AInventoryProxyMeshActor::DelayedInitializeOwner()

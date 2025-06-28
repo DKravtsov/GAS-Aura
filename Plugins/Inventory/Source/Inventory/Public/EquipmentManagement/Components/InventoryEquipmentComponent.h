@@ -10,7 +10,7 @@
 class UInventoryComponent;
 class UInventoryItem;
 
-UCLASS(MinimalAPI, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable, Abstract)
+UCLASS(MinimalAPI, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable, HideDropdown)
 class UInventoryEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
