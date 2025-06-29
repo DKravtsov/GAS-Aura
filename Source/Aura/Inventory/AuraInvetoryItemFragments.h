@@ -36,7 +36,7 @@ struct FInventoryScalableFloat : public FInventoryNumericValueBase
 	FScalableFloat Value{0.f};
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float Level;
+	float Level = 1.f;
 
 	virtual float GetValue() const override {return Value.GetValueAtLevel(GetLevel());}
 

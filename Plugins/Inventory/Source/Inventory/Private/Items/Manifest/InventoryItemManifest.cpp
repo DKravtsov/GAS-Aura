@@ -44,7 +44,7 @@ AActor* FInventoryItemManifest::SpawnPickupActor(const UObject* WorldContextObje
 
 void FInventoryItemManifest::AssimilateInventoryFragments(UInventoryCompositeBase* Composite) const
 {
-	const auto DescFragments = GetAllFragmentsOfType<FInventoryItemDescriptionFragment>();
+	const auto DescFragments = GetAllFragmentsOfType<FInventoryItemPropertyFragment>();
 	for (const auto Fragment : DescFragments)
 	{
 

@@ -33,7 +33,7 @@ private:
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemDescriptionFragment: public FInventoryItemFragment
+struct FInventoryItemPropertyFragment: public FInventoryItemFragment
 {
 	GENERATED_BODY()
 
@@ -68,7 +68,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemImageFragment: public FInventoryItemDescriptionFragment
+struct FInventoryItemImageFragment: public FInventoryItemPropertyFragment
 {
 	GENERATED_BODY()
 private:
@@ -92,7 +92,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemTextFragment: public FInventoryItemDescriptionFragment
+struct FInventoryItemTextFragment: public FInventoryItemPropertyFragment
 {
 	GENERATED_BODY()
 private:
@@ -148,7 +148,7 @@ struct FInventoryNumericValue : public FInventoryNumericValueBase
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemNumericValueFragment: public FInventoryItemDescriptionFragment
+struct FInventoryItemLabeledValueFragment: public FInventoryItemPropertyFragment
 {
 	GENERATED_BODY()
 private:
@@ -174,7 +174,7 @@ protected:
 
 public:
 
-	INVENTORY_API FInventoryItemNumericValueFragment();
+	INVENTORY_API FInventoryItemLabeledValueFragment();
 
 	const FText& GetLabelText() const {return LabelText;}
 	void SetFragmentText(const FText& NewText) {LabelText = NewText;}
@@ -217,7 +217,7 @@ public:
  */
 
 USTRUCT(BlueprintType)
-struct FInventoryConsumeModifier : public FInventoryItemNumericValueFragment 
+struct FInventoryConsumeModifier : public FInventoryItemLabeledValueFragment 
 {
 	GENERATED_BODY()
 	
@@ -225,7 +225,7 @@ struct FInventoryConsumeModifier : public FInventoryItemNumericValueFragment
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemConsumableFragment: public FInventoryItemDescriptionFragment
+struct FInventoryItemConsumableFragment: public FInventoryItemPropertyFragment
 {
 	GENERATED_BODY()
 	
@@ -254,7 +254,7 @@ public:
 
 
 USTRUCT(BlueprintType)
-struct FInventoryEquipModifier : public FInventoryItemNumericValueFragment 
+struct FInventoryEquipModifier : public FInventoryItemLabeledValueFragment 
 {
 	GENERATED_BODY()
 	
@@ -263,7 +263,7 @@ struct FInventoryEquipModifier : public FInventoryItemNumericValueFragment
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItemEquipmentFragment: public FInventoryItemDescriptionFragment
+struct FInventoryItemEquipmentFragment: public FInventoryItemPropertyFragment
 {
 	GENERATED_BODY()
 	

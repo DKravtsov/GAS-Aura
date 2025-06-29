@@ -32,7 +32,7 @@ FInventoryItemImageFragment::FInventoryItemImageFragment()
 
 void FInventoryItemImageFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
-	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	FInventoryItemPropertyFragment::Assimilate(Composite);
 
 	if (MatchesWidgetTag(Composite))
 	{
@@ -47,7 +47,7 @@ void FInventoryItemImageFragment::Assimilate(UInventoryCompositeBase* Composite)
 
 void FInventoryItemTextFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
-	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	FInventoryItemPropertyFragment::Assimilate(Composite);
 	if (MatchesWidgetTag(Composite))
 	{
 		if (const auto LeafText = Cast<UInventoryLeafText>(Composite))
@@ -66,14 +66,15 @@ void FInventoryNumericValue::Initialize()
 	}
 }
 
-FInventoryItemNumericValueFragment::FInventoryItemNumericValueFragment()
+FInventoryItemLabeledValueFragment::FInventoryItemLabeledValueFragment()
 {
 	NumericValue = TInstancedStruct<FInventoryNumericValue>::Make();
 }
 
-void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Composite) const
+void FInventoryItemLabeledValueFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
-	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	FInventoryItemPropertyFragment::Assimilate(Composite);
+	FInventoryItemPropertyFragment::Assimilate(Composite);
 	if (MatchesWidgetTag(Composite))
 	{
 		if (const auto LabeledText = Cast<UInventoryLeafLabeledValue>(Composite))
@@ -88,12 +89,16 @@ void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Com
 	}
 }
 
-void FInventoryItemNumericValueFragment::Manifest()
+void FInventoryItemLabeledValueFragment::Manifest()
 {
-	FInventoryItemDescriptionFragment::Manifest();
+	FInventoryItemPropertyFragment::Manifest();
 	if (auto* Struct = NumericValue.GetMutablePtr())
 	{
 		Struct->Initialize();
+	}
+	else
+	{
+		bEnableValue = false;
 	}
 }
 
@@ -102,7 +107,7 @@ FInventoryItemStackableFragment::FInventoryItemStackableFragment()
 	SetFragmentTag(InventoryFragmentTags::FragmentTag_Stackable);
 }
 
-void FInventoryItemDescriptionFragment::Assimilate(UInventoryCompositeBase* Composite) const
+void FInventoryItemPropertyFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
 	if (MatchesWidgetTag(Composite))
 	{
@@ -110,7 +115,7 @@ void FInventoryItemDescriptionFragment::Assimilate(UInventoryCompositeBase* Comp
 	}
 }
 
-bool FInventoryItemDescriptionFragment::MatchesWidgetTag(const UInventoryCompositeBase* Composite) const
+bool FInventoryItemPropertyFragment::MatchesWidgetTag(const UInventoryCompositeBase* Composite) const
 {
 	return GetFragmentTag().MatchesTagExact(Composite->GetFragmentTag());
 }
@@ -125,7 +130,7 @@ void FInventoryItemConsumableFragment::OnConsume(const APlayerController* PC) co
 
 void FInventoryItemConsumableFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
-	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	FInventoryItemPropertyFragment::Assimilate(Composite);
 	for (const auto& Modifier : ConsumeModifiers)
 	{
 		Modifier.Get().Assimilate(Composite);
@@ -134,7 +139,7 @@ void FInventoryItemConsumableFragment::Assimilate(UInventoryCompositeBase* Compo
 
 void FInventoryItemConsumableFragment::Manifest()
 {
-	FInventoryItemDescriptionFragment::Manifest();
+	FInventoryItemPropertyFragment::Manifest();
 	for (auto& Modifier : ConsumeModifiers)
 	{
 		Modifier.GetMutable().Manifest();
@@ -170,7 +175,7 @@ void FInventoryItemEquipmentFragment::OnUnequip(const APlayerController* PC)
 
 void FInventoryItemEquipmentFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
-	FInventoryItemDescriptionFragment::Assimilate(Composite);
+	FInventoryItemPropertyFragment::Assimilate(Composite);
 	for (const auto& Modifier : EquipModifiers)
 	{
 		Modifier.Get().Assimilate(Composite);
@@ -179,7 +184,7 @@ void FInventoryItemEquipmentFragment::Assimilate(UInventoryCompositeBase* Compos
 
 void FInventoryItemEquipmentFragment::Manifest()
 {
-	FInventoryItemDescriptionFragment::Manifest();
+	FInventoryItemPropertyFragment::Manifest();
 	for (auto& Modifier : EquipModifiers)
 	{
 		Modifier.GetMutable().Manifest();
