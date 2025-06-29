@@ -15,3 +15,5 @@ const FName CollisionProfile_FireBall = FName("FireBall");
 #define ECC_Projectile ECC_GameTraceChannel1
 #define ECC_MouseTrace ECC_GameTraceChannel2
 #define ECC_MagicCircleTrace ECC_GameTraceChannel3
+
+DECLARE_LOG_CATEGORY_EXTERN(LogAura, Log, All);

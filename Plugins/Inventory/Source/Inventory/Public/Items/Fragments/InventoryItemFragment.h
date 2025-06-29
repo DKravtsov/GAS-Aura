@@ -111,43 +111,70 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FInventoryNumericValueBase
+{
+	GENERATED_BODY()
+
+	FInventoryNumericValueBase() = default;
+	FInventoryNumericValueBase(const FInventoryNumericValueBase&) = default;
+	FInventoryNumericValueBase(FInventoryNumericValueBase&&) = default;
+	FInventoryNumericValueBase& operator=(const FInventoryNumericValueBase&) = default;
+	FInventoryNumericValueBase& operator=(FInventoryNumericValueBase&&) = default;
+	virtual ~FInventoryNumericValueBase() = default;
+
+	virtual void Initialize() {}
+	virtual float GetValue() const {return 0.f;}
+	virtual void SetValue(float NewValue) {}
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryNumericValue : public FInventoryNumericValueBase
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(VisibleInstanceOnly, Category = "Inventory")
+	float Value = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FVector2D MinMaxValue{0.f, 1.f};
+
+	uint8 bInitialized:1 = false;
+
+	INVENTORY_API virtual void Initialize() override;
+
+	virtual float GetValue() const override {return Value;}
+	virtual void SetValue(float NewValue) override {Value = NewValue;}
+
+};
+
+USTRUCT(BlueprintType)
 struct FInventoryItemNumericValueFragment: public FInventoryItemDescriptionFragment
 {
 	GENERATED_BODY()
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bEnableLabel"))
 	FText LabelText;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Inventory")
-	float Value = 0.f;
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bEnableValue", ExcludeBaseStruct))
+	TInstancedStruct<FInventoryNumericValueBase> NumericValue;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float MinValue = 0.f;
+	FIntPoint MinMaxFractionalDigits{0, 1};
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float MaxValue = 1.f;
+	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay, meta=(InlineEditConditionToggle))
+	uint8 bEnableLabel:1 = true;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
-	int32 MinFractionalDigits = 0;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
-	int32 MaxFractionalDigits = 1;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
-	uint8 bCollapseLabel:1 = false;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay)
-	uint8 bCollapseValue:1 = false;
-
-	uint8 bRandomized:1 = false;
+	UPROPERTY(EditAnywhere, Category = "Inventory", AdvancedDisplay, meta=(InlineEditConditionToggle))
+	uint8 bEnableValue:1 = true;
 
 protected:
 
-	void SetValue(float NewValue) {Value = NewValue;}
-	float GetValue() const {return Value;}
+	float GetValue() const {return NumericValue.GetPtr() ? NumericValue.Get().GetValue() : 0.f;}
 
 public:
+
+	INVENTORY_API FInventoryItemNumericValueFragment();
 
 	const FText& GetLabelText() const {return LabelText;}
 	void SetFragmentText(const FText& NewText) {LabelText = NewText;}

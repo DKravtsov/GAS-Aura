@@ -6,3 +6,4 @@
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Aura, "Aura" );
 
 DEFINE_LOG_CATEGORY(LogMyGame);
+DEFINE_LOG_CATEGORY(LogAura);

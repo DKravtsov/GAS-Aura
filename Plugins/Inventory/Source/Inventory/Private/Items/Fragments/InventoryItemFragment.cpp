@@ -57,6 +57,20 @@ void FInventoryItemTextFragment::Assimilate(UInventoryCompositeBase* Composite) 
 	}
 }
 
+void FInventoryNumericValue::Initialize()
+{
+	if (!bInitialized)
+	{
+		Value = FMath::FRandRange(MinMaxValue.X, MinMaxValue.Y);
+		bInitialized = true;
+	}
+}
+
+FInventoryItemNumericValueFragment::FInventoryItemNumericValueFragment()
+{
+	NumericValue = TInstancedStruct<FInventoryNumericValue>::Make();
+}
+
 void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Composite) const
 {
 	FInventoryItemDescriptionFragment::Assimilate(Composite);
@@ -64,12 +78,12 @@ void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Com
 	{
 		if (const auto LabeledText = Cast<UInventoryLeafLabeledValue>(Composite))
 		{
-			LabeledText->SetLabelText(LabelText, bCollapseLabel);
+			LabeledText->SetLabelText(LabelText, !bEnableLabel);
 			FNumberFormattingOptions Options;
-            Options.MinimumFractionalDigits = MinFractionalDigits;
-            Options.MaximumFractionalDigits = MaxFractionalDigits;
+            Options.MinimumFractionalDigits = MinMaxFractionalDigits.X;
+            Options.MaximumFractionalDigits = MinMaxFractionalDigits.Y;
 			Options.UseGrouping = true;
-			LabeledText->SetValueText(FText::AsNumber(Value, &Options), bCollapseValue);
+			LabeledText->SetValueText(FText::AsNumber(GetValue(), &Options), !bEnableValue);
 		}
 	}
 }
@@ -77,10 +91,9 @@ void FInventoryItemNumericValueFragment::Assimilate(UInventoryCompositeBase* Com
 void FInventoryItemNumericValueFragment::Manifest()
 {
 	FInventoryItemDescriptionFragment::Manifest();
-	if (!bRandomized)
+	if (auto* Struct = NumericValue.GetMutablePtr())
 	{
-		SetValue(FMath::FRandRange(MinValue, MaxValue));
-		bRandomized = true;
+		Struct->Initialize();
 	}
 }
 
