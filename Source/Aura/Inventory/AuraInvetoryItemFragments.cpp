@@ -10,7 +10,7 @@
 #include "Characters/AuraCharacterBase.h"
 #include "Game/AuraBlueprintFunctionLibrary.h"
 
-void FAuraPotionInventoryFragment::OnConsume(const APlayerController* PC) const
+void FAuraInventoryPotionConsumeModifier::OnConsume(const APlayerController* PC) const
 {
 	if (PotionEffectClass == nullptr)
 	{
@@ -33,7 +33,7 @@ void FAuraPotionInventoryFragment::OnConsume(const APlayerController* PC) const
 	}
 }
 
-void FAuraEffectEquipModifier::Manifest()
+void FAuraInventoryEffectEquipModifier::Manifest()
 {
 	FInventoryEquipModifier::Manifest();
 
@@ -53,9 +53,9 @@ void FAuraEffectEquipModifier::Manifest()
 	}
 }
 
-void FAuraEffectEquipModifier::OnEquip(const APlayerController* PC) const
+void FAuraInventoryEffectEquipModifier::OnEquip(const APlayerController* PC) const
 {
-	if (!IsValid(PC) || !EffectClass)
+	if (!IsValueValid() || !IsValid(PC) || !EffectClass)
 		return;
 	ACharacter* Character = PC->GetCharacter();
 	
@@ -69,9 +69,9 @@ void FAuraEffectEquipModifier::OnEquip(const APlayerController* PC) const
 	}
 }
 
-void FAuraEffectEquipModifier::OnUnequip(const APlayerController* PC) const
+void FAuraInventoryEffectEquipModifier::OnUnequip(const APlayerController* PC) const
 {
-	if (!IsValid(PC) || !EquippedEffectHandle.IsValid())
+	if (!IsValueValid() || !IsValid(PC) || !EquippedEffectHandle.IsValid())
 		return;
 
 	if (const auto AbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC->GetCharacter()))
@@ -79,3 +79,59 @@ void FAuraEffectEquipModifier::OnUnequip(const APlayerController* PC) const
 		AbilitySystemComponent->RemoveActiveGameplayEffect(EquippedEffectHandle, 1);
 	}
 }
+
+void FAuraInventoryAttributeEquipModifier::OnEquip(const APlayerController* PC) const
+{
+	if (!IsValueValid() || !IsValid(PC) || !Attribute.IsValid())
+		return;
+	ACharacter* Character = PC->GetCharacter();
+	
+	if (const auto AbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
+	{
+		EquippedEffectHandle = CreateAndApplyAttributeGameplayEffect(AbilitySystemComponent, Attribute, GetValue());
+	}
+}
+
+void FAuraInventoryAttributeEquipModifier::OnUnequip(const APlayerController* PC) const
+{
+	if (!IsValueValid() || !IsValid(PC) || !EquippedEffectHandle.IsValid())
+		return;
+
+	if (const auto AbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC->GetCharacter()))
+	{
+		AbilitySystemComponent->RemoveActiveGameplayEffect(EquippedEffectHandle, 1);
+	}
+}
+
+FActiveGameplayEffectHandle FAuraInventoryAttributeEquipModifier::CreateAndApplyAttributeGameplayEffect(
+	UAbilitySystemComponent* InAbilitySystemComponent, const FGameplayAttribute& InAttribute, const float InMagnitude)
+{
+	check(IsValid(InAbilitySystemComponent));
+	FGameplayEffectContextHandle EffectContext = InAbilitySystemComponent->MakeEffectContext();
+	
+	const FString EffectName = TEXT("GE_Equip_Attribute_") + InAttribute.GetName();
+	UGameplayEffect* Effect = NewObject<UGameplayEffect>(GetTransientPackage(), *EffectName);
+
+	Effect->DurationPolicy = EGameplayEffectDurationType::Infinite;
+
+	// FInheritedTagContainer GrantedTagsComp;
+	// GrantedTagsComp.Added.AddTag(/* ??? */);
+	// Effect->AddComponent<UTargetTagsGameplayEffectComponent>().SetAndApplyTargetTagChanges(GrantedTagsComp);
+
+	Effect->StackingType = EGameplayEffectStackingType::AggregateByTarget;
+	//Effect->StackLimitCount = -1;
+
+	FGameplayModifierInfo& ModInfo = Effect->Modifiers.Add_GetRef(FGameplayModifierInfo());
+	ModInfo.ModifierMagnitude = FScalableFloat(InMagnitude);
+	ModInfo.ModifierOp = EGameplayModOp::Additive;
+	ModInfo.Attribute = InAttribute;
+
+	if (FGameplayEffectSpec* Spec = new FGameplayEffectSpec(Effect, EffectContext, 1.f))
+	{
+		FActiveGameplayEffectHandle ActiveEffectHandle = InAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec);
+		// add Gameplay Cue here ?
+		return ActiveEffectHandle;
+	}
+	return {};
+}
+

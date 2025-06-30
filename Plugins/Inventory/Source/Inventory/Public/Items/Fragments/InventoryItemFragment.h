@@ -170,7 +170,9 @@ private:
 
 protected:
 
-	float GetValue() const {return NumericValue.GetPtr() ? NumericValue.Get().GetValue() : 0.f;}
+	float GetValue() const {return IsValueValid() ? NumericValue.Get().GetValue() : 0.f;}
+
+	bool IsValueValid() const {return NumericValue.IsValid();}
 
 public:
 

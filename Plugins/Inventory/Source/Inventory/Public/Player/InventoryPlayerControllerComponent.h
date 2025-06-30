@@ -8,6 +8,14 @@
 
 class UInputAction;
 
+/*
+ * A player controller component responsible for basic input and tracking of what can be picked up.
+ * Also, can open / close Inventory menu.
+ * Setup: Component must be added to PlayerController, all needed properties should be defined.
+ * Besides that, the owning player controller should call one of
+ * PerformInteractionTraceFromCamera() or PerformInteractionTraceUnderMouse() (depending on the game type),
+ * or directly call UpdateInteractionTraceResult() if it already has its own detection.
+ */
 UCLASS(MinimalAPI, ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Within=PlayerController)
 class UInventoryPlayerControllerComponent : public UActorComponent
 {

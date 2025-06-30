@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
+#include "AttributeSet.h"
 #include "ScalableFloat.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "AuraInvetoryItemFragments.generated.h"
@@ -11,7 +12,7 @@
 class UGameplayEffect;
 
 USTRUCT(BlueprintType)
-struct FAuraPotionInventoryFragment: public FInventoryConsumeModifier
+struct FAuraInventoryPotionConsumeModifier: public FInventoryConsumeModifier
 {
 	GENERATED_BODY()
 
@@ -45,7 +46,7 @@ struct FInventoryScalableFloat : public FInventoryNumericValueBase
 };
 
 USTRUCT(BlueprintType)
-struct FAuraEffectEquipModifier : public FInventoryEquipModifier
+struct FAuraInventoryEffectEquipModifier : public FInventoryEquipModifier
 {
 	GENERATED_BODY()
 
@@ -69,4 +70,27 @@ public:
 	virtual void OnEquip(const APlayerController* PC) const override;
 	virtual void OnUnequip(const APlayerController* PC) const override;
 
+};
+
+USTRUCT(BlueprintType)
+struct FAuraInventoryAttributeEquipModifier : public FInventoryEquipModifier
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FGameplayAttribute Attribute;
+
+private:
+
+	mutable FActiveGameplayEffectHandle EquippedEffectHandle;
+
+public:
+
+	virtual void OnEquip(const APlayerController* PC) const override;
+	virtual void OnUnequip(const APlayerController* PC) const override;
+
+private:
+	
+	static FActiveGameplayEffectHandle CreateAndApplyAttributeGameplayEffect(
+		UAbilitySystemComponent* InAbilitySystemComponent, const FGameplayAttribute& InAttribute,  const float InMagnitude);
 };
