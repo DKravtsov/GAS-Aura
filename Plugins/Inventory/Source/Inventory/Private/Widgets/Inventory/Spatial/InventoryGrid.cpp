@@ -669,6 +669,8 @@ void UInventoryGrid::AssignHoverItem(UInventoryItem* ClickedItem, const int32 Gr
 			UE_LOG(LogInventory, Error, TEXT("Loading failed: [%s]"), *SoftPath.ToString());
 			return;
 		}
+		if (!IsValid(HoverItem))
+			return; // it's too late, the hover item is destroyed. It happens when we drop item using Drop button in the menu
 		FSlateBrush ImageBrush;
 		ImageBrush.SetResourceObject(LoadedObject);
 		ImageBrush.DrawAs = ESlateBrushDrawType::Image;
