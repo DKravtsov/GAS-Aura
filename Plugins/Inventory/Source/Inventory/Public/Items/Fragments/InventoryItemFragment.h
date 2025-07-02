@@ -214,6 +214,24 @@ public:
 
 };
 
+USTRUCT(BlueprintType)
+struct FInventoryItemStackableRandomFragment: public FInventoryItemStackableFragment
+{
+	GENERATED_BODY()
+private:
+
+	// How many stacks initially this item has
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FIntPoint InitialMinMaxCount {1,1};
+
+public:
+
+	//~ Begin of FInventoryItemFragment interface
+	INVENTORY_API virtual void Manifest() override;
+	//~ End of FInventoryItemFragment interface
+
+};
+
 /*
  *    Consumable  
  */

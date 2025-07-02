@@ -120,6 +120,11 @@ bool FInventoryItemPropertyFragment::MatchesWidgetTag(const UInventoryCompositeB
 	return GetFragmentTag().MatchesTagExact(Composite->GetFragmentTag());
 }
 
+void FInventoryItemStackableRandomFragment::Manifest()
+{
+	SetStackCount(FMath::RandRange(InitialMinMaxCount.X, InitialMinMaxCount.Y));
+}
+
 void FInventoryItemConsumableFragment::OnConsume(const APlayerController* PC) const
 {
 	for (const auto& Modifier : ConsumeModifiers)
