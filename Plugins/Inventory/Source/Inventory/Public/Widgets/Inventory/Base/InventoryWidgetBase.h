@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InventoryGridTypes.h"
 #include "Blueprint/UserWidget.h"
+#include "Items/Components/InventoryItemComponent.h"
 #include "InventoryWidgetBase.generated.h"
 
 UCLASS(MinimalAPI, Abstract)
@@ -14,9 +15,14 @@ class UInventoryWidgetBase : public UUserWidget
 
 public:
 
-	INVENTORY_API virtual FInventorySlotAvailabilityResult HasRoomForItem(class UInventoryItemComponent* ItemComponent) const
+	FInventorySlotAvailabilityResult HasRoomForItem(const UInventoryItemComponent* ItemComponent) const
 	{
-		return FInventorySlotAvailabilityResult();
+		return HasRoomForItemInternal(ItemComponent->GetItemManifest(), -1);
+	}
+	
+	FInventorySlotAvailabilityResult HasRoomForItem(const struct FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const
+	{
+		return HasRoomForItemInternal(ItemManifest, StackCountOverride);
 	}
 
 	INVENTORY_API virtual void OnInventoryHovered(UInventoryItem* Item) {}
@@ -25,4 +31,12 @@ public:
 	INVENTORY_API virtual class UInventoryHoverProxy* GetHoverItem() const { return nullptr; }
 	INVENTORY_API virtual float GetTileSize() const { return 0.0f; }
 	INVENTORY_API virtual void OnCloseMenu() {}
+
+protected:
+
+	INVENTORY_API virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
+	{
+		return FInventorySlotAvailabilityResult();
+	}
+	
 };

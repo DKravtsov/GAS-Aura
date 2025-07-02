@@ -7,15 +7,34 @@
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "InventoryComponent.generated.h"
 
+class UInventoryItemData;
 class UInventoryItemComponent;
 struct FInventorySlotAvailabilityResult;
+class UInventoryWidgetBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInventorySlotAvailabilityResult&, Result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UInventoryItem*, Item);
 
-class UInventoryWidgetBase;
+USTRUCT(BlueprintType)
+struct FInventoryItemProxy
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSoftObjectPtr<UInventoryItemData> InventoryItem;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bOverrideCount"))
+	FIntPoint MinMaxAmount {1,1};
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(InlineEditConditionToggle))
+	uint8 bOverrideCount:1 = false;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	uint8 bEquipped:1 = false;
+
+};
 
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, Within=PlayerController, meta=(BlueprintSpawnableComponent))
 class UInventoryComponent : public UActorComponent
@@ -50,6 +69,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DropSpawnDistanceMax = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TArray<FInventoryItemProxy> StartupInventoryItems;
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
@@ -111,4 +133,9 @@ private:
 	void CloseInventoryMenu();
 
 	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
+
+	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	void Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder);
+	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const;
+
 };

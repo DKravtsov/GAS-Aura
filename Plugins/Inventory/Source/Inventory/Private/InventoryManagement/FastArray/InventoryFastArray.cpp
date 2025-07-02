@@ -6,6 +6,7 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
+#include "Items/Fragments/InventoryItemFragment.h"
 
 
 FInventoryEntry::FInventoryEntry()
@@ -77,6 +78,31 @@ UInventoryItem* FInventoryFastArray::AddItem(UInventoryItem* Item)
 	NewEntry.Item = Item;
 	MarkItemDirty(NewEntry);
 	return Item;
+}
+
+UInventoryItem* FInventoryFastArray::AddItem(const FInventoryItemManifest& ItemManifest, const int32 OverrideCount)
+{
+	check(OwnerComponent != nullptr);
+	AActor* OwningActor = OwnerComponent->GetOwner();
+	check(OwningActor->HasAuthority());
+
+	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	{
+		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
+		NewEntry.Item = ItemManifest.ManifestCopy(OwningActor);
+		if (OverrideCount > 0)
+		{
+			FInventoryItemManifest& NewManifest = NewEntry.Item->GetItemManifestMutable();
+			if (auto* StackableFragment = NewManifest.GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+			{
+				StackableFragment->SetStackCount(OverrideCount);
+			}
+		}
+		InventoryComponent->AddRepSubObj(NewEntry.Item);
+		MarkItemDirty(NewEntry);
+		return NewEntry.Item;
+	}
+	return nullptr;
 }
 
 void FInventoryFastArray::RemoveItem(UInventoryItem* Item)

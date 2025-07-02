@@ -249,13 +249,7 @@ EInventoryTileQuadrant UInventoryGrid::CalculateTileQuadrant(const FVector2D& Ca
 	return TileQuadrant;
 }
 
-FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItem(const UInventoryItemComponent* ItemComponent) const
-{
-	check(ItemComponent);
-	return HasRoomForItemInternal(ItemComponent->GetItemManifest());
-}
-
-FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
+FInventorySlotAvailabilityResult UInventoryGrid::HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
 	FInventorySlotAvailabilityResult Result;
 
@@ -413,7 +407,7 @@ void UInventoryGrid::AddItem(UInventoryItem* Item)
 
 	UE_LOG(LogTemp, Warning, TEXT("Adding item: [%s]"), *GetNameSafe(Item));
 
-	const auto Result = HasRoomForItemInternal(Item->GetItemManifest());
+	const auto Result = HasRoomForItem(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);
 }
 
@@ -491,7 +485,7 @@ void UInventoryGrid::PutHoverItemDown()
 	if (!HasHoverItem())
 		return;
 
-	FInventorySlotAvailabilityResult Result = HasRoomForItemInternal(HoverItem->GetInventoryItem()->GetItemManifest(), HoverItem->GetStackCount());
+	FInventorySlotAvailabilityResult Result = HasRoomForItem(HoverItem->GetInventoryItem()->GetItemManifest(), HoverItem->GetStackCount());
 	Result.Item = HoverItem->GetInventoryItem();
 
 	OnStackChanged(Result);

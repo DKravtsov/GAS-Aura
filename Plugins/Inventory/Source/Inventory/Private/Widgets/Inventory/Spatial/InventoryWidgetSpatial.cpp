@@ -51,12 +51,13 @@ FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeome
 	return FReply::Handled();
 }
 
-FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItem(UInventoryItemComponent* ItemComponent) const
+FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItemInternal(
+	const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
-	 if (const UInventoryGrid* Grid = GetInventoryGridByCategory(UInventoryStatics::GetItemCategory(ItemComponent)))
-	 {
-		 return Grid->HasRoomForItem(ItemComponent);
-	 }
+	if (const UInventoryGrid* Grid = GetInventoryGridByCategory(ItemManifest.GetItemCategory()))
+	{
+		return Grid->HasRoomForItem(ItemManifest, StackCountOverride);
+	}
 	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
 	return FInventorySlotAvailabilityResult();
 }

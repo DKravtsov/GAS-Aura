@@ -39,6 +39,7 @@ public:
 	const FGameplayTag& GetItemType() const {return ItemType;}
 
 	INVENTORY_API class UInventoryItem* Manifest(UObject* NewOuter);
+	INVENTORY_API class UInventoryItem* ManifestCopy(UObject* NewOuter) const;
 	INVENTORY_API AActor* SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 	INVENTORY_API void AssimilateInventoryFragments(class UInventoryCompositeBase* Composite) const;

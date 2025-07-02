@@ -62,6 +62,7 @@ public:
 	}
 
 	UInventoryItem* AddItem(class UInventoryItemComponent* ItemComponent);
+	UInventoryItem* AddItem(const struct FInventoryItemManifest& ItemManifest, const int32 OverrideCount = -1);
 	UInventoryItem* AddItem(UInventoryItem* Item);
 	void RemoveItem(UInventoryItem* Item);
 

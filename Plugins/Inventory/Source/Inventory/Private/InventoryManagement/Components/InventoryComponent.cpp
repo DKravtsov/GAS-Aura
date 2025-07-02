@@ -10,6 +10,7 @@
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 #include "Player/InventoryPlayerControllerComponent.h"
 #include "Items/InventoryItem.h"
+#include "Items/InventoryItemData.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 
 UInventoryComponent::UInventoryComponent()
@@ -58,6 +59,38 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	}
 }
 
+void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+{
+	check(GetOwner()->HasAuthority());
+	
+	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemManifest, StackCount);
+	if (Result.TotalRoomToFill == 0)
+	{
+		OnNoRoomInInventory.Broadcast();
+		return;
+	}
+	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
+	Result.Item = FoundItem;
+
+	if (Result.Remainder > 0)
+	{
+		UE_LOG(LogInventory, Warning, TEXT("Adding startup item [%s]: inventory has not enough room for %d more item(s) and they will be destroyed."),
+		   *ItemManifest.GetItemType().ToString(), Result.Remainder);
+	}
+
+	if (Result.Item.IsValid() && Result.bStackable)
+	{
+		OnStackChanged.Broadcast(Result);
+		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
+		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, Result.Remainder);
+	}
+	else
+	{
+		// This item doesn't exist in the inventory. Need to create one and update all related stuff
+		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
+	}
+}
+
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
 	const auto NewItem = InventoryList.AddItem(ItemComponent);
@@ -86,6 +119,18 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 	return true;
 }
 
+void UInventoryComponent::Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder)
+{
+	check(GetOwner()->HasAuthority());
+	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
+	NewItem->SetTotalStackCount(StackCount);
+
+	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
+	{
+		OnItemAdded.Broadcast(NewItem);
+	}
+}
+
 void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
 {
 	check(IsValid(ItemComponent));
@@ -111,6 +156,16 @@ void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemCo
 bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount,	int32 Remainder)
 {
 	return true;
+}
+
+void UInventoryComponent::Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const
+{
+	check(GetOwner()->HasAuthority());
+	const FGameplayTag& ItemType = ItemManifest.GetItemType();
+	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
+	{
+		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
+	}
 }
 
 
@@ -261,6 +316,25 @@ void UInventoryComponent::BeginPlay()
 		*OwningPlayerController->GetClass()->GetName());
 
 	ConstructInventory();
+
+	if (GetOwner()->HasAuthority() && !StartupInventoryItems.IsEmpty())
+	{
+		// todo: make this operation async. We need to async load all item in one batch and then call this loop
+		for (const auto& Item : StartupInventoryItems)
+		{
+			if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
+			{
+				int32 StackCount = -1;
+				if (const auto* StackableFragment = ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
+				{
+					StackCount = Item.bOverrideCount
+						? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
+						: StackableFragment->GetStackCount();
+				}
+				TryAddStartupItem(ItemData->GetItemManifest(), -1);
+			}
+		}
+	}
 }
 
 void UInventoryComponent::ConstructInventory()

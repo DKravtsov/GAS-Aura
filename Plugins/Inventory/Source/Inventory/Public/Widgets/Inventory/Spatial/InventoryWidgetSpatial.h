@@ -64,13 +64,15 @@ public:
 	//~ End of UUserWidget interface
 
 	//~ Begin of UInventoryWidgetBase interface
-	virtual FInventorySlotAvailabilityResult HasRoomForItem(class UInventoryItemComponent* ItemComponent) const override;
 	virtual void OnInventoryHovered(UInventoryItem* Item) override;
 	virtual void OnInventoryUnhovered() override;
 	virtual bool HasHoverItem() const override;
 	virtual UInventoryHoverProxy* GetHoverItem() const override;
 	virtual float GetTileSize() const override;
 	virtual void OnCloseMenu() override;
+protected:
+	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
+	
 	//~ End of UInventoryWidgetBase interface
 private:
 

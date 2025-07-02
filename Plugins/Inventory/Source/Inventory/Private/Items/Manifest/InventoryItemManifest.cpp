@@ -23,6 +23,19 @@ UInventoryItem* FInventoryItemManifest::Manifest(UObject* NewOuter)
 	return NewItem;
 }
 
+UInventoryItem* FInventoryItemManifest::ManifestCopy(UObject* NewOuter) const
+{
+	const auto NewItem = NewObject<UInventoryItem>(NewOuter, UInventoryItem::StaticClass());
+	NewItem->SetItemManifest(*this);
+
+	for (auto& Fragment : NewItem->GetItemManifestMutable().Fragments)
+	{
+		Fragment.GetMutable().Manifest();
+	}
+
+	return NewItem;
+}
+
 AActor* FInventoryItemManifest::SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation) const
 {
 	if (!PickupActorClass || !IsValid(WorldContextObject) || !GEngine)

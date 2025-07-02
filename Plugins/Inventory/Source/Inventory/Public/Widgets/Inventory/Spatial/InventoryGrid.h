@@ -9,6 +9,7 @@
 #include "InventoryGrid.generated.h"
 
 
+struct FInventoryItemManifest;
 class UInventoryGridSlot;
 class UUniformGridPanel;
 class UGridPanel;
@@ -106,7 +107,7 @@ public:
 	UFUNCTION()
 	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
 
-	INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const class UInventoryItemComponent* ItemComponent) const;
+	INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
@@ -132,8 +133,6 @@ private:
 
 	UFUNCTION()
 	void OnStackChanged(const FInventorySlotAvailabilityResult& Result);
-
-	FInventorySlotAvailabilityResult HasRoomForItemInternal(const struct FInventoryItemManifest& ItemManifest, int32 StackCountOverride = -1) const;
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	UInventorySlottedItemWidget* CreateSlottedItemWidget(UInventoryItem* Item, int32 Index,
