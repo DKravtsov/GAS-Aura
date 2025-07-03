@@ -33,6 +33,20 @@ void UInventoryItemComponent::InitItemManifestFrom(const FInventoryItemManifest&
 	ItemManifest = ItemManifestToCopy;
 }
 
+#if WITH_EDITOR
+void UInventoryItemComponent::CopyManifestFromData()
+{
+	if (!ItemData.IsNull())
+	{
+		if (const auto* Data = ItemData.LoadSynchronous())
+		{
+			ItemManifest = Data->GetItemManifest();
+			bOverrideItemManifest = true;
+		}
+	}
+}
+#endif//WITH_EDITOR
+
 void UInventoryItemComponent::BeginPlay()
 {
 	if (!bOverrideItemManifest && !ItemData.IsNull())

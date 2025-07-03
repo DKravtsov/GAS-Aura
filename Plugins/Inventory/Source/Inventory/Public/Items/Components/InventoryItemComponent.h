@@ -42,6 +42,11 @@ public:
 
 	INVENTORY_API void InitItemManifestFrom(const FInventoryItemManifest& ItemManifestToCopy);
 
+#if WITH_EDITOR
+	UFUNCTION(CallInEditor, Category = "Inventory")
+	void CopyManifestFromData();
+#endif
+
 protected:
 
 	INVENTORY_API virtual void BeginPlay() override;
