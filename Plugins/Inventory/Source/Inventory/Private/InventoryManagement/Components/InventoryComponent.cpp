@@ -331,7 +331,7 @@ void UInventoryComponent::BeginPlay()
 						? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
 						: StackableFragment->GetStackCount();
 				}
-				TryAddStartupItem(ItemData->GetItemManifest(), -1);
+				TryAddStartupItem(ItemData->GetItemManifest(), StackCount);
 			}
 		}
 	}
