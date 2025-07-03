@@ -83,4 +83,10 @@ private:
 	void PrimaryInteract();
 	void CreateHUDWidget();
 	void ToggleInventory();
+
+	UFUNCTION()
+	void OnInventoryMenuOpened();
+
+	UFUNCTION()
+	void OnInventoryMenuClosed();
 };

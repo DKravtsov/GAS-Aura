@@ -377,6 +377,7 @@ void UInventoryComponent::OpenInventoryMenu()
 		FInputModeUIOnly InputMode;
 		OwningPlayerController->SetInputMode(InputMode);
 	}
+	OnInventoryMenuOpened.Broadcast();
 }
 
 void UInventoryComponent::CloseInventoryMenu()
@@ -405,4 +406,5 @@ void UInventoryComponent::CloseInventoryMenu()
 		InputMode.SetHideCursorDuringCapture(false);
 		OwningPlayerController->SetInputMode(InputMode);
 	}
+	OnInventoryMenuClosed.Broadcast();
 }

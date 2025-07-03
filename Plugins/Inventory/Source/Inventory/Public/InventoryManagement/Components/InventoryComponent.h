@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInve
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInventorySlotAvailabilityResult&, Result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UInventoryItem*, Item);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryMenuVisibilityChangedSugnature);
 
 USTRUCT(BlueprintType)
 struct FInventoryItemProxy
@@ -49,6 +50,12 @@ public:
 	FStackChangedSignature OnStackChanged;
 	FItemEquipStatusChangedSignature OnItemEquipped;
 	FItemEquipStatusChangedSignature OnItemUnequipped;
+
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FInventoryMenuVisibilityChangedSugnature OnInventoryMenuOpened;
+	
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FInventoryMenuVisibilityChangedSugnature OnInventoryMenuClosed;
 
 private:
 	

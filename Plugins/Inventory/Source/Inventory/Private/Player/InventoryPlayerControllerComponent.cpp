@@ -80,6 +80,10 @@ void UInventoryPlayerControllerComponent::BeginPlay()
 	// TODO: need to take into account that add the widget to the viewport can break the target's UI rules
 	// Consider adding callback or something like this
 	CreateHUDWidget();
+
+	InventoryComponent->OnInventoryMenuOpened.AddDynamic(this, &UInventoryPlayerControllerComponent::OnInventoryMenuOpened);
+	InventoryComponent->OnInventoryMenuClosed.AddDynamic(this, &UInventoryPlayerControllerComponent::OnInventoryMenuClosed);
+	
 }
 
 void UInventoryPlayerControllerComponent::SetupInputComponent(UEnhancedInputComponent* InputComponent)
@@ -127,17 +131,22 @@ void UInventoryPlayerControllerComponent::ToggleInventory()
 	if (InventoryComponent.IsValid())
 	{
 		InventoryComponent->ToggleInventoryMenu();
-		if (IsValid(HUDWidget))
-		{
-			if (InventoryComponent->IsMenuOpen())
-			{
-				HUDWidget->SetVisibility(ESlateVisibility::Hidden);
-			}
-			else
-			{
-				HUDWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-			}
-		}
+	}
+}
+
+void UInventoryPlayerControllerComponent::OnInventoryMenuOpened()
+{
+	if (IsValid(HUDWidget))
+	{
+		HUDWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UInventoryPlayerControllerComponent::OnInventoryMenuClosed()
+{
+	if (IsValid(HUDWidget))
+	{
+		HUDWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 }
 
