@@ -46,6 +46,7 @@ void AInventoryProxyMeshActor::DelayedInitializeOwner()
 					Mesh->SetAnimInstanceClass(SourceMesh->GetAnimClass());
 
 					EquipmentComponent->InitializeOwner(PC);
+					return;
 				}
 			}
 		}
