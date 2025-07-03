@@ -45,11 +45,14 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
+	const FGameplayTag& GetEquipmentTypeTag() const { return EquipmentTypeTag; }
+
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	void SetGrayedIconBrush(const FSlateBrush& Brush);
 
 	UInventoryEquippedSlottedItem* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
 
+	UInventoryEquippedSlottedItem* GetEquippedSlottedItem() const { return EquippedSlottedItem; }
 	void SetEquippedSlottedItem(UInventoryEquippedSlottedItem* Item) {EquippedSlottedItem = Item;}
 	void ClearEquippedSlot();
 };

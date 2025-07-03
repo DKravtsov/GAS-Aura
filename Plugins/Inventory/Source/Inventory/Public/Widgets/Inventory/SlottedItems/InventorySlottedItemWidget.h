@@ -44,10 +44,10 @@ public:
 
 	UImage* GetImageIcon() const {return Image_Icon;}
 
-	void SetGridIndex(int32 NewGridIndex) {GridIndex = NewGridIndex;}
+	void SetGridIndex(const int32 NewGridIndex) {GridIndex = NewGridIndex;}
 	int32 GetGridIndex() const {return GridIndex;}
 
-	void SetGridDimensions(FIntPoint NewGridDimensions) {GridDimensions = NewGridDimensions;}
+	void SetGridDimensions(const FIntPoint& NewGridDimensions) {GridDimensions = NewGridDimensions;}
 	const FIntPoint& GetGridDimensions() const {return GridDimensions;}
 
 	void SetInventoryItem(UInventoryItem* Item);

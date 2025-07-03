@@ -70,10 +70,20 @@ public:
 	virtual UInventoryHoverProxy* GetHoverItem() const override;
 	virtual float GetTileSize() const override;
 	virtual void OnCloseMenu() override;
+
+	virtual bool IsItemEquipped(const UInventoryItem* Item) const override;
+	virtual bool CanEquipItem(const UInventoryItem* Item) const override;
+	virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
+	virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const override;
+
 protected:
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
-	
 	//~ End of UInventoryWidgetBase interface
+
+public:
+
+	virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) override;
+	
 private:
 
 	UFUNCTION()
@@ -100,10 +110,14 @@ private:
 
 	bool CanEquipHoverItem(const UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
 
-	UInventoryEquippedGridSlot* FindSlotWithEquippedItem(UInventoryItem* EquippedItem) const;
+	UInventoryEquippedGridSlot* FindSlotWithEquippedItem(const UInventoryItem* EquippedItem) const;
 	void ClearSlotOfItem(UInventoryEquippedGridSlot* EquippedGridSlot);
 	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItem* EquippedSlottedItem);
 	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItem* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
 
 	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip) const;
+
+	UInventoryEquippedGridSlot* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
+
+	FGameplayTag FindItemBestEquipType(const UInventoryItem* Item) const;
 };

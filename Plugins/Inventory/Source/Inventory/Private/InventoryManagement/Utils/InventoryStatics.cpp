@@ -5,6 +5,7 @@
 
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
+#include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
@@ -90,3 +91,10 @@ class UInventoryHoverProxy* UInventoryStatics::GetHoverItem(const APlayerControl
 	}
 	return nullptr;
 }
+
+bool UInventoryStatics::CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag)
+{
+	return IsValid(Item) && !Item->IsStackable() && Item->IsEquipable()
+		&& Item->GetItemType().MatchesTag(EquipmentTypeTag);
+}
+

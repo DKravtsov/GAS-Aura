@@ -59,7 +59,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	}
 }
 
-void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+UInventoryItem* UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	check(GetOwner()->HasAuthority());
 	
@@ -67,7 +67,7 @@ void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemMa
 	if (Result.TotalRoomToFill == 0)
 	{
 		OnNoRoomInInventory.Broadcast();
-		return;
+		return nullptr;
 	}
 	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
 	Result.Item = FoundItem;
@@ -82,12 +82,12 @@ void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemMa
 	{
 		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, Result.Remainder);
+		return Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, Result.Remainder);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
+		return Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
 	}
 }
 
@@ -119,7 +119,7 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 	return true;
 }
 
-void UInventoryComponent::Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder)
+UInventoryItem* UInventoryComponent::Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder)
 {
 	check(GetOwner()->HasAuthority());
 	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
@@ -129,6 +129,7 @@ void UInventoryComponent::Server_AddNewStartupItem(const FInventoryItemManifest&
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
+	return NewItem;
 }
 
 void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
@@ -158,14 +159,16 @@ bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponen
 	return true;
 }
 
-void UInventoryComponent::Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const
+UInventoryItem* UInventoryComponent::Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const
 {
 	check(GetOwner()->HasAuthority());
 	const FGameplayTag& ItemType = ItemManifest.GetItemType();
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
+		return Item;
 	}
+	return nullptr;
 }
 
 
@@ -191,15 +194,6 @@ void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem*
 {
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	Server_EquipItem(ItemToEquip, ItemToUnequip);
-
-	// This doesn't look right, so, I've commented out next lines. #todo need to check
-	
-	// if (OwningPlayerController->GetNetMode() != NM_DedicatedServer)
-	// {
-	// 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	// 	OnItemUnequipped.Broadcast(ItemToUnequip);
-	// 	OnItemEquipped.Broadcast(ItemToEquip);
-	// }
 }
 
 void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
@@ -306,6 +300,11 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	DOREPLIFETIME(UInventoryComponent, InventoryList);
 }
 
+bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const
+{
+	return InventoryMenu->TryEquipItem(ItemToEquip, EquipmentTypeTag);
+}
+
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -319,6 +318,8 @@ void UInventoryComponent::BeginPlay()
 
 	if (GetOwner()->HasAuthority() && !StartupInventoryItems.IsEmpty())
 	{
+		StartupEquipment.Reserve(StartupInventoryItems.Num());
+		
 		// todo: make this operation async. We need to async load all item in one batch and then call this loop
 		for (const auto& Item : StartupInventoryItems)
 		{
@@ -331,11 +332,24 @@ void UInventoryComponent::BeginPlay()
 						? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
 						: StackableFragment->GetStackCount();
 				}
-				TryAddStartupItem(ItemData->GetItemManifest(), StackCount);
+				UInventoryItem* ItemAdded = TryAddStartupItem(ItemData->GetItemManifest(), StackCount);
+				if (ItemAdded && Item.ShouldEquipToSlot.IsValid() && ItemAdded->IsEquipable())
+				{
+					StartupEquipment.Emplace(ItemAdded, Item.ShouldEquipToSlot);
+				}
 			}
 		}
 	}
 }
+
+// void UInventoryComponent::EquipStartupItems()
+// {
+// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : StartupEquipment)
+// 	{
+// 		InventoryMenu->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag);
+// 	}
+// 	//StartupEquipment.Empty();
+// }
 
 void UInventoryComponent::ConstructInventory()
 {

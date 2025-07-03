@@ -695,6 +695,24 @@ void UInventoryGrid::OnHide()
 	ShowDefaultCursor();
 }
 
+void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* Item)
+{
+	check(IsValid(Item));
+	check(!Item->IsStackable()); // this method must not be called for stackable items
+
+	for (const auto& [GridIndex, SlottedItem] : SlottedItems)
+	{
+		if (IsValid(SlottedItem))
+		{
+			if (SlottedItem->GetInventoryItem() == Item)
+			{
+				RemoveItemFromGrid(Item, GridIndex);
+				break;
+			}
+		}
+	}
+}
+
 void UInventoryGrid::RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex)
 {
 	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(ClickedItem);

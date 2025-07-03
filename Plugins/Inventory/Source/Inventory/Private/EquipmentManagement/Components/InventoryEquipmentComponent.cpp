@@ -82,6 +82,18 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 	{
 		InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryEquipmentComponent::OnItemUnequipped);
 	}
+
+	//if (!bIsProxy)
+	// {
+	// 	InventoryComponent->EquipStartupItems(this);
+	// }
+	for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+	{
+		if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+		{
+			OnItemEquipped(ItemToEquip.Get());
+		}
+	}
 }
 
 AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(

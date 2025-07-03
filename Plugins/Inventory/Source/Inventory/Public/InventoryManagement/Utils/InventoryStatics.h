@@ -11,6 +11,8 @@
 class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
 class UInventoryComponent;
+class UInventoryHoverProxy;
+
 /**
  * 
  */
@@ -80,8 +82,11 @@ public:
 	static void ItemUnhovered(APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
-	static class UInventoryHoverProxy* GetHoverItem(const APlayerController* PlayerController);
+	static UInventoryHoverProxy* GetHoverItem(const APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
-	static class UInventoryWidgetBase* GetInventoryWidget(const APlayerController* PlayerController);
+	static UInventoryWidgetBase* GetInventoryWidget(const APlayerController* PlayerController);
+
+	static bool CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag);
+
 };

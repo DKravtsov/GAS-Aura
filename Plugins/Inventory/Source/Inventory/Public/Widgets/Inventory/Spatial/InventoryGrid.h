@@ -126,6 +126,8 @@ public:
 
 	void OnHide();
 
+	void RemoveItemFromGrid(UInventoryItem* Item);
+
 private:
 
 	void ConstructGrid();

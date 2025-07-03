@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "InventoryComponent.generated.h"
@@ -29,11 +30,11 @@ struct FInventoryItemProxy
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bOverrideCount"))
 	FIntPoint MinMaxAmount {1,1};
 
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(Categories="GameItems.Equipment"))
+	FGameplayTag ShouldEquipToSlot;
+
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(InlineEditConditionToggle))
 	uint8 bOverrideCount:1 = false;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	uint8 bEquipped:1 = false;
 
 };
 
@@ -80,6 +81,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TArray<FInventoryItemProxy> StartupInventoryItems;
 
+	TArray<TPair<TWeakObjectPtr<UInventoryItem>, FGameplayTag>> StartupEquipment;
+
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
 
@@ -107,6 +110,9 @@ public:
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
 
 	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+
+	TArray<TPair<TWeakObjectPtr<UInventoryItem>, FGameplayTag>> GetEquipStartupItems() const {return StartupEquipment;}
+	bool TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const;
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -141,8 +147,8 @@ private:
 
 	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
 
-	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
-	void Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder);
-	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const;
+	UInventoryItem* TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	UInventoryItem* Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder);
+	UInventoryItem* Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const;
 
 };
