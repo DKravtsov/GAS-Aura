@@ -35,6 +35,8 @@ void UInventoryComponent::ToggleInventoryMenu()
 
 void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	check(ItemComponent != nullptr);
 	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
 	if (Result.TotalRoomToFill == 0)
@@ -59,15 +61,17 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	}
 }
 
-UInventoryItem* UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
 {
-	check(GetOwner()->HasAuthority());
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
+	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should run only for local Player Controller"));
 	
 	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemManifest, StackCount);
 	if (Result.TotalRoomToFill == 0)
 	{
 		OnNoRoomInInventory.Broadcast();
-		return nullptr;
+		return ;
 	}
 	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
 	Result.Item = FoundItem;
@@ -82,17 +86,89 @@ UInventoryItem* UInventoryComponent::TryAddStartupItem(const FInventoryItemManif
 	{
 		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		return Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, Result.Remainder);
+		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, EquipmentTypeTag);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		return Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
+		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipmentTypeTag);
 	}
+}
+
+FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const
+{
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
+	// TODO: implement proper check on server
+	// For now we always trust in any provided stack count
+	
+	FInventorySlotAvailabilityResult Result;
+
+	// Determine if the item is stackable.Add commentMore actions
+	const auto StackableFragment = ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>();
+	Result.bStackable = StackableFragment != nullptr;
+
+	const auto GridFragment = ItemManifest.GetFragmentOfType<FInventoryItemGridFragment>();
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
+	
+	// Determine how many stacks to add.
+
+	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
+	int32 AmountToFill = StackableFragment ? (StackCountOverride >= 0 ? StackCountOverride : StackableFragment->GetStackCount()) : 1;
+
+	Result.TotalRoomToFill += AmountToFill;
+	Result.SlotAvailabilities.Emplace(
+			0,
+			Result.bStackable ? AmountToFill : 0,
+			true
+			);
+
+	Result.Remainder = 0;
+	
+	return Result;
+}
+
+void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+{
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
+	checkf(OwningPlayerController->HasAuthority(), TEXT("This method should run only on server"));
+
+	
+	FInventorySlotAvailabilityResult Result = ServerCheckHasRoomForItem(ItemManifest, StackCount);
+	
+	if (Result.TotalRoomToFill == 0)
+	{
+		OnNoRoomInInventory.Broadcast();
+		return ;
+	}
+	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
+	Result.Item = FoundItem;
+
+	if (Result.Remainder > 0)
+	{
+		UE_LOG(LogInventory, Warning, TEXT("Adding startup item [%s]: inventory has not enough room for %d more item(s) and they will be destroyed."),
+		   *ItemManifest.GetItemType().ToString(), Result.Remainder);
+	}
+
+	if (Result.Item.IsValid() && Result.bStackable)
+	{
+		OnStackChanged.Broadcast(Result);
+		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
+		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, EquipmentTypeTag);
+	}
+	else
+	{
+		// This item doesn't exist in the inventory. Need to create one and update all related stuff
+		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipmentTypeTag);
+	}
+
 }
 
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	const auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
 
@@ -119,21 +195,33 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 	return true;
 }
 
-UInventoryItem* UInventoryComponent::Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder)
+void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
 {
-	check(GetOwner()->HasAuthority());
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
+	check(NewItem != nullptr);
 	NewItem->SetTotalStackCount(StackCount);
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
-	return NewItem;
+	if (EquipmentTypeTag.IsValid())
+	{
+		StartupEquipment.Emplace(NewItem, EquipmentTypeTag);
+	}
+}
+
+bool UInventoryComponent::Server_AddNewStartupItem_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+{
+	return true;
 }
 
 void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	check(IsValid(ItemComponent));
 	const FGameplayTag& ItemType = ItemComponent->GetItemManifest().GetItemType();
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
@@ -159,17 +247,27 @@ bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponen
 	return true;
 }
 
-UInventoryItem* UInventoryComponent::Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const
+void UInventoryComponent::Server_AddStacksToItemAtStart_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	check(GetOwner()->HasAuthority());
 	const FGameplayTag& ItemType = ItemManifest.GetItemType();
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
-		return Item;
+
+		if (EquipmentTypeTag.IsValid())
+		{
+			StartupEquipment.Emplace(Item, EquipmentTypeTag);
+		}
 	}
-	return nullptr;
 }
+bool UInventoryComponent::Server_AddStacksToItemAtStart_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+{
+	return true;
+}
+
 
 
 void UInventoryComponent::AddRepSubObj(UObject* SubObj)
@@ -302,11 +400,23 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	return InventoryMenu->TryEquipItem(ItemToEquip, EquipmentTypeTag);
+}
+
+void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
+{
+	if (!bStartupItemInitialized)
+		return;
+	
+	LOG_NETFUNCTIONCALL_COMPONENT
 }
 
 void UInventoryComponent::BeginPlay()
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	Super::BeginPlay();
 
 	OwningPlayerController = CastChecked<APlayerController>(GetOwner());
@@ -316,30 +426,40 @@ void UInventoryComponent::BeginPlay()
 
 	ConstructInventory();
 
-	if (GetOwner()->HasAuthority() && !StartupInventoryItems.IsEmpty())
+	if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
 	{
-		StartupEquipment.Reserve(StartupInventoryItems.Num());
+		Server_AddStartupItems();
+	}
+}
+
+void UInventoryComponent::Server_AddStartupItems_Implementation()
+{
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
+	StartupEquipment.Reserve(StartupInventoryItems.Num());
 		
-		// todo: make this operation async. We need to async load all item in one batch and then call this loop
-		for (const auto& Item : StartupInventoryItems)
+	// todo: make this operation async. We need to async load all item in one batch and then call this loop
+	for (const auto& Item : StartupInventoryItems)
+	{
+		if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
 		{
-			if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
+			int32 StackCount = -1;
+			if (const auto* StackableFragment = ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
 			{
-				int32 StackCount = -1;
-				if (const auto* StackableFragment = ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
-				{
-					StackCount = Item.bOverrideCount
-						? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
-						: StackableFragment->GetStackCount();
-				}
-				UInventoryItem* ItemAdded = TryAddStartupItem(ItemData->GetItemManifest(), StackCount);
-				if (ItemAdded && Item.ShouldEquipToSlot.IsValid() && ItemAdded->IsEquipable())
-				{
-					StartupEquipment.Emplace(ItemAdded, Item.ShouldEquipToSlot);
-				}
+				StackCount = Item.bOverrideCount
+					? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
+					: StackableFragment->GetStackCount();
 			}
+			Server_TryAddStartupItem(ItemData->GetItemManifest(), StackCount, Item.ShouldEquipToSlot);
 		}
 	}
+	bStartupItemInitialized = true;
+	Client_ReceivedStartupInventory();
+}
+
+bool UInventoryComponent::Server_AddStartupItems_Validate()
+{
+	return true;
 }
 
 // void UInventoryComponent::EquipStartupItems()
@@ -353,6 +473,8 @@ void UInventoryComponent::BeginPlay()
 
 void UInventoryComponent::ConstructInventory()
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	if (!OwningPlayerController->IsLocalController())
 		return;
 
@@ -422,3 +544,13 @@ void UInventoryComponent::CloseInventoryMenu()
 	}
 	OnInventoryMenuClosed.Broadcast();
 }
+
+void UInventoryComponent::ReceivedStartupItems()
+{
+	if (!bStartupItemInitialized)
+	{
+		bStartupItemInitialized = true;
+		Client_ReceivedStartupInventory();
+	}
+}
+

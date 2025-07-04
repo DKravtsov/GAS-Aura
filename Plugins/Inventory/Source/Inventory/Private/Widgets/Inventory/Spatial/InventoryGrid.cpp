@@ -404,8 +404,8 @@ void UInventoryGrid::AddItem(UInventoryItem* Item)
 {
 	if (!IsValid(Item) || !MatchesCategory(Item))
 		return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Adding item: [%s]"), *GetNameSafe(Item));
+	
+	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s] tag [%s]"), *Item->GetName(), *Item->GetItemType().ToString())
 
 	const auto Result = HasRoomForItem(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);

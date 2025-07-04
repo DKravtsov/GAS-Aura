@@ -87,13 +87,13 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 	// {
 	// 	InventoryComponent->EquipStartupItems(this);
 	// }
-	for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
-	{
-		if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
-		{
-			OnItemEquipped(ItemToEquip.Get());
-		}
-	}
+	// for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+	// {
+	// 	if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+	// 	{
+	// 		OnItemEquipped(ItemToEquip.Get());
+	// 	}
+	// }
 }
 
 AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(

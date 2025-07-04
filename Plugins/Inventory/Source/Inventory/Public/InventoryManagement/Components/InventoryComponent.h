@@ -89,7 +89,9 @@ private:
 	UPROPERTY(Replicated)
 	FInventoryFastArray InventoryList;
 
-	bool bInventoryMenuOpen = false;
+	uint8 bInventoryMenuOpen:1 = false;
+
+	uint8 bStartupItemInitialized:1 = false;
 	
 public:
 	INVENTORY_API UInventoryComponent();
@@ -113,6 +115,8 @@ public:
 
 	TArray<TPair<TWeakObjectPtr<UInventoryItem>, FGameplayTag>> GetEquipStartupItems() const {return StartupEquipment;}
 	bool TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const;
+
+	void ReceivedStartupItems();
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -147,8 +151,20 @@ private:
 
 	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
 
-	UInventoryItem* TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
-	UInventoryItem* Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder);
-	UInventoryItem* Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, int32 Remainder) const;
+	void /*Client*/TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+	FInventorySlotAvailabilityResult ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const;
+	void /*Client*/Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddStartupItems();
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+
+	UFUNCTION(Client, Reliable)
+	void Client_ReceivedStartupInventory();
 
 };

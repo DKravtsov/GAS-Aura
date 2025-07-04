@@ -37,10 +37,20 @@ public:
     if (auto ComponentOwner = GetOwner()) \
     { UE_LOG(LogInventory, Warning, TEXT("%s[%s.%s] --> (%s) %s: %s"), NETMODE_WORLD, *ComponentOwner->GetName(), *GetName(), NETROLE_TEXT(ComponentOwner->GetLocalRole()), FUNC_NAME, *(FString::Printf(format, ##__VA_ARGS__))); }
 
-#define NETMODE_WORLD (((GEngine == nullptr) || (GetWorld() == nullptr)) ? TEXT("") \
-        : (GEngine->GetNetMode(GetWorld()) == NM_Client) ? TEXT("[Client] ") \
-        : (GEngine->GetNetMode(GetWorld()) == NM_ListenServer) ? TEXT("[ListenServer] ") \
-        : (GEngine->GetNetMode(GetWorld()) == NM_DedicatedServer) ? TEXT("[DedicatedServer] ") \
+#define LOG_NETFUNCTIONCALL_OWNER(OwningActor) \
+    { UE_LOG(LogInventory, Warning, TEXT("%s[%s.*] --> (%s) %s"), NETMODE_WORLD_A(OwningActor), *OwningActor->GetName(), NETROLE_TEXT(OwningActor->GetLocalRole()), FUNC_NAME); } \
+
+#define LOG_NETFUNCTIONCALL_OWNER_MSG(OwningActor, format, ...) \
+    { UE_LOG(LogInventory, Warning, TEXT("%s[%s.*] --> (%s) %s"), NETMODE_WORLD_A(OwningActor), *OwningActor->GetName(), NETROLE_TEXT(OwningActor->GetLocalRole()), FUNC_NAME, *(FString::Printf(format, ##__VA_ARGS__))); } \
+
+#define NETMODE_WORLD NETMODE_WORLD_(GetWorld())
+#define NETMODE_WORLD_A(A) NETMODE_WORLD_(A->GetWorld())
+
+#define NETMODE_WORLD_(World) \
+    (((GEngine == nullptr) || (World == nullptr)) ? TEXT("") \
+        : (GEngine->GetNetMode(World) == NM_Client) ? TEXT("[Client] ") \
+        : (GEngine->GetNetMode(World) == NM_ListenServer) ? TEXT("[ListenServer] ") \
+        : (GEngine->GetNetMode(World) == NM_DedicatedServer) ? TEXT("[DedicatedServer] ") \
         : TEXT("[Standalone] "))
 
 #define NETROLE_TEXT(Role) \

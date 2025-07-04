@@ -3,6 +3,7 @@
 
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 
+#include "Inventory.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
@@ -41,6 +42,8 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 
 void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
+	LOG_NETFUNCTIONCALL_OWNER(OwnerComponent->GetOwner())
+
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
 	if (IsValid(InventoryComponent))
 	{
@@ -49,6 +52,8 @@ void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndice
 			InventoryComponent->OnItemAdded.Broadcast(Entries[Index].Item);
 		}
 	}
+
+	InventoryComponent->ReceivedStartupItems();
 }
 
 UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemComponent)
