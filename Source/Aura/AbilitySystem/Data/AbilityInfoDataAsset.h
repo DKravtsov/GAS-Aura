@@ -52,7 +52,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Transient)
 	uint32 bStatus : 1 = false;
 	
-	UPROPERTY(BlueprintReadOnly, Transient)
+	UPROPERTY(BlueprintReadOnly, Transient, meta=(ScriptName="IsInputTag"))
 	uint32 bInputTag : 1 = false;
 
 	UPROPERTY(BlueprintReadOnly, Transient)

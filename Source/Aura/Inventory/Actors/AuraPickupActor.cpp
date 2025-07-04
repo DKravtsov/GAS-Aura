@@ -12,7 +12,7 @@ AAuraPickupActor::AAuraPickupActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
-	SetReplicates(true);
+	bReplicates = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>("RootComponent");
 

@@ -41,7 +41,7 @@ struct FDamageEffectParams
     float DebuffDuration = 0.f;
     
     UPROPERTY(BlueprintReadWrite)
-    float KnockBackChance;
+    float KnockBackChance = 0.f;
 
     UPROPERTY(BlueprintReadWrite)
     float KnockBackImpulseMagnitude = 0.f;

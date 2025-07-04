@@ -31,7 +31,7 @@ struct FAbilitySavedData
 	FGameplayTag InputTag;
 
 	UPROPERTY(BlueprintReadWrite)
-	int32 AbilityLevel;
+	int32 AbilityLevel = 1;
 };
 
 USTRUCT(BlueprintType)
