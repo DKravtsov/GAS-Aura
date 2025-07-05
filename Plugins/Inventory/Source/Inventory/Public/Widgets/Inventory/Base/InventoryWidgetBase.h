@@ -30,6 +30,7 @@ public:
 	INVENTORY_API virtual bool HasHoverItem() const { return false; }
 	INVENTORY_API virtual class UInventoryHoverProxy* GetHoverItem() const { return nullptr; }
 	INVENTORY_API virtual float GetTileSize() const { return 0.0f; }
+	INVENTORY_API virtual void OnOpenedMenu() {}
 	INVENTORY_API virtual void OnCloseMenu() {}
 
 	INVENTORY_API virtual bool IsItemEquipped(const UInventoryItem* Item) const { return false; }

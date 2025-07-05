@@ -159,7 +159,7 @@ AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
 	AInventoryEquipActor* SpawnedActor = EquipmentFragment.SpawnEquippedActor(ParentMesh);
 	if (SpawnedActor)
 	{
-		SpawnedActor->SetOwner(OwningPlayerController.Get());
+		SpawnedActor->SetOwner(GetOwner());//OwningPlayerController.Get());
 		if (bIsProxy)
 		{
 			SpawnedActor->SetReplicates(false);
@@ -185,16 +185,11 @@ void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 	
 	if (!IsValid(EquippedItem))
 		return;
-	const bool bIsClient = GetWorld()->GetNetMode() == NM_Client;
-	// if (GetWorld()->GetNetMode() == NM_Client)
-	// {
-	// 	UE_LOG(LogTemp, Error, TEXT("Trying to spawn actor on client. Rejected"));
-	// 	return;
-	// }
 	// if (!GetOwner()->HasAuthority())
 	// 	return;
 	if (!OwningSkeletalMesh.IsValid())
 		return;
+	const bool bIsClient = GetWorld()->GetNetMode() == NM_Client;
 
 	FInventoryItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())

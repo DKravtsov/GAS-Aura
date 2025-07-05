@@ -36,6 +36,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryEquippedSlottedItem> EquippedSlottedItem;
+
+	bool bPendingEquipping = false;
+	TFunction<void ()> PendingEquippingFunction;
 	
 public:
 
@@ -55,4 +58,6 @@ public:
 	UInventoryEquippedSlottedItem* GetEquippedSlottedItem() const { return EquippedSlottedItem; }
 	void SetEquippedSlottedItem(UInventoryEquippedSlottedItem* Item) {EquippedSlottedItem = Item;}
 	void ClearEquippedSlot();
+
+	void UpdateIfPending();
 };

@@ -109,6 +109,18 @@ void UInventoryWidgetSpatial::OnCloseMenu()
 	}
 }
 
+void UInventoryWidgetSpatial::OnOpenedMenu()
+{
+	FTimerHandle TimerHandle;
+	GetOwningPlayer()->GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+	{
+		for (auto& EquippedGridSlot : EquippedGridSlots)
+		{
+			EquippedGridSlot->UpdateIfPending();
+		}
+	}, 0.1f, false);
+}
+
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
 {
 	SetActiveGrid(InventoryGrid_Equipment, Button_Equipment);

@@ -518,6 +518,7 @@ void UInventoryComponent::OpenInventoryMenu()
 	if (!IsValid(InventoryMenu))
 		return;
 	InventoryMenu->SetVisibility(ESlateVisibility::Visible);
+	InventoryMenu->OnOpenedMenu();
 	bInventoryMenuOpen = true;
 
 	// TODO Consider to choose input mode by parent project

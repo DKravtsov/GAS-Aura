@@ -106,21 +106,29 @@ UInventoryEquippedSlottedItem* UInventoryEquippedGridSlot::OnItemEquipped(UInven
 	// Add the Slotted Item as a child to this widget's Overlay
 	if (auto OverlaySlot = Overlay_Root->AddChildToOverlay(EquippedSlottedItem))
 	{
-		FGeometry OverlayGeometry = Overlay_Root->GetCachedGeometry();
-		auto OverlayPos = OverlayGeometry.Position;
-		auto OverlaySize = OverlayGeometry.Size;
-
-		const float LeftPadding = OverlaySize.X / 2.f - DrawSize.X / 2.f;
-		const float TopPadding = OverlaySize.Y / 2.f - DrawSize.Y / 2.f;
-
-		OverlaySlot->SetPadding(FMargin{LeftPadding, TopPadding});
+		OverlaySlot->SetHorizontalAlignment(HAlign_Center);
+		OverlaySlot->SetVerticalAlignment(VAlign_Center);
+		SetOccupiedTexture();
+		Image_GrayedOutIcon->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	
 	return EquippedSlottedItem;
+}
+
+void UInventoryEquippedGridSlot::UpdateIfPending()
+{
+	if (bPendingEquipping)
+	{
+		PendingEquippingFunction();
+		PendingEquippingFunction.Reset();
+		bPendingEquipping = false;
+	}
 }
 
 void UInventoryEquippedGridSlot::ClearEquippedSlot()
 {
 	SetInventoryItem(nullptr);
 	EquippedSlottedItem = nullptr;
+	PendingEquippingFunction.Reset();
+	bPendingEquipping = false;
 }
