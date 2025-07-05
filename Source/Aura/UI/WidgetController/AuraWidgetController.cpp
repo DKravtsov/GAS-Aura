@@ -22,7 +22,7 @@ UAuraWidgetController::UAuraWidgetController()
 
 void UAuraWidgetController::InitWidgetController(APlayerController* PC)
 {
-    if (!IsValid(PC))
+    if (!IsValid(PC) || !IsValid(PC->GetPlayerState<APlayerState>()))
     {
         return;
     }
