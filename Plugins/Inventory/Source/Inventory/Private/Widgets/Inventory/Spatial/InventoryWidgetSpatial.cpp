@@ -126,7 +126,6 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 
 bool UInventoryWidgetSpatial::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip, UInventoryItem** PreviousEquippedItem)
 {
-	//check(GetOwningPlayer()->HasAuthority());
 	check(IsValid(ItemToEquip));
 	const FGameplayTag EquipmentType = EquipmentTypeTag.IsValid() ? EquipmentTypeTag :  FindItemBestEquipType(ItemToEquip);
 	if (!EquipmentType.IsValid())

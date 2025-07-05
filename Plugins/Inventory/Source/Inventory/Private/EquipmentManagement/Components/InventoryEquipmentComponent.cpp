@@ -110,27 +110,27 @@ void UInventoryEquipmentComponent::InitStartupEquipment()
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
 
-	// if (!bIsProxy)
-	// {
-	// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
-	// 	{
-	// 		if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
-	// 		{
-	// 			OnItemEquipped(ItemToEquip.Get());
-	// 		}
-	// 	}
-	// 	InventoryComponent->ReceivedStartupItemsEquipped();
-	// }
-	// else
-	// {
-	// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
-	// 	{
-	// 		if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
-	// 		{
-	// 			OnItemEquipped(ItemToEquip.Get());
-	// 		}
-	// 	}
-	// }
+	if (!bIsProxy)
+	{
+		for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+		{
+			if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+			{
+				OnItemEquipped(ItemToEquip.Get());
+			}
+		}
+		InventoryComponent->ReceivedStartupItemsEquipped();
+	}
+	else
+	{
+		for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+		{
+			if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+			{
+				OnItemEquipped(ItemToEquip.Get());
+			}
+		}
+	}
 }
 
 void UInventoryEquipmentComponent::WaitForStartupEquipmentReady()
