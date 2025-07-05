@@ -3,6 +3,7 @@
 
 #include "EquipmentManagement/ProxyMesh/InventoryProxyMeshActor.h"
 
+#include "Inventory.h"
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "GameFramework/Character.h"
 
@@ -26,6 +27,8 @@ AInventoryProxyMeshActor::AInventoryProxyMeshActor()
 
 void AInventoryProxyMeshActor::BeginPlay()
 {
+	LOG_NETFUNCTIONCALL
+	
 	Super::BeginPlay();
 	DelayedInitialize();
 }
@@ -40,6 +43,8 @@ void AInventoryProxyMeshActor::DelayedInitializeOwner()
 			{
 				if (USkeletalMeshComponent* CharacterMesh = Character->GetMesh(); IsValid(CharacterMesh))
 				{
+					LOG_NETFUNCTIONCALL
+	
 					SourceMesh = CharacterMesh;
 
 					Mesh->SetSkeletalMesh(SourceMesh->GetSkeletalMeshAsset());

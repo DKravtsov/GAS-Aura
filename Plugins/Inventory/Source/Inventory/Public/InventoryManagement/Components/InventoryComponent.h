@@ -91,7 +91,8 @@ private:
 
 	uint8 bInventoryMenuOpen:1 = false;
 
-	uint8 bStartupItemInitialized:1 = false;
+	uint8 bStartupItemsInitialized:1 = false;
+	uint8 bStartupItemsEquipped:1 = false;
 	
 public:
 	INVENTORY_API UInventoryComponent();
@@ -117,6 +118,10 @@ public:
 	bool TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const;
 
 	void ReceivedStartupItems();
+	void ReceivedStartupItemsEquipped() { bStartupItemsEquipped = true; }
+
+	bool AreStartupItemsInitialized() const { return bStartupItemsInitialized; }
+	bool AreStartupItemsEquipped() const { return bStartupItemsEquipped; }
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -153,7 +158,7 @@ private:
 
 	void /*Client*/TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
 	FInventorySlotAvailabilityResult ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const;
-	void /*Client*/Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+	void Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();

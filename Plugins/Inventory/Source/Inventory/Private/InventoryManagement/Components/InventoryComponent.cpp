@@ -407,10 +407,33 @@ bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGamep
 
 void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 {
-	if (!bStartupItemInitialized)
+	if (!bStartupItemsInitialized)
 		return;
 	
 	LOG_NETFUNCTIONCALL_COMPONENT
+
+	// recombine on the client the array with items that need to be equipped
+	if (OwningPlayerController->HasAuthority())
+		return;
+
+	for (const auto& Item : StartupInventoryItems)
+	{
+		if (!Item.ShouldEquipToSlot.IsValid())
+			continue;
+		
+		// in theory, this should be loaded at the moment, so, it should be no additional time spent here
+		if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
+		{
+			if (ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
+				continue;
+
+			if (auto* InventoryItem = InventoryList.FindFirstItemByType(ItemData->GetItemManifest().GetItemType()))
+			{
+				StartupEquipment.Emplace(InventoryItem, Item.ShouldEquipToSlot);
+			}
+		}
+	}
+	
 }
 
 void UInventoryComponent::BeginPlay()
@@ -453,7 +476,7 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 			Server_TryAddStartupItem(ItemData->GetItemManifest(), StackCount, Item.ShouldEquipToSlot);
 		}
 	}
-	bStartupItemInitialized = true;
+	bStartupItemsInitialized = true;
 	Client_ReceivedStartupInventory();
 }
 
@@ -547,9 +570,9 @@ void UInventoryComponent::CloseInventoryMenu()
 
 void UInventoryComponent::ReceivedStartupItems()
 {
-	if (!bStartupItemInitialized)
+	if (!bStartupItemsInitialized)
 	{
-		bStartupItemInitialized = true;
+		bStartupItemsInitialized = true;
 		Client_ReceivedStartupInventory();
 	}
 }

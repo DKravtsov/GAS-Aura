@@ -55,4 +55,7 @@ private:
 
 	AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
 	void RemoveEquippedActorOfType(const FGameplayTag& EquipmentType);
+
+	void InitStartupEquipment();
+	void WaitForStartupEquipmentReady();
 };

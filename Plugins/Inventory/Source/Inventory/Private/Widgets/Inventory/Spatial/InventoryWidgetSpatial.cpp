@@ -126,7 +126,7 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 
 bool UInventoryWidgetSpatial::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip, UInventoryItem** PreviousEquippedItem)
 {
-	check(GetOwningPlayer()->HasAuthority());
+	//check(GetOwningPlayer()->HasAuthority());
 	check(IsValid(ItemToEquip));
 	const FGameplayTag EquipmentType = EquipmentTypeTag.IsValid() ? EquipmentTypeTag :  FindItemBestEquipType(ItemToEquip);
 	if (!EquipmentType.IsValid())
@@ -154,11 +154,14 @@ bool UInventoryWidgetSpatial::TryEquipItem(UInventoryItem* ItemToEquip, const FG
 	{
 		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
 
-		// // Inform the server that we've equipped an item (potentially unequipping an item as well)
-		// UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
-		// check(IsValid(InventoryComponent));
-		//
-		// InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
+		if (!GetOwningPlayer()->HasAuthority())
+		{
+			// Inform the server that we've equipped an item (potentially unequipping an item as well)
+			UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+			check(IsValid(InventoryComponent));
+		
+			InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
+		}
 
 	}
 	InventoryGrid_Equipment->RemoveItemFromGrid(ItemToEquip);

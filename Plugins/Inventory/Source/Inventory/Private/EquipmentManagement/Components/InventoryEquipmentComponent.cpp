@@ -3,6 +3,7 @@
 
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 
+#include "Inventory.h"
 #include "EquipmentManagement/EquipActor/InventoryEquipActor.h"
 #include "GameFramework/Character.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
@@ -24,11 +25,13 @@ void UInventoryEquipmentComponent::SetOwningSkeletalMesh(USkeletalMeshComponent*
 
 void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerController)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT(" OwningPC: %s"), *PlayerController->GetName())
+	
 	if (IsValid(PlayerController))
 	{
 		OwningPlayerController = PlayerController;
+		InitInventoryComponent();
 	}
-	InitInventoryComponent();
 }
 
 AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const
@@ -40,12 +43,16 @@ AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipment
 
 void UInventoryEquipmentComponent::BeginPlay()
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	Super::BeginPlay();
 	InitPlayerController();
 }
 
 void UInventoryEquipmentComponent::InitPlayerController()
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	if (OwningPlayerController = Cast<APlayerController>(GetOwner()); OwningPlayerController.IsValid())
 	{
 		if (ACharacter* OwnerCharacter = OwningPlayerController->GetCharacter())
@@ -61,6 +68,8 @@ void UInventoryEquipmentComponent::InitPlayerController()
 
 void UInventoryEquipmentComponent::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	if (const ACharacter* OwnerCharacter = OwningPlayerController->GetCharacter())
 	{
 		OwningSkeletalMesh = OwnerCharacter->GetMesh();
@@ -70,6 +79,8 @@ void UInventoryEquipmentComponent::OnPossessedPawnChanged(APawn* OldPawn, APawn*
 
 void UInventoryEquipmentComponent::InitInventoryComponent()
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	InventoryComponent = OwningPlayerController->FindComponentByClass<UInventoryComponent>();
 	if (!InventoryComponent.IsValid())
 		return;
@@ -83,17 +94,56 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 		InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryEquipmentComponent::OnItemUnequipped);
 	}
 
-	//if (!bIsProxy)
+	if (OwningPlayerController->IsLocalController() && !bIsProxy)
+	{
+		WaitForStartupEquipmentReady();
+	}
+	if (OwningPlayerController->IsLocalController() && bIsProxy && InventoryComponent->AreStartupItemsEquipped())
+	{
+		// the component initialized late, so all startup items already equipped.
+		// we need to reflect this on the proxy mesh actor only
+		InitStartupEquipment();
+	}
+}
+
+void UInventoryEquipmentComponent::InitStartupEquipment()
+{
+	LOG_NETFUNCTIONCALL_COMPONENT
+
+	// if (!bIsProxy)
 	// {
-	// 	InventoryComponent->EquipStartupItems(this);
-	// }
-	// for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
-	// {
-	// 	if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+	// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
 	// 	{
-	// 		OnItemEquipped(ItemToEquip.Get());
+	// 		if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+	// 		{
+	// 			OnItemEquipped(ItemToEquip.Get());
+	// 		}
+	// 	}
+	// 	InventoryComponent->ReceivedStartupItemsEquipped();
+	// }
+	// else
+	// {
+	// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+	// 	{
+	// 		if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+	// 		{
+	// 			OnItemEquipped(ItemToEquip.Get());
+	// 		}
 	// 	}
 	// }
+}
+
+void UInventoryEquipmentComponent::WaitForStartupEquipmentReady()
+{
+	check(OwningPlayerController.IsValid() && InventoryComponent.IsValid());
+	if (InventoryComponent->AreStartupItemsInitialized())
+	{
+		InitStartupEquipment();
+	}
+	else
+	{
+		OwningPlayerController->GetWorldTimerManager().SetTimerForNextTick(this, &UInventoryEquipmentComponent::WaitForStartupEquipmentReady);
+	}
 }
 
 AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
@@ -101,10 +151,19 @@ AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
 	const FInventoryItemManifest& ItemManifest,
 	USkeletalMeshComponent* ParentMesh)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
+	check(OwningPlayerController.IsValid());
+	const bool bIsClient = GetWorld()->GetNetMode() == NM_Client;
+	
 	AInventoryEquipActor* SpawnedActor = EquipmentFragment.SpawnEquippedActor(ParentMesh);
 	if (SpawnedActor)
 	{
-		SpawnedActor->SetOwner(GetOwner());
+		SpawnedActor->SetOwner(OwningPlayerController.Get());
+		if (bIsProxy)
+		{
+			SpawnedActor->SetReplicates(false);
+		}
 		SpawnedActor->SetEquipmentType(EquipmentFragment.GetEquipmentType());
 		EquipmentFragment.SetEquippedActor(SpawnedActor);
 	}
@@ -122,17 +181,25 @@ void UInventoryEquipmentComponent::RemoveEquippedActorOfType(const FGameplayTag&
 
 void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	if (!IsValid(EquippedItem))
 		return;
-	if (!OwningPlayerController->HasAuthority())
-		return;
+	const bool bIsClient = GetWorld()->GetNetMode() == NM_Client;
+	// if (GetWorld()->GetNetMode() == NM_Client)
+	// {
+	// 	UE_LOG(LogTemp, Error, TEXT("Trying to spawn actor on client. Rejected"));
+	// 	return;
+	// }
+	// if (!GetOwner()->HasAuthority())
+	// 	return;
 	if (!OwningSkeletalMesh.IsValid())
 		return;
 
 	FInventoryItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
 	{
-		if (!bIsProxy)
+		if (!bIsProxy && !bIsClient)
 		{
 			EquipmentFragment->OnEquip(OwningPlayerController.Get());
 		}
@@ -146,10 +213,12 @@ void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 
 void UInventoryEquipmentComponent::OnItemUnequipped(UInventoryItem* UnequippedItem)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	if (!IsValid(UnequippedItem))
 		return;
-	if (!OwningPlayerController->HasAuthority())
-		return;
+	// if (!GetOwner()->HasAuthority())
+	// 	return;
 
 	FInventoryItemManifest& ItemManifest = UnequippedItem->GetItemManifestMutable();
 	if (auto* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInventoryItemEquipmentFragment>())
