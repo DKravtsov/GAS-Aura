@@ -2,7 +2,7 @@
 
 
 #include "InventoryGridTypes.h"
-
+#include "Items/InventoryItem.h"
 
 namespace InventoryTags
 {
@@ -17,4 +17,38 @@ namespace InventoryTags
 
 FInventorySlotAvailabilityResult::FInventorySlotAvailabilityResult()
 {
+}
+
+FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInventoryItem* InItem, int32 InStartIndex)
+{
+	FInventorySlotAvailabilityResult Result;
+	Result.Item = InItem;
+	Result.TotalRoomToFill = 1;
+	auto& Slot = Result.SlotAvailabilities.AddDefaulted_GetRef();
+	Slot.Amount = 1;
+	Slot.Index = InStartIndex;
+	Slot.bItemAtIndex = true;
+	return Result;
+}
+
+FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInventoryItem* InItem, int32 InStartIndex, int32 InMaxStackSize, int32 InAmount)
+{
+	FInventorySlotAvailabilityResult Result;
+	Result.Item = InItem;
+	Result.TotalRoomToFill = InAmount;
+	Result.Remainder = InAmount;
+	for (int32 Index = InStartIndex; Result.Remainder > 0; Index++)
+	{
+		auto& Slot = Result.SlotAvailabilities.AddDefaulted_GetRef();
+		Slot.Amount = FMath::Min(InAmount, InMaxStackSize);
+		Slot.Index = Index;
+		Slot.bItemAtIndex = Slot.Index == InStartIndex;
+		Result.Remainder -= Slot.Amount;
+	}
+	return Result;
+}
+
+void FInventoryStorageGridSlot::SetInventoryItem(UInventoryItem* InItem)
+{
+	InventoryItem = InItem;
 }

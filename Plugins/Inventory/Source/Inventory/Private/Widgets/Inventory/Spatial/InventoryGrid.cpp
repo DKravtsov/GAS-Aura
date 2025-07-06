@@ -318,7 +318,7 @@ bool UInventoryGrid::HasRoomAtIndex(const UInventoryGridSlot* GridSlot, const FI
 {
 	bool bHasRoomAtIndex = true;
 
-	UInventoryStatics::ForEach2D(GridSlots, GridSlot->GetTileIndex(), Dimensions, Columns, [&](const UInventoryGridSlot* CurGridSlot)
+	UInventoryStatics::ForEach2DWithBreak(GridSlots, GridSlot->GetTileIndex(), Dimensions, Columns, [&](const UInventoryGridSlot* CurGridSlot)
 	{
 		if (CheckSlotConstraints(GridSlot, CurGridSlot, CheckedIndexes, OutTentativelyClaimedIndexes, MaxStackSize, ItemType))
 		{

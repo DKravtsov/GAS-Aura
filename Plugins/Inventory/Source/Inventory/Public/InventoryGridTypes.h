@@ -47,6 +47,9 @@ struct FInventorySlotAvailabilityResult
 public:
 
 	FInventorySlotAvailabilityResult();
+
+	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex);
+	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex, int32 InMaxStackSize, int32 InAmount);
 };
 
 UENUM(BlueprintType)
@@ -93,4 +96,30 @@ struct FInventorySpaceQueryResult
 
 	// Upper left index of the valid item if there is one
 	int32 UpperLeftIndex = INDEX_NONE;
+};
+
+USTRUCT()
+struct FInventoryStorageGridSlot
+{
+	GENERATED_BODY()
+
+private:
+	TWeakObjectPtr<UInventoryItem> InventoryItem;
+	int32 TileIndex = INDEX_NONE;
+	int32 StackCount = 0;
+	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
+
+public:
+
+	int32 GetTileIndex() const { return TileIndex; }
+	void SetTileIndex(int32 InTileIndex) { TileIndex = InTileIndex; }
+
+	int32 GetStackCount() const { return StackCount; }
+	void SetStackCount(int32 InStackCount) { StackCount = InStackCount; }
+
+	int32 GetStartIndex() const { return StartIndex; }
+	void SetStartIndex(int32 InStartIndex) { StartIndex = InStartIndex; }
+
+	const TWeakObjectPtr<UInventoryItem>& GetInventoryItem() const { return InventoryItem; }
+	void SetInventoryItem(UInventoryItem* InItem);
 };
