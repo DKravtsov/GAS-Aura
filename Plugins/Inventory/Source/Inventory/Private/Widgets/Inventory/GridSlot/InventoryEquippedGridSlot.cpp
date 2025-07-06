@@ -10,8 +10,8 @@
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
-#include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
-#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItem.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverProxyWidget.h"
+#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 
 void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -56,7 +56,7 @@ void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
 	Image_GrayedOutIcon->SetBrush(Brush);
 }
 
-UInventoryEquippedSlottedItem* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
+UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
 {
 	// Check the Equipment Type TagAdd commentMore actions
 	if (!Tag.MatchesTagExact(EquipmentTypeTag))
@@ -68,7 +68,7 @@ UInventoryEquippedSlottedItem* UInventoryEquippedGridSlot::OnItemEquipped(UInven
 		return nullptr;
 
 	// Create the Equipped Slotted Item widget
-	EquippedSlottedItem = CreateWidget<UInventoryEquippedSlottedItem>(GetOwningPlayer(), EquippedSlottedItemClass);
+	EquippedSlottedItem = CreateWidget<UInventoryEquippedSlottedItemWidget>(GetOwningPlayer(), EquippedSlottedItemClass);
 	check(EquippedSlottedItem);
 	EquippedSlottedItem->SetInventoryItem(Item);
 	EquippedSlottedItem->SetEquipmentTypeTag(Tag);

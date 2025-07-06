@@ -5,15 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "InventorySlottedItemWidget.h"
-#include "InventoryEquippedSlottedItem.generated.h"
+#include "InventoryEquippedSlottedItemWidget.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEquippedSlottedItemClickedSignature, UInventoryEquippedSlottedItem*, SlottedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEquippedSlottedItemClickedSignature, UInventoryEquippedSlottedItemWidget*, SlottedItem);
 
 /**
  * 
  */
 UCLASS()
-class UInventoryEquippedSlottedItem : public UInventorySlottedItemWidget
+class UInventoryEquippedSlottedItemWidget : public UInventorySlottedItemWidget
 {
 	GENERATED_BODY()
 public:

@@ -1,18 +1,18 @@
 ﻿// Copyright 4sandwiches
 
 
-#include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverProxyWidget.h"
 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Items/InventoryItem.h"
 
-void UInventoryHoverProxy::SetImageBrush(const FSlateBrush& Brush)
+void UInventoryHoverProxyWidget::SetImageBrush(const FSlateBrush& Brush)
 {
 	Image_Icon->SetBrush(Brush);
 }
 
-void UInventoryHoverProxy::UpdateStackCount(const int32 NewStackCount)
+void UInventoryHoverProxyWidget::UpdateStackCount(const int32 NewStackCount)
 {
 	StackCount = NewStackCount;
 	if (NewStackCount > 0)
@@ -29,7 +29,7 @@ void UInventoryHoverProxy::UpdateStackCount(const int32 NewStackCount)
 	}
 }
 
-const FGameplayTag& UInventoryHoverProxy::GetItemType() const
+const FGameplayTag& UInventoryHoverProxyWidget::GetItemType() const
 {
 	if (InventoryItem.IsValid())
 	{
@@ -38,7 +38,7 @@ const FGameplayTag& UInventoryHoverProxy::GetItemType() const
 	return FGameplayTag::EmptyTag;
 }
 
-void UInventoryHoverProxy::SetIsStackable(bool bStackable)
+void UInventoryHoverProxyWidget::SetIsStackable(bool bStackable)
 {
 	bIsStackable = bStackable;
 	if (!bIsStackable)
@@ -47,12 +47,12 @@ void UInventoryHoverProxy::SetIsStackable(bool bStackable)
 	}
 }
 
-void UInventoryHoverProxy::SetInventoryItem(UInventoryItem* Item)
+void UInventoryHoverProxyWidget::SetInventoryItem(UInventoryItem* Item)
 {
 	InventoryItem = Item;
 }
 
-void UInventoryHoverProxy::Reset()
+void UInventoryHoverProxyWidget::Reset()
 {
 	SetInventoryItem(nullptr);
 	SetIsStackable(false);

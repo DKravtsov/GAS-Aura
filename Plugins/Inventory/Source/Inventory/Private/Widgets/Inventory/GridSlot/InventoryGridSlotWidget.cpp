@@ -1,35 +1,35 @@
 ﻿// Copyright 4sandwiches
 
 
-#include "Widgets/Inventory/GridSlot/InventoryGridSlot.h"
+#include "Widgets/Inventory/GridSlot/InventoryGridSlotWidget.h"
 #include "Items/InventoryItem.h"
 #include "Components/Image.h"
 
-void UInventoryGridSlot::SetDefaultTexture()
+void UInventoryGridSlotWidget::SetDefaultTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::Default;
 	Image_GridSlot->SetBrush(DefaultBrush);
 }
 
-void UInventoryGridSlot::SetOccupiedTexture()
+void UInventoryGridSlotWidget::SetOccupiedTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::Occupied;
 	Image_GridSlot->SetBrush(OccupiedBrush);
 }
 
-void UInventoryGridSlot::SetSelectedTexture()
+void UInventoryGridSlotWidget::SetSelectedTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::Selected;
 	Image_GridSlot->SetBrush(SelectedBrush);
 }
 
-void UInventoryGridSlot::SetGrayedOutTexture()
+void UInventoryGridSlotWidget::SetGrayedOutTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::GrayedOut;
 	Image_GridSlot->SetBrush(GrayedOutBrush);
 }
 
-void UInventoryGridSlot::SetGridSlotState(EInventoryGridSlotVisualState NewState)
+void UInventoryGridSlotWidget::SetGridSlotState(EInventoryGridSlotVisualState NewState)
 {
 	switch (NewState)
 	{
@@ -42,35 +42,35 @@ void UInventoryGridSlot::SetGridSlotState(EInventoryGridSlotVisualState NewState
 	}
 }
 
-void UInventoryGridSlot::NativePreConstruct()
+void UInventoryGridSlotWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
 	Image_GridSlot->SetBrush(DefaultBrush);
 }
 
-void UInventoryGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+void UInventoryGridSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 	
 	OnGridSlotHovered.Broadcast(TileIndex, InMouseEvent);
 }
 
-void UInventoryGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+void UInventoryGridSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
 
 	OnGridSlotUnhovered.Broadcast(TileIndex, InMouseEvent);
 }
 
-FReply UInventoryGridSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UInventoryGridSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	OnGridSlotClicked.Broadcast(TileIndex, InMouseEvent);
 	
 	return FReply::Handled();
 }
 
-void UInventoryGridSlot::SetInventoryItem(UInventoryItem* Item)
+void UInventoryGridSlotWidget::SetInventoryItem(UInventoryItem* Item)
 {
 	InventoryItem = Item;
 }

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryGridSlot.generated.h"
+#include "InventoryGridSlotWidget.generated.h"
 
 class UImage;
 
@@ -19,7 +19,7 @@ enum class EInventoryGridSlotVisualState : uint8
 };
 
 UCLASS(MinimalAPI, Abstract)
-class UInventoryGridSlot : public UUserWidget
+class UInventoryGridSlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

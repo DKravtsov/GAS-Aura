@@ -35,14 +35,14 @@ public:
 	INVENTORY_API virtual void OnInventoryHovered(UInventoryItem* Item) {}
 	INVENTORY_API virtual void OnInventoryUnhovered() {}
 	INVENTORY_API virtual bool HasHoverItem() const { return false; }
-	INVENTORY_API virtual class UInventoryHoverProxy* GetHoverItem() const { return nullptr; }
+	INVENTORY_API virtual class UInventoryHoverProxyWidget* GetHoverItem() const { return nullptr; }
 	INVENTORY_API virtual float GetTileSize() const { return 0.0f; }
 	INVENTORY_API virtual void OnOpenedMenu() {}
 	INVENTORY_API virtual void OnCloseMenu() {}
 
 	//INVENTORY_API virtual bool IsItemEquipped(const UInventoryItem* Item) const { return false; }
 	//INVENTORY_API virtual bool CanEquipItem(const UInventoryItem* Item) const { return false; }
-	//INVENTORY_API virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const { return nullptr; }
+	//INVENTORY_API virtual class UInventoryEquippedSlottedItemWidget* FindEquippedSlottedItemFor(const UInventoryItem* Item) const { return nullptr; }
 	//INVENTORY_API virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const { return nullptr; }
 
 	INVENTORY_API virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) { return false; }

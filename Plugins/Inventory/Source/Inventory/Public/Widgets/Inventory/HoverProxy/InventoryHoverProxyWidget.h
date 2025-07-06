@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryHoverProxy.generated.h"
+#include "InventoryHoverProxyWidget.generated.h"
 
 struct FGameplayTag;
 class UImage;
@@ -15,7 +15,7 @@ class UTextBlock;
  * when an inventory item on the grid has been clicked.
  */
 UCLASS(MinimalAPI, Abstract)
-class UInventoryHoverProxy : public UUserWidget
+class UInventoryHoverProxyWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

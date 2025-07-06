@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "InventoryGridSlot.h"
+#include "InventoryGridSlotWidget.h"
 #include "InventoryEquippedGridSlot.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, UInventoryEquippedGridSlot*, GridSlot, const FGameplayTag&, EquipmentTypeTag);
@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, 
  * 
  */
 UCLASS()
-class UInventoryEquippedGridSlot : public UInventoryGridSlot
+class UInventoryEquippedGridSlot : public UInventoryGridSlotWidget
 {
 	GENERATED_BODY()
 public:
@@ -32,10 +32,10 @@ private:
 	TObjectPtr<UImage> Image_GrayedOutIcon;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryEquippedSlottedItem> EquippedSlottedItemClass;
+	TSubclassOf<class UInventoryEquippedSlottedItemWidget> EquippedSlottedItemClass;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UInventoryEquippedSlottedItem> EquippedSlottedItem;
+	TObjectPtr<UInventoryEquippedSlottedItemWidget> EquippedSlottedItem;
 
 	bool bPendingEquipping = false;
 	TFunction<void ()> PendingEquippingFunction;
@@ -53,10 +53,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	void SetGrayedIconBrush(const FSlateBrush& Brush);
 
-	UInventoryEquippedSlottedItem* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
+	UInventoryEquippedSlottedItemWidget* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
 
-	UInventoryEquippedSlottedItem* GetEquippedSlottedItem() const { return EquippedSlottedItem; }
-	void SetEquippedSlottedItem(UInventoryEquippedSlottedItem* Item) {EquippedSlottedItem = Item;}
+	UInventoryEquippedSlottedItemWidget* GetEquippedSlottedItem() const { return EquippedSlottedItem; }
+	void SetEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* Item) {EquippedSlottedItem = Item;}
 	void ClearEquippedSlot();
 
 	void UpdateIfPending();

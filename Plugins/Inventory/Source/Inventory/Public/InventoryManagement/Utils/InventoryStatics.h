@@ -11,7 +11,7 @@
 class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
 class UInventoryComponent;
-class UInventoryHoverProxy;
+class UInventoryHoverProxyWidget;
 class UInventoryStoreComponent;
 
 /**
@@ -124,7 +124,7 @@ public:
 	static void ItemUnhovered(APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
-	static UInventoryHoverProxy* GetHoverItem(const APlayerController* PlayerController);
+	static UInventoryHoverProxyWidget* GetHoverItem(const APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	static UInventoryWidgetBase* GetInventoryWidget(const APlayerController* PlayerController);

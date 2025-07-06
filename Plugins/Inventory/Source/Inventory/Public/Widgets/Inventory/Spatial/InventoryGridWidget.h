@@ -6,17 +6,17 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryGridTypes.h"
 #include "Items/Fragments/InventoryItemFragment.h"
-#include "InventoryGrid.generated.h"
+#include "InventoryGridWidget.generated.h"
 
 
 struct FInventoryItemManifest;
-class UInventoryGridSlot;
+class UInventoryGridSlotWidget;
 class UUniformGridPanel;
 class UGridPanel;
 enum class EInventoryGridSlotVisualState : uint8;
 
 UCLASS(MinimalAPI, Abstract)
-class UInventoryGrid : public UUserWidget
+class UInventoryGridWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -24,16 +24,16 @@ class UInventoryGrid : public UUserWidget
 	FGameplayTag ItemCategory;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UInventoryGridSlot>> GridSlots;
+	TArray<TObjectPtr<UInventoryGridSlotWidget>> GridSlots;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<UInventoryGridSlot> GridSlotClass;
+	TSubclassOf<UInventoryGridSlotWidget> GridSlotClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryHoverProxy> HoverItemClass;
+	TSubclassOf<class UInventoryHoverProxyWidget> HoverItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventoryItemPopup> ItemPopupMenuClass;
@@ -58,7 +58,7 @@ class UInventoryGrid : public UUserWidget
 	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UInventoryHoverProxy> HoverItem;
+	TObjectPtr<UInventoryHoverProxyWidget> HoverItem;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
@@ -120,7 +120,7 @@ public:
 	void DropHoverItemOnGround();
 
 	bool HasHoverItem() const;
-	UInventoryHoverProxy* GetHoverItem() const {return HoverItem;}
+	UInventoryHoverProxyWidget* GetHoverItem() const {return HoverItem;}
 	void ClearHoverItem();
 	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 
@@ -149,18 +149,18 @@ private:
 	
 	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
 
-	bool HasRoomAtIndex(const UInventoryGridSlot* GridSlot, const FIntPoint& Dimensions,
+	bool HasRoomAtIndex(const UInventoryGridSlotWidget* GridSlot, const FIntPoint& Dimensions,
 						const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
 						const int32 MaxStackSize, const FGameplayTag& ItemType) const;
 
-	bool CheckSlotConstraints(const UInventoryGridSlot* GridSlot, const UInventoryGridSlot* CurGridSlot,
+	bool CheckSlotConstraints(const UInventoryGridSlotWidget* GridSlot, const UInventoryGridSlotWidget* CurGridSlot,
 							  const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
 							  const int32 MaxStackSize, const FGameplayTag& ItemType) const;
 
 	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& Dimensions) const;
 
-	int32 GetStackAmountInSlot(const UInventoryGridSlot* GridSlot) const;
-	int32 CalculateStackableFillAmountForSlot(const int32 MaxStackSize, const int32 Amount, const UInventoryGridSlot* GridSlot) const;
+	int32 GetStackAmountInSlot(const UInventoryGridSlotWidget* GridSlot) const;
+	int32 CalculateStackableFillAmountForSlot(const int32 MaxStackSize, const int32 Amount, const UInventoryGridSlotWidget* GridSlot) const;
 
 	static bool IsLeftMouseButtonClick(const FPointerEvent& MouseEvent);
 	static bool IsRightMouseButtonClick(const FPointerEvent& MouseEvent);

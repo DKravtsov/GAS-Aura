@@ -6,10 +6,10 @@
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 #include "InventoryWidgetSpatial.generated.h"
 
-class UInventoryEquippedSlottedItem;
+class UInventoryEquippedSlottedItemWidget;
 class UButton;
 class UWidgetSwitcher;
-class UInventoryGrid;
+class UInventoryGridWidget;
 
 UCLASS(MinimalAPI, Abstract)
 class UInventoryWidgetSpatial : public UInventoryWidgetBase
@@ -26,13 +26,13 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	float DescriptionDelay = 0.2f;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UInventoryGrid> InventoryGrid_Equipment;
+	TObjectPtr<UInventoryGridWidget> InventoryGrid_Equipment;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UInventoryGrid> InventoryGrid_Consumable;
+	TObjectPtr<UInventoryGridWidget> InventoryGrid_Consumable;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UInventoryGrid> InventoryGrid_Crafting;
+	TObjectPtr<UInventoryGridWidget> InventoryGrid_Crafting;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> GridSwitcher;
@@ -52,7 +52,7 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<class UInventoryEquippedGridSlot>> EquippedGridSlots;
 
-	TWeakObjectPtr<UInventoryGrid> ActiveGrid;
+	TWeakObjectPtr<UInventoryGridWidget> ActiveGrid;
 
 	FTimerHandle TimerHandle_Description;
 
@@ -67,13 +67,13 @@ public:
 	virtual void OnInventoryHovered(UInventoryItem* Item) override;
 	virtual void OnInventoryUnhovered() override;
 	virtual bool HasHoverItem() const override;
-	virtual UInventoryHoverProxy* GetHoverItem() const override;
+	virtual UInventoryHoverProxyWidget* GetHoverItem() const override;
 	virtual float GetTileSize() const override;
 	virtual void OnCloseMenu() override;
 	virtual void OnOpenedMenu() override;
 	// virtual bool IsItemEquipped(const UInventoryItem* Item) const override;
 	// virtual bool CanEquipItem(const UInventoryItem* Item) const override;
-	// virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
+	// virtual class UInventoryEquippedSlottedItemWidget* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
 	// virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const override;
 protected:
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
@@ -98,12 +98,12 @@ private:
 	void EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag);
 
 	UFUNCTION()
-	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* EquippedSlottedItem);
+	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
 
 	void DisableButton(UButton* Button);
-	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);
+	void SetActiveGrid(UInventoryGridWidget* Grid, UButton* Button);
 
-	UInventoryGrid* GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const;
+	UInventoryGridWidget* GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const;
 
 	UInventoryItemDescription* GetOrCreateItemDescription();
 
@@ -111,8 +111,8 @@ private:
 
 	UInventoryEquippedGridSlot* FindSlotWithEquippedItem(const UInventoryItem* EquippedItem) const;
 	void ClearSlotOfItem(UInventoryEquippedGridSlot* EquippedGridSlot);
-	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItem* EquippedSlottedItem);
-	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItem* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
+	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
+	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
 
 	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip) const;
 
