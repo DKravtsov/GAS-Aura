@@ -71,10 +71,10 @@ public:
 	virtual float GetTileSize() const override;
 	virtual void OnCloseMenu() override;
 	virtual void OnOpenedMenu() override;
-	virtual bool IsItemEquipped(const UInventoryItem* Item) const override;
-	virtual bool CanEquipItem(const UInventoryItem* Item) const override;
-	virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
-	virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const override;
+	// virtual bool IsItemEquipped(const UInventoryItem* Item) const override;
+	// virtual bool CanEquipItem(const UInventoryItem* Item) const override;
+	// virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
+	// virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const override;
 protected:
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
 	//~ End of UInventoryWidgetBase interface

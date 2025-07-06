@@ -338,15 +338,15 @@ void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEq
 	}
 }
 
-bool UInventoryWidgetSpatial::IsItemEquipped(const UInventoryItem* Item) const
-{
-	return FindSlotWithEquippedItem(Item) != nullptr;
-}
-
-bool UInventoryWidgetSpatial::CanEquipItem(const UInventoryItem* Item) const
-{
-	return FindItemBestEquipType(Item).IsValid();
-}
+// bool UInventoryWidgetSpatial::IsItemEquipped(const UInventoryItem* Item) const
+// {
+// 	return FindSlotWithEquippedItem(Item) != nullptr;
+// }
+//
+// bool UInventoryWidgetSpatial::CanEquipItem(const UInventoryItem* Item) const
+// {
+// 	return FindItemBestEquipType(Item).IsValid();
+// }
 
 FGameplayTag UInventoryWidgetSpatial::FindItemBestEquipType(const UInventoryItem* Item) const
 {
@@ -363,23 +363,23 @@ FGameplayTag UInventoryWidgetSpatial::FindItemBestEquipType(const UInventoryItem
 	return FGameplayTag::EmptyTag;
 }
 
-UInventoryEquippedSlottedItem* UInventoryWidgetSpatial::FindEquippedSlottedItemFor(const UInventoryItem* Item) const
-{
-	if (const UInventoryEquippedGridSlot* EquippedSlot = FindSlotWithEquippedItem(Item))
-	{
-		return EquippedSlot->GetEquippedSlottedItem();
-	}
-	return nullptr;
-}
-
-UInventoryItem* UInventoryWidgetSpatial::GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const
-{
-	if (const auto* EquippedGridSlot = FindEquippedGridSlotByType(EquipmentTypeTag))
-	{
-		return EquippedGridSlot->GetInventoryItem().Get();
-	}
-	return nullptr;
-}
+// UInventoryEquippedSlottedItem* UInventoryWidgetSpatial::FindEquippedSlottedItemFor(const UInventoryItem* Item) const
+// {
+// 	if (const UInventoryEquippedGridSlot* EquippedSlot = FindSlotWithEquippedItem(Item))
+// 	{
+// 		return EquippedSlot->GetEquippedSlottedItem();
+// 	}
+// 	return nullptr;
+// }
+//
+// UInventoryItem* UInventoryWidgetSpatial::GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const
+// {
+// 	if (const auto* EquippedGridSlot = FindEquippedGridSlotByType(EquipmentTypeTag))
+// 	{
+// 		return EquippedGridSlot->GetInventoryItem().Get();
+// 	}
+// 	return nullptr;
+// }
 
 UInventoryEquippedGridSlot* UInventoryWidgetSpatial::FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const
 {

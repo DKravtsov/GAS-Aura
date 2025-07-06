@@ -7,6 +7,7 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
+#include "Store/Components/InventoryStoreComponent.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
 UInventoryComponent* UInventoryStatics::GetInventoryComponent(const APlayerController* PlayerController)
@@ -34,6 +35,15 @@ UInventoryItemComponent* UInventoryStatics::GetInventoryItemComponent(const AAct
 	if (IsValid(Actor))
 	{
 		return Actor->FindComponentByClass<UInventoryItemComponent>();
+	}
+	return nullptr;
+}
+
+UInventoryStoreComponent* UInventoryStatics::GetStoreComponent(const AActor* Actor)
+{
+	if (IsValid(Actor))
+	{
+		return Actor->FindComponentByClass<UInventoryStoreComponent>();
 	}
 	return nullptr;
 }

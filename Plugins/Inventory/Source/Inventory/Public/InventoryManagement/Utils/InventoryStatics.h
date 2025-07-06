@@ -12,6 +12,7 @@ class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
 class UInventoryComponent;
 class UInventoryHoverProxy;
+class UInventoryStoreComponent;
 
 /**
  * 
@@ -31,6 +32,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API UInventoryItemComponent* GetInventoryItemComponent(const AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static INVENTORY_API UInventoryStoreComponent* GetStoreComponent(const AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API FGameplayTag GetItemCategory(UInventoryItemComponent* ItemComponent);

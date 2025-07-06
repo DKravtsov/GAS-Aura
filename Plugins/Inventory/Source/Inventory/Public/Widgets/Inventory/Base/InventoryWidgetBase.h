@@ -13,7 +13,14 @@ class UInventoryWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 
+	TWeakObjectPtr<UObject> ContextObject;
+	
 public:
+
+	void SetContextObject(UObject* NewContextObject) {ContextObject = NewContextObject;}
+
+	UFUNCTION(BlueprintPure, Category = "Inventory")
+	UObject* GetContextObject() const {return ContextObject.Get();}
 
 	FInventorySlotAvailabilityResult HasRoomForItem(const UInventoryItemComponent* ItemComponent) const
 	{
@@ -33,10 +40,10 @@ public:
 	INVENTORY_API virtual void OnOpenedMenu() {}
 	INVENTORY_API virtual void OnCloseMenu() {}
 
-	INVENTORY_API virtual bool IsItemEquipped(const UInventoryItem* Item) const { return false; }
-	INVENTORY_API virtual bool CanEquipItem(const UInventoryItem* Item) const { return false; }
-	INVENTORY_API virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const { return nullptr; }
-	INVENTORY_API virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const { return nullptr; }
+	//INVENTORY_API virtual bool IsItemEquipped(const UInventoryItem* Item) const { return false; }
+	//INVENTORY_API virtual bool CanEquipItem(const UInventoryItem* Item) const { return false; }
+	//INVENTORY_API virtual class UInventoryEquippedSlottedItem* FindEquippedSlottedItemFor(const UInventoryItem* Item) const { return nullptr; }
+	//INVENTORY_API virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const { return nullptr; }
 
 	INVENTORY_API virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) { return false; }
 protected:
