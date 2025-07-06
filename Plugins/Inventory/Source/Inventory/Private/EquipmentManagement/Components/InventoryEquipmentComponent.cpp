@@ -41,6 +41,18 @@ AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipment
 	return nullptr;
 }
 
+void UInventoryEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
+	for (auto& [_, EquippedActor] : EquippedActors)
+	{
+		EquippedActor->Destroy();
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void UInventoryEquipmentComponent::BeginPlay()
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
@@ -159,7 +171,7 @@ AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
 	AInventoryEquipActor* SpawnedActor = EquipmentFragment.SpawnEquippedActor(ParentMesh);
 	if (SpawnedActor)
 	{
-		SpawnedActor->SetOwner(GetOwner());//OwningPlayerController.Get());
+		SpawnedActor->SetOwner(GetOwner());
 		if (bIsProxy)
 		{
 			SpawnedActor->SetReplicates(false);

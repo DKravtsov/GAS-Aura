@@ -34,6 +34,8 @@ public:
 	void InitializeOwner(APlayerController* PlayerController);
 
 	AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 protected:
 
