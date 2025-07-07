@@ -9,6 +9,7 @@
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Items/Manifest/InventoryItemManifest.h"
+#include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 
 void UInventorySpatialStorageGrid::ConstructGrid()
@@ -24,8 +25,8 @@ void UInventorySpatialStorageGrid::ConstructGrid()
 		for (int ColumnIndex = 0; ColumnIndex < Columns; ColumnIndex++)
 		{
 			FInventoryStorageGridSlot& InventoryGridSlot = GridSlots.AddDefaulted_GetRef();
-			InventoryGridSlot.SetTileIndex(Index++);
 			check(Index == GetIndexFromPosition(FIntPoint(ColumnIndex, RowIndex)));
+			InventoryGridSlot.SetTileIndex(Index++);
 		}
 	}
 }
@@ -99,6 +100,13 @@ void UInventorySpatialStorageGrid::ConstructGrid(int32 InNumRows, int32 InNumCol
 	Rows = InNumRows;
 	Columns = InNumColumns;
 	ConstructGrid();
+}
+
+void UInventorySpatialStorageGrid::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInventorySpatialStorageGrid, GridSlots);
 }
 
 bool UInventorySpatialStorageGrid::IsInGridBounds(int32 StartIndex, const FIntPoint& Dimensions) const

@@ -4,27 +4,43 @@
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 
 #include "Inventory.h"
+#include "InventoryGlobalSettings.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorageGrid.h"
 #include "Items/Manifest/InventoryItemManifest.h"
 
 void UInventorySpatialStorage::SetupStorage()
 {
 	InventoryGrids.Reserve(GridCategories.Num());
+
+	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
+	check(InventoryComponent);
+	AActor* OwningActor = InventoryComponent->GetOwner();
+	check(OwningActor && OwningActor->HasAuthority());
+	
+	LOG_NETFUNCTIONCALL_OWNER(OwningActor)
+	
+	UClass* GridClass = GetStorageGridClass();
+	check(GridClass != nullptr);
 	
 	for (const auto& ItemCategory : GridCategories)
 	{
-		auto NewGrid = NewObject<UInventorySpatialStorageGrid>(this, GetStorageGridClass());
+		auto NewGrid = NewObject<UInventorySpatialStorageGrid>(OwningActor, GridClass);
 		check(IsValid(NewGrid));
 		NewGrid->ConstructGrid(Rows, Columns);
 		
 		InventoryGrids.Emplace(ItemCategory, NewGrid);
+
+		if (InventoryComponent)
+		{
+			InventoryComponent->AddRepSubObj(NewGrid);
+		}
 	}
 }
 
 TSubclassOf<UInventorySpatialStorageGrid> UInventorySpatialStorage::GetStorageGridClass()
 {
-	// TODO: should take this from dev settings
-	return UInventorySpatialStorageGrid::StaticClass();
+	return UInventoryGlobalSettings::GetSpatialStorageGridClass();
 }
 
 UInventorySpatialStorageGrid* UInventorySpatialStorage::FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const

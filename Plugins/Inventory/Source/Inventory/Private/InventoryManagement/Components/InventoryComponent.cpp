@@ -5,6 +5,7 @@
 
 #include "Inventory.h"
 #include "Components/CapsuleComponent.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
@@ -19,6 +20,11 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 	bReplicateUsingRegisteredSubObjectList = true;
+}
+
+void UInventoryComponent::OnRep_InventoryStorage()
+{
+	LOG_NETFUNCTIONCALL_COMPONENT
 }
 
 void UInventoryComponent::ToggleInventoryMenu()
@@ -396,6 +402,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, InventoryList);
+	//DOREPLIFETIME(UInventoryComponent, InventoryStorage);
 }
 
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const
@@ -439,6 +446,14 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 void UInventoryComponent::BeginPlay()
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
+
+	if (GetOwner()->HasAuthority())
+	{
+		if (ensure(IsValid(InventoryStorage)))
+		{
+			InventoryStorage->SetupStorage();
+		}
+	}
 	
 	Super::BeginPlay();
 

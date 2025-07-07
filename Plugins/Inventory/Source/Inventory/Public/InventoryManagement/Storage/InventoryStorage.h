@@ -12,7 +12,7 @@ class UInventoryItemComponent;
 /**
  * 
  */
-UCLASS(MinimalAPI, Abstract)
+UCLASS(MinimalAPI, Abstract, EditInlineNew, DefaultToInstanced, CollapseCategories)
 class UInventoryStorage : public UObject
 {
 	GENERATED_BODY()

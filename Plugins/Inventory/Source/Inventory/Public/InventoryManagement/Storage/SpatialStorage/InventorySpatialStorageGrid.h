@@ -15,8 +15,9 @@ UCLASS(MinimalAPI)
 class UInventorySpatialStorageGrid : public UObject
 {
 	GENERATED_BODY()
-	
-	UPROPERTY()
+
+	//~ todo: Replace with FastArray
+	UPROPERTY(Replicated)
 	TArray<FInventoryStorageGridSlot> GridSlots;
 
 	UPROPERTY(EditAnywhere)
@@ -39,6 +40,11 @@ public:
 	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const;
 	
 	void ConstructGrid(int32 InNumRows, int32 InNumColumns);
+
+	//~ Begin of UObject interface
+	virtual bool IsSupportedForNetworking() const override {return true;}
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	//~ End of UObject interface
 	
 private:
 	

@@ -16,16 +16,16 @@ class UInventorySpatialStorage : public UInventoryStorage
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
-	int32 Rows;
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(UIMin=1, ClampMin=1))
+	int32 Rows = 1;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
-	int32 Columns;
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(UIMin=1, ClampMin=1))
+	int32 Columns = 1;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"))
 	TArray<FGameplayTag> GridCategories;
 	
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UInventorySpatialStorageGrid>> InventoryGrids;
 
 public:

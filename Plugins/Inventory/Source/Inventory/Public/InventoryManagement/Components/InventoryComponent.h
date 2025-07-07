@@ -12,6 +12,7 @@ class UInventoryItemData;
 class UInventoryItemComponent;
 struct FInventorySlotAvailabilityResult;
 class UInventoryWidgetBase;
+class UInventoryStorage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
@@ -59,6 +60,10 @@ public:
 	FInventoryMenuVisibilityChangedSugnature OnInventoryMenuClosed;
 
 private:
+
+	// Responsible for HOW the inventory is stored
+	UPROPERTY(EditDefaultsOnly, Category="Inventory", Instanced/*, ReplicatedUsing=OnRep_InventoryStorage*/)
+	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSoftClassPtr<UInventoryWidgetBase> InventoryMenuClass;
@@ -86,6 +91,7 @@ private:
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
 
+	// List of WHAT is stored in the inventory
 	UPROPERTY(Replicated)
 	FInventoryFastArray InventoryList;
 
@@ -122,6 +128,9 @@ public:
 
 	bool AreStartupItemsInitialized() const { return bStartupItemsInitialized; }
 	bool AreStartupItemsEquipped() const { return bStartupItemsEquipped; }
+
+	UFUNCTION()
+	virtual void OnRep_InventoryStorage();
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
