@@ -25,7 +25,7 @@ class UInventoryStatics : public UBlueprintFunctionLibrary
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	static INVENTORY_API UInventoryComponent* GetInventoryComponent(const APlayerController* PlayerController);
+	static INVENTORY_API UInventoryComponent* GetInventoryComponent(const AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API UInventoryEquipmentComponent* GetEquipmentComponent(const APlayerController* PlayerController);

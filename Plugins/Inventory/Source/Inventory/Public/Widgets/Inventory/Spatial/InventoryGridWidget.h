@@ -63,6 +63,9 @@ class UInventoryGridWidget : public UUserWidget
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
 
+	UPROPERTY(Transient)
+	mutable TObjectPtr<class UInventoryGridViewModel> GridViewModel;
+
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	TWeakObjectPtr<class UCanvasPanel> OwningCanvasPanel;
 
@@ -103,11 +106,12 @@ public:
 
 	UFUNCTION()
 	INVENTORY_API void AddItem(UInventoryItem* Item);
+	INVENTORY_API void AddItem(const FInventorySlotAvailabilityResult& Result);
 
 	UFUNCTION()
 	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
 
-	INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
+	//INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
@@ -128,9 +132,12 @@ public:
 
 	void RemoveItemFromGrid(UInventoryItem* Item);
 
+
 private:
 
 	void ConstructGrid();
+	void CreateGridViewModel();
+	
 	bool MatchesCategory(const UInventoryItem* Item) const;
 
 	UFUNCTION()

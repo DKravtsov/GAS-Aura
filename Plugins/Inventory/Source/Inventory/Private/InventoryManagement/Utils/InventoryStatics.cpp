@@ -10,11 +10,11 @@
 #include "Store/Components/InventoryStoreComponent.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
-UInventoryComponent* UInventoryStatics::GetInventoryComponent(const APlayerController* PlayerController)
+UInventoryComponent* UInventoryStatics::GetInventoryComponent(const AActor* Actor)
 {
-	if (IsValid(PlayerController))
+	if (IsValid(Actor))
 	{
-		UInventoryComponent* InventoryComponent = PlayerController->FindComponentByClass<UInventoryComponent>();
+		UInventoryComponent* InventoryComponent = Actor->FindComponentByClass<UInventoryComponent>();
 		return InventoryComponent;
 	}
 	return nullptr;

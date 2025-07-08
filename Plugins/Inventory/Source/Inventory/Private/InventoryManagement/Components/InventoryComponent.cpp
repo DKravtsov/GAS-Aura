@@ -44,8 +44,9 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	LOG_NETFUNCTIONCALL_COMPONENT
 	
 	check(ItemComponent != nullptr);
-	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
-	if (Result.TotalRoomToFill == 0)
+	//FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
+	FInventorySlotAvailabilityResult Result;
+	if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
 	{
 		OnNoRoomInInventory.Broadcast();
 		return;
@@ -73,8 +74,8 @@ void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemMa
 	
 	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should run only for local Player Controller"));
 	
-	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemManifest, StackCount);
-	if (Result.TotalRoomToFill == 0)
+	FInventorySlotAvailabilityResult Result;
+	if (!InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCount))
 	{
 		OnNoRoomInInventory.Broadcast();
 		return ;
@@ -105,32 +106,8 @@ FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
 	
-	// TODO: implement proper check on server
-	// For now we always trust in any provided stack count
-	
 	FInventorySlotAvailabilityResult Result;
-
-	// Determine if the item is stackable.Add commentMore actions
-	const auto StackableFragment = ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>();
-	Result.bStackable = StackableFragment != nullptr;
-
-	const auto GridFragment = ItemManifest.GetFragmentOfType<FInventoryItemGridFragment>();
-	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
-	
-	// Determine how many stacks to add.
-
-	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
-	int32 AmountToFill = StackableFragment ? (StackCountOverride >= 0 ? StackCountOverride : StackableFragment->GetStackCount()) : 1;
-
-	Result.TotalRoomToFill += AmountToFill;
-	Result.SlotAvailabilities.Emplace(
-			0,
-			Result.bStackable ? AmountToFill : 0,
-			true
-			);
-
-	Result.Remainder = 0;
-	
+	InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCountOverride);
 	return Result;
 }
 
@@ -192,6 +169,7 @@ void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemCompone
 	}
 	else if (const auto StackableFragment = ItemComponent->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
 	{
+		ItemComponent->SetStackCount(Remainder);
 		StackableFragment->SetStackCount(Remainder);
 	}
 }

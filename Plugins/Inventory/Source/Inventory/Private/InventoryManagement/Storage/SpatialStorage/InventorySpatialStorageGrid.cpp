@@ -5,6 +5,8 @@
 
 #include "BinkShaders.h"
 #include "GeometryCollectionRendering.h"
+#include "Inventory.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
@@ -15,6 +17,15 @@
 void UInventorySpatialStorageGrid::ConstructGrid()
 {
 	check(Rows > 0 && Columns > 0);
+
+	if (!OwningActor.IsValid() || !InventoryComponent.IsValid())
+	{
+		OwningActor = Cast<AActor>(GetOuter());
+		InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningActor.Get());
+
+		InventoryComponent->OnItemAdded.AddDynamic(this, &UInventorySpatialStorageGrid::HandleItemAdded);
+		InventoryComponent->OnStackChanged.AddDynamic(this, &UInventorySpatialStorageGrid::HandleStackChanged);
+	}
 
 	// clear and reserve
 	GridSlots.Reset(Rows * Columns);
@@ -29,6 +40,8 @@ void UInventorySpatialStorageGrid::ConstructGrid()
 			InventoryGridSlot.SetTileIndex(Index++);
 		}
 	}
+
+	
 }
 
 FInventorySlotAvailabilityResult UInventorySpatialStorageGrid::HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
@@ -189,4 +202,56 @@ int32 UInventorySpatialStorageGrid::GetStackAmountInSlot(const FInventoryStorage
 		StackCount = UpperLeftGridSlot.GetStackCount();
 	}
 	return StackCount;
+}
+
+void UInventorySpatialStorageGrid::HandleItemAdded(UInventoryItem* Item)
+{
+	if (!IsValid(Item) || !MatchesCategory(Item))
+		return;
+	
+	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s] tag [%s]"), *Item->GetName(), *Item->GetItemType().ToString())
+
+	auto Result = HasRoomForItem(Item->GetItemManifest());
+	AddItemToIndexes(Result, Item);
+	Result.Item = Item;
+	OnItemAdded.Broadcast(Result);
+}
+
+void UInventorySpatialStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityResult& Result)
+{
+	unimplemented();
+	OnStackChanged.Broadcast(Result);
+}
+
+bool UInventorySpatialStorageGrid::MatchesCategory(UInventoryItem* Item)
+{
+	return Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
+}
+
+void UInventorySpatialStorageGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem)
+{
+	for (const auto& Availability : Result.SlotAvailabilities)
+	{
+		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availability.Amount);
+	}
+}
+
+void UInventorySpatialStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
+{
+	check(GridSlots.IsValidIndex(Index));
+
+	if (bStackable)
+	{
+		GridSlots[Index].SetStackCount(StackAmount);
+	}
+
+	const FInventoryItemGridFragment* GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(NewItem);
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
+
+	UInventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns,
+		[&](FInventoryStorageGridSlot& GridSlot)
+		{
+			GridSlot.SetInventoryItem(NewItem);
+			GridSlot.SetStartIndex(Index);
+		});
 }

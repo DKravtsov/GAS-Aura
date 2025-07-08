@@ -16,16 +16,30 @@ class UInventorySpatialStorageGrid : public UObject
 {
 	GENERATED_BODY()
 
+public:
+
+	FInventoryItemGridChangedDelegate OnItemAdded;
+	FInventoryItemChangedDelegate OnItemRemoved;
+	FInventoryItemGridChangedDelegate OnStackChanged;
+
+private:
+	
 	//~ todo: Replace with FastArray
 	UPROPERTY(Replicated)
 	TArray<FInventoryStorageGridSlot> GridSlots;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 1;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Columns = 1;
-	
+
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	FGameplayTag ItemCategory;
+
+	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+	TWeakObjectPtr<AActor> OwningActor;
+
 public:
 	int32 GetIndexFromPosition(const FIntPoint& Position) const
 	{
@@ -37,7 +51,15 @@ public:
 		return FIntPoint(Index % Columns, Index / Columns);
 	}
 
-	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const;
+	const FGameplayTag& GetItemCategory() const {return ItemCategory;}
+	void SetItemCategory(const FGameplayTag& GameplayTag) {ItemCategory = GameplayTag;}
+
+	int32 GetRows() const {return Rows;}
+	int32 GetColumns() const {return Columns;}
+	const TArray<FInventoryStorageGridSlot>& GetGridSlots() const {return GridSlots;}
+	TArray<FInventoryStorageGridSlot>& GetGridSlotsMutable() {return GridSlots;}
+
+	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 	
 	void ConstructGrid(int32 InNumRows, int32 InNumColumns);
 
@@ -47,7 +69,6 @@ public:
 	//~ End of UObject interface
 	
 private:
-	
 	void ConstructGrid();
 	
 	bool IsInGridBounds(int32 StartIndex, const FIntPoint& Dimensions) const;
@@ -67,5 +88,15 @@ private:
 											  const FInventoryStorageGridSlot& GridSlot) const;
 	int32 GetStackAmountInSlot(const FInventoryStorageGridSlot& GridSlot) const;
 
+	UFUNCTION()
+	void HandleItemAdded(UInventoryItem* Item);
 	
+	UFUNCTION()
+	void HandleStackChanged(const FInventorySlotAvailabilityResult& Result);
+
+	bool MatchesCategory(UInventoryItem* Item);
+
+	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
+	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackAmount);
+	void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount);
 };

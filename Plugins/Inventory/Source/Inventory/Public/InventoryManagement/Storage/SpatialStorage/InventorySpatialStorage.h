@@ -32,11 +32,11 @@ public:
 
 	virtual void SetupStorage() override;
 
+	UInventorySpatialStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
+
 protected:
 
 	static TSubclassOf<UInventorySpatialStorageGrid> GetStorageGridClass();
-
-	UInventorySpatialStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;
 };

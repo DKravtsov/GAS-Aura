@@ -27,6 +27,7 @@ void UInventorySpatialStorage::SetupStorage()
 	{
 		auto NewGrid = NewObject<UInventorySpatialStorageGrid>(OwningActor, GridClass);
 		check(IsValid(NewGrid));
+		NewGrid->SetItemCategory(ItemCategory);
 		NewGrid->ConstructGrid(Rows, Columns);
 		
 		InventoryGrids.Emplace(ItemCategory, NewGrid);

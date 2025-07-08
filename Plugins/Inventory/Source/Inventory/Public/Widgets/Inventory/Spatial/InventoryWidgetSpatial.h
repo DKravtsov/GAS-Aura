@@ -76,7 +76,7 @@ public:
 	// virtual class UInventoryEquippedSlottedItemWidget* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
 	// virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const override;
 protected:
-	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
+	//virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
 	//~ End of UInventoryWidgetBase interface
 
 public:

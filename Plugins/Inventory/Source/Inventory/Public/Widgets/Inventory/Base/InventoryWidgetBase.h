@@ -22,15 +22,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	UObject* GetContextObject() const {return ContextObject.Get();}
 
-	FInventorySlotAvailabilityResult HasRoomForItem(const UInventoryItemComponent* ItemComponent) const
-	{
-		return HasRoomForItemInternal(ItemComponent->GetItemManifest(), -1);
-	}
-	
-	FInventorySlotAvailabilityResult HasRoomForItem(const struct FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const
-	{
-		return HasRoomForItemInternal(ItemManifest, StackCountOverride);
-	}
+	// FInventorySlotAvailabilityResult HasRoomForItem(const UInventoryItemComponent* ItemComponent) const
+	// {
+	// 	return HasRoomForItemInternal(ItemComponent->GetItemManifest(), -1);
+	// }
+	//
+	// FInventorySlotAvailabilityResult HasRoomForItem(const struct FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const
+	// {
+	// 	return HasRoomForItemInternal(ItemManifest, StackCountOverride);
+	// }
 
 	INVENTORY_API virtual void OnInventoryHovered(UInventoryItem* Item) {}
 	INVENTORY_API virtual void OnInventoryUnhovered() {}
@@ -48,9 +48,9 @@ public:
 	INVENTORY_API virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) { return false; }
 protected:
 
-	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
-	{
-		return FInventorySlotAvailabilityResult();
-	}
+	// virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
+	// {
+	// 	return FInventorySlotAvailabilityResult();
+	// }
 	
 };

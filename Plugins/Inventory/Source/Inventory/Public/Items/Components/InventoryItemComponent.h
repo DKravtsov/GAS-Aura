@@ -24,6 +24,9 @@ class UInventoryItemComponent : public UActorComponent
 	UPROPERTY(EditInstanceOnly, Category="Inventory", meta=(EditCondition="bOverrideItemManifest"), Replicated)
 	FInventoryItemManifest ItemManifest;
 
+	UPROPERTY(EditInstanceOnly, Category = "Inventory")
+	int32 StackCount = 0;
+
 	UPROPERTY(EditInstanceOnly, Category = "Inventory", meta=(InlineEditConditionToggle))
 	bool bOverrideItemManifest = false;
 	
@@ -46,6 +49,9 @@ public:
 	UFUNCTION(CallInEditor, Category = "Inventory")
 	void CopyManifestFromData();
 #endif
+
+	int32 GetStackCount() const { return StackCount; }
+	void SetStackCount(int32 NewStackCount) { StackCount = NewStackCount; }
 
 protected:
 
