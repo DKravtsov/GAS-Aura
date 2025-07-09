@@ -201,10 +201,14 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 	if (IsValid(HoverItem) && HoverItem->IsStackable())
 		return;
 
-	ShowEquipmentGrid();
-
 	UInventoryItem* ItemToEquip = IsValid(HoverItem) ? HoverItem->GetInventoryItem() : nullptr;
 	UInventoryItem* ItemToUnequip = EquippedSlottedItem->GetInventoryItem();
+
+	// To avoid putting the hover item back to the inventory
+	ActiveGrid->ClearHoverItem();
+
+	// The equipment grid should be active to be able to put the item to the inventory, otherwise it will be lost
+	ShowEquipmentGrid();
 
 	// Get the Equipped Grid Slot holding this item
 	UInventoryEquippedGridSlot* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);

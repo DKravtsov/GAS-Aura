@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, 
  * 
  */
 UCLASS()
-class UInventoryEquippedGridSlot : public UInventoryGridSlotWidget
+class UInventoryEquippedGridSlot : public UInventoryGridSlotWidgetBase//UInventoryGridSlotWidget
 {
 	GENERATED_BODY()
 public:
@@ -37,6 +37,10 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryEquippedSlottedItemWidget> EquippedSlottedItem;
 
+	TWeakObjectPtr<UInventoryItem> InventoryItem;
+
+	bool bIsAvailable = true;
+
 	bool bPendingEquipping = false;
 	TFunction<void ()> PendingEquippingFunction;
 	
@@ -53,6 +57,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	void SetGrayedIconBrush(const FSlateBrush& Brush);
 
+	bool IsAvailable() const {return bIsAvailable;}
+
+	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const {return InventoryItem;}
 	void SetInventoryItem(UInventoryItem* Item);
 	UInventoryEquippedSlottedItemWidget* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
 

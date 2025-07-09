@@ -127,7 +127,7 @@ public:
 	const TWeakObjectPtr<UInventoryItem>& GetInventoryItem() const { return InventoryItem; }
 	void SetInventoryItem(UInventoryItem* InItem);
 
-	bool IsAvailable() const { return TileIndex != INDEX_NONE && !InventoryItem.IsValid(); }
+	bool IsAvailable() const { return !InventoryItem.IsValid(); }
 
 	// void Reset()
 	// {

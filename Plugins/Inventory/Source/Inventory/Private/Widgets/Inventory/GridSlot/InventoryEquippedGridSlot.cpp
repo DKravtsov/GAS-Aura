@@ -4,6 +4,7 @@
 #include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
 
 #include "Inventory.h"
+#include "InventoryGridTypes.h"
 #include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
@@ -58,6 +59,7 @@ void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
 
 void UInventoryEquippedGridSlot::SetInventoryItem(UInventoryItem* Item)
 {
+	InventoryItem = Item;
 }
 
 UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)

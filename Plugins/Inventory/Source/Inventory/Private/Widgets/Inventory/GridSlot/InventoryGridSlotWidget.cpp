@@ -6,31 +6,31 @@
 #include "Components/Image.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 
-void UInventoryGridSlotWidget::SetDefaultTexture()
+void UInventoryGridSlotWidgetBase::SetDefaultTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::Default;
 	Image_GridSlot->SetBrush(DefaultBrush);
 }
 
-void UInventoryGridSlotWidget::SetOccupiedTexture()
+void UInventoryGridSlotWidgetBase::SetOccupiedTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::Occupied;
 	Image_GridSlot->SetBrush(OccupiedBrush);
 }
 
-void UInventoryGridSlotWidget::SetSelectedTexture()
+void UInventoryGridSlotWidgetBase::SetSelectedTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::Selected;
 	Image_GridSlot->SetBrush(SelectedBrush);
 }
 
-void UInventoryGridSlotWidget::SetGrayedOutTexture()
+void UInventoryGridSlotWidgetBase::SetGrayedOutTexture()
 {
 	GridSlotState = EInventoryGridSlotVisualState::GrayedOut;
 	Image_GridSlot->SetBrush(GrayedOutBrush);
 }
 
-void UInventoryGridSlotWidget::SetGridSlotState(EInventoryGridSlotVisualState NewState)
+void UInventoryGridSlotWidgetBase::SetGridSlotState(EInventoryGridSlotVisualState NewState)
 {
 	switch (NewState)
 	{
@@ -43,7 +43,7 @@ void UInventoryGridSlotWidget::SetGridSlotState(EInventoryGridSlotVisualState Ne
 	}
 }
 
-void UInventoryGridSlotWidget::NativePreConstruct()
+void UInventoryGridSlotWidgetBase::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
@@ -74,19 +74,27 @@ FReply UInventoryGridSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeom
 void UInventoryGridSlotWidget::Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex)
 {
 	check(IsValid(InStorageGrid));
-	StorageGrid = InStorageGrid;
+	check(InStorageGrid->GetGridSlots().IsValidIndex(InTileIndex));
+	//StorageGrid = InStorageGrid;
 	GridIndex = InTileIndex;
-	check(StorageGrid->GetGridSlots().IsValidIndex(GridIndex));
+	BoundGridStorageSlot = &InStorageGrid->GetGridSlotMutable(GridIndex);
+}
+
+void UInventoryGridSlotWidget::Bind(FInventoryStorageGridSlot* StorageGridSlot)
+{
+	BoundGridStorageSlot = StorageGridSlot;
 }
 
 const FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlot() const
 {
-	return StorageGrid->GetGridSlot(GridIndex);
+	//return StorageGrid->GetGridSlot(GridIndex);
+	return *BoundGridStorageSlot;
 }
 
-FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlotMutable()
+FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlotMutable() const
 {
-	return StorageGrid->GetGridSlotMutable(GridIndex);
+	//return StorageGrid->GetGridSlotMutable(GridIndex);
+	return *BoundGridStorageSlot;
 }
 
 int32 UInventoryGridSlotWidget::GetStackCount() const
