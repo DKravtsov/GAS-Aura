@@ -9,6 +9,7 @@
 
 class UInventoryComponent;
 class UInventoryItem;
+class AInventoryEquipActor;
 
 UCLASS(MinimalAPI, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable, HideDropdown)
 class UInventoryEquipmentComponent : public UActorComponent
@@ -20,7 +21,7 @@ class UInventoryEquipmentComponent : public UActorComponent
 	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
 
 	UPROPERTY(Transient)
-	TMap<FGameplayTag, TObjectPtr<class AInventoryEquipActor>> EquippedActors;
+	TMap<TObjectPtr<UInventoryItem>, TObjectPtr<AInventoryEquipActor>> EquippedActors;
 
 	bool bIsProxy = false;
 
@@ -57,6 +58,7 @@ private:
 
 	AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
 	void RemoveEquippedActorOfType(const FGameplayTag& EquipmentType);
+	void RemoveEquippedActor(UInventoryItem* Item);
 
 	void InitStartupEquipment();
 	void WaitForStartupEquipmentReady();
