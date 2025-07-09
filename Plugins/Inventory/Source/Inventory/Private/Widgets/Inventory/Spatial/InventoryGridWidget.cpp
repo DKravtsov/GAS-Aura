@@ -906,11 +906,6 @@ void UInventoryGridWidget::ValidateCompiledDefaults(class IWidgetCompilerLog& Co
 {
 	Super::ValidateCompiledDefaults(CompileLog);
 
-	if (Rows == 0 || Columns == 0)
-	{
-		CompileLog.Error(FText::FromString(GetName() + TEXT(": Rows and Columns expected to be set.")));
-	}
-
 	if (TileSize == 0.f)
 	{
 		CompileLog.Error(FText::FromString(GetName() + TEXT(": TileSize must be set. It should be equal to GridSlot's size.")));
