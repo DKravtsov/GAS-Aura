@@ -33,15 +33,12 @@ class UInventoryGridWidget : public UUserWidget
 	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryHoverProxyWidget> HoverItemClass;
+	TSubclassOf<class UInventoryHoverItemWidget> HoverItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventoryItemPopup> ItemPopupMenuClass;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 0;
-
-	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Columns = 0;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
@@ -58,13 +55,13 @@ class UInventoryGridWidget : public UUserWidget
 	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UInventoryHoverProxyWidget> HoverItem;
+	TObjectPtr<UInventoryHoverItemWidget> HoverItem;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
 
 	UPROPERTY(Transient)
-	mutable TObjectPtr<class UInventoryGridViewModel> GridViewModel;
+	TObjectPtr<class UInventoryGridViewModel> GridViewModel;
 
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	TWeakObjectPtr<class UCanvasPanel> OwningCanvasPanel;
@@ -92,16 +89,6 @@ public:
 	INVENTORY_API virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 	//~ End of UUserWidget interface
 
-	int32 GetIndexFromPosition(const FIntPoint& Position) const
-	{
-		return Position.X + Position.Y * Columns;
-	}
-
-	FIntPoint GetPositionFromIndex(int32 Index) const
-	{
-		return FIntPoint(Index % Columns, Index / Columns);
-	}
-
 	float GetTileSize() const { return TileSize; }
 
 	UFUNCTION()
@@ -110,8 +97,6 @@ public:
 
 	UFUNCTION()
 	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
-
-	//INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
@@ -124,7 +109,7 @@ public:
 	void DropHoverItemOnGround();
 
 	bool HasHoverItem() const;
-	UInventoryHoverProxyWidget* GetHoverItem() const {return HoverItem;}
+	UInventoryHoverItemWidget* GetHoverItem() const {return HoverItem;}
 	void ClearHoverItem();
 	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 
@@ -154,7 +139,7 @@ private:
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
 	
-	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
+	void OnUpdateGridSlots(const TArray<int32>& GridIndexArray);
 
 	bool HasRoomAtIndex(const UInventoryGridSlotWidget* GridSlot, const FIntPoint& Dimensions,
 						const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
@@ -219,4 +204,7 @@ private:
 	static FSlateBrush GetTempBrush();
 
 	void PutHoverItemDown();
+
+	void OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
+	void OnRemovedItemFromGrid(const TArray<int32>& GridIndexArray);
 };

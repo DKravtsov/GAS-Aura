@@ -67,7 +67,7 @@ public:
 	virtual void OnInventoryHovered(UInventoryItem* Item) override;
 	virtual void OnInventoryUnhovered() override;
 	virtual bool HasHoverItem() const override;
-	virtual UInventoryHoverProxyWidget* GetHoverItem() const override;
+	virtual UInventoryHoverItemWidget* GetHoverItem() const override;
 	virtual float GetTileSize() const override;
 	virtual void OnCloseMenu() override;
 	virtual void OnOpenedMenu() override;

@@ -90,7 +90,7 @@ void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 	}
 }
 
-class UInventoryHoverProxyWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
+class UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
 {
 	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
 	{

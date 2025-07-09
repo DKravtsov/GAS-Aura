@@ -6,7 +6,7 @@
 #include "Inventory.h"
 #include "InventoryGlobalSettings.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
-#include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorageGrid.h"
+#include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "Items/Manifest/InventoryItemManifest.h"
 
 void UInventorySpatialStorage::SetupStorage()
@@ -25,7 +25,7 @@ void UInventorySpatialStorage::SetupStorage()
 	
 	for (const auto& ItemCategory : GridCategories)
 	{
-		auto NewGrid = NewObject<UInventorySpatialStorageGrid>(OwningActor, GridClass);
+		auto NewGrid = NewObject<UInventoryStorageGrid>(OwningActor, GridClass);
 		check(IsValid(NewGrid));
 		NewGrid->SetItemCategory(ItemCategory);
 		NewGrid->ConstructGrid(Rows, Columns);
@@ -39,12 +39,12 @@ void UInventorySpatialStorage::SetupStorage()
 	}
 }
 
-TSubclassOf<UInventorySpatialStorageGrid> UInventorySpatialStorage::GetStorageGridClass()
+TSubclassOf<UInventoryStorageGrid> UInventorySpatialStorage::GetStorageGridClass()
 {
 	return UInventoryGlobalSettings::GetSpatialStorageGridClass();
 }
 
-UInventorySpatialStorageGrid* UInventorySpatialStorage::FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const
+UInventoryStorageGrid* UInventorySpatialStorage::FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const
 {
 	if (const auto* GridPtr = InventoryGrids.Find(ItemCategory))
 	{

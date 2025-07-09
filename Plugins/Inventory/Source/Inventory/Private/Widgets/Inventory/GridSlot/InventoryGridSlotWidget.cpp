@@ -4,6 +4,7 @@
 #include "Widgets/Inventory/GridSlot/InventoryGridSlotWidget.h"
 #include "Items/InventoryItem.h"
 #include "Components/Image.h"
+#include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 
 void UInventoryGridSlotWidget::SetDefaultTexture()
 {
@@ -53,25 +54,66 @@ void UInventoryGridSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, c
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 	
-	OnGridSlotHovered.Broadcast(TileIndex, InMouseEvent);
+	OnGridSlotHovered.Broadcast(GetTileIndex(), InMouseEvent);
 }
 
 void UInventoryGridSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
 
-	OnGridSlotUnhovered.Broadcast(TileIndex, InMouseEvent);
+	OnGridSlotUnhovered.Broadcast(GetTileIndex(), InMouseEvent);
 }
 
 FReply UInventoryGridSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnGridSlotClicked.Broadcast(TileIndex, InMouseEvent);
+	OnGridSlotClicked.Broadcast(GetTileIndex(), InMouseEvent);
 	
 	return FReply::Handled();
 }
 
-void UInventoryGridSlotWidget::SetInventoryItem(UInventoryItem* Item)
+void UInventoryGridSlotWidget::Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex)
 {
-	InventoryItem = Item;
+	check(IsValid(InStorageGrid));
+	StorageGrid = InStorageGrid;
+	GridIndex = InTileIndex;
+	check(StorageGrid->GetGridSlots().IsValidIndex(GridIndex));
 }
+
+const FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlot() const
+{
+	return StorageGrid->GetGridSlot(GridIndex);
+}
+
+FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlotMutable()
+{
+	return StorageGrid->GetGridSlotMutable(GridIndex);
+}
+
+int32 UInventoryGridSlotWidget::GetStackCount() const
+{
+	//return StackCount;
+	return GetStorageSlot().GetStackCount();
+}
+
+int32 UInventoryGridSlotWidget::GetStartIndex() const
+{
+	//return StartIndex;
+	return GetStorageSlot().GetStartIndex();
+}
+
+TWeakObjectPtr<UInventoryItem> UInventoryGridSlotWidget::GetInventoryItem() const
+{
+	//return InventoryItem;
+	return GetStorageSlot().GetInventoryItem();
+}
+
+bool UInventoryGridSlotWidget::IsAvailable() const
+{
+	return GridIndex != INDEX_NONE ? GetStorageSlot().IsAvailable() : bIsAvailable;
+}
+
+// void UInventoryGridSlotWidget::SetInventoryItem(UInventoryItem* Item)
+// {
+// 	InventoryItem = Item;
+// }
 

@@ -11,7 +11,7 @@
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
-#include "Widgets/Inventory/HoverProxy/InventoryHoverProxyWidget.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 #include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
@@ -49,17 +49,6 @@ FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeome
 	return FReply::Handled();
 }
 
-// FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItemInternal(
-// 	const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
-// {
-// 	if (const UInventoryGridWidget* Grid = GetInventoryGridByCategory(ItemManifest.GetItemCategory()))
-// 	{
-// 		return Grid->HasRoomForItem(ItemManifest, StackCountOverride);
-// 	}
-// 	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
-// 	return FInventorySlotAvailabilityResult();
-// }
-
 void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 {
 	auto ItemDescWidget = GetOrCreateItemDescription();
@@ -91,7 +80,7 @@ bool UInventoryWidgetSpatial::HasHoverItem() const
 	return ActiveGrid->HasHoverItem();
 }
 
-UInventoryHoverProxyWidget* UInventoryWidgetSpatial::GetHoverItem() const
+UInventoryHoverItemWidget* UInventoryWidgetSpatial::GetHoverItem() const
 {
 	return ActiveGrid.IsValid() ? ActiveGrid->GetHoverItem() : nullptr;
 }
@@ -281,7 +270,7 @@ bool UInventoryWidgetSpatial::CanEquipHoverItem(const UInventoryEquippedGridSlot
 	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid())
 		return false;
 
-	const UInventoryHoverProxyWidget* HoverItem = GetHoverItem();
+	const UInventoryHoverItemWidget* HoverItem = GetHoverItem();
 	if (!IsValid(HoverItem))
 		return false;
 

@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryGridSlotWidget.generated.h"
 
+class UInventoryItem;
+struct FInventoryStorageGridSlot;
+class UInventoryStorageGrid;
 class UImage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEventSignature, int32, GridIndex, const FPointerEvent&, MouseEvent);
@@ -46,35 +49,36 @@ private:
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	FSlateBrush GrayedOutBrush;
 
-	int32 TileIndex = INDEX_NONE;
-	int32 StackCount = 0;
-	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
-
-	TWeakObjectPtr<class UInventoryItem> InventoryItem;
-
 	EInventoryGridSlotVisualState GridSlotState;
+
+	int32 GridIndex = INDEX_NONE;
+
+	TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
 
 	bool bIsAvailable = true;
 	
 public:
 
-	int32 GetTileIndex() const { return TileIndex; }
-	void SetTileIndex(const int32 NewTileIndex) { TileIndex = NewTileIndex; }
+	void Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex);
+	
+	const FInventoryStorageGridSlot& GetStorageSlot() const;
 
-	int32 GetStackCount() const { return StackCount; }
-	void SetStackCount(const int32 NewStackCount) { StackCount = NewStackCount; }
+	int32 GetTileIndex() const {return GridIndex;}
 
-	int32 GetStartIndex() const { return StartIndex; }
-	void SetStartIndex(const int32 NewStartIndex) { StartIndex = NewStartIndex; }
+	int32 GetStackCount() const;
+	//void SetStackCount(const int32 NewStackCount);
+
+	int32 GetStartIndex() const;
+	//void SetStartIndex(const int32 NewStartIndex) { StartIndex = NewStartIndex; }
 
 	EInventoryGridSlotVisualState GetGridSlotState() const { return GridSlotState; }
 
-	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const { return InventoryItem; }
-	void SetInventoryItem(UInventoryItem* Item);
+	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const;
+	//void SetInventoryItem(UInventoryItem* Item);
 
-	bool IsAvailable() const {return bIsAvailable;}
-	void SetIsAvailable(bool bAvailable) { bIsAvailable = bAvailable; }
-	
+	bool IsAvailable() const;// {return bIsAvailable;}
+	void SetIsAvailable(bool bAvailable) { check(GridIndex == INDEX_NONE); bIsAvailable = bAvailable; }
+
 	void SetDefaultTexture();
 	void SetOccupiedTexture();
 	void SetSelectedTexture();
@@ -90,5 +94,6 @@ public:
 
 private:
 
+	FInventoryStorageGridSlot& GetStorageSlotMutable();
 	
 };

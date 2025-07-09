@@ -6,7 +6,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "InventoryGlobalSettings.generated.h"
 
-class UInventorySpatialStorageGrid;
+class UInventoryStorageGrid;
 /**
  * 
  */
@@ -16,7 +16,7 @@ class INVENTORY_API UInventoryGlobalSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TSoftClassPtr<UInventorySpatialStorageGrid> SpatialStorageGridClass;
+	TSoftClassPtr<UInventoryStorageGrid> SpatialStorageGridClass;
 
 public:
 
@@ -24,5 +24,5 @@ public:
 
 	static const UInventoryGlobalSettings& Get(); 
 
-	static TSubclassOf<UInventorySpatialStorageGrid> GetSpatialStorageGridClass();
+	static TSubclassOf<UInventoryStorageGrid> GetSpatialStorageGridClass();
 };

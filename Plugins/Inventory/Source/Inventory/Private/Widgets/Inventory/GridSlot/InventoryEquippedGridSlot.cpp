@@ -10,7 +10,7 @@
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
-#include "Widgets/Inventory/HoverProxy/InventoryHoverProxyWidget.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 
 void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -54,6 +54,10 @@ FReply UInventoryEquippedGridSlot::NativeOnMouseButtonDown(const FGeometry& InGe
 void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
 {
 	Image_GrayedOutIcon->SetBrush(Brush);
+}
+
+void UInventoryEquippedGridSlot::SetInventoryItem(UInventoryItem* Item)
+{
 }
 
 UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)

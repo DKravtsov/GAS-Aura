@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryHoverProxyWidget.generated.h"
+#include "InventoryHoverItemWidget.generated.h"
 
 struct FGameplayTag;
 class UImage;
 class UTextBlock;
 
 /**
- * The HoverProxy is the item that will appear and follow the mouse
+ * The HoverItem is the item that will appear and follow the mouse
  * when an inventory item on the grid has been clicked.
  */
 UCLASS(MinimalAPI, Abstract)
-class UInventoryHoverProxyWidget : public UUserWidget
+class UInventoryHoverItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

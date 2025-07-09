@@ -19,6 +19,7 @@ namespace InventoryTags
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemGridChangedDelegate, const struct FInventorySlotAvailabilityResult& /*Result*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemChangedDelegate, class UInventoryItem* /*Item*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryGridSlotsUpdatedSignature, const TArray<int32>& /*GridIndexArray*/);
 
 USTRUCT()
 struct FInventorySlotAvailability
@@ -127,4 +128,17 @@ public:
 	void SetInventoryItem(UInventoryItem* InItem);
 
 	bool IsAvailable() const { return TileIndex != INDEX_NONE && !InventoryItem.IsValid(); }
+
+	// void Reset()
+	// {
+	// 	Clear();
+	// 	TileIndex = INDEX_NONE;
+	// }
+
+	void Clear()
+	{
+		StackCount = 0;
+		StartIndex = INDEX_NONE;
+		InventoryItem.Reset();
+	}
 };

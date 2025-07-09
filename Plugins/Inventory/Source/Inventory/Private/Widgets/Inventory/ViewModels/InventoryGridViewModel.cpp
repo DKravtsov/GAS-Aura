@@ -1,18 +1,18 @@
 ﻿// Copyright 4sandwiches
 
 
-#include "Widgets/Inventory/Spatial/InventoryGridViewModel.h"
+#include "Widgets/Inventory/ViewModels//InventoryGridViewModel.h"
 
 #include "Inventory.h"
-#include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorageGrid.h"
+#include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 
 void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryComponent, const FGameplayTag& ItemCategory)
 {
-	if (auto Storage = Cast<UInventorySpatialStorage>(InInventoryComponent->GetInventoryStorage()))
+	if (const auto Storage = Cast<UInventorySpatialStorage>(InInventoryComponent->GetInventoryStorage()))
 	{
-		if (auto Grid = Storage->FindInventoryGridByCategory(ItemCategory))
+		if (const auto Grid = Storage->FindInventoryGridByCategory(ItemCategory))
 		{
 			Initialize(InInventoryComponent, Grid);
 			return;
@@ -23,7 +23,7 @@ void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryCompone
 	checkNoEntry();
 }
 
-void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryComponent, UInventorySpatialStorageGrid* InGrid)
+void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryComponent, UInventoryStorageGrid* InGrid)
 {
 	check(InventoryComponent == nullptr);
 	
@@ -77,8 +77,43 @@ const FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlot(int32 Inde
 	return StorageGrid->GetGridSlots()[Index];
 }
 
-FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlotMutable(int32 Index)
+FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlotMutable(int32 Index) const
 {
 	check(StorageGrid->GetGridSlots().IsValidIndex(Index));
 	return StorageGrid->GetGridSlotsMutable()[Index];
+}
+
+bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
+{
+	return GetGridSlot(Index).IsAvailable();
+}
+
+void UInventoryGridViewModel::UpdateStackCount(int32 Index, int32 NewStackCount) const
+{
+	GetGridSlotMutable(Index).SetStackCount(NewStackCount);
+}
+
+void UInventoryGridViewModel::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount) const
+{
+	StorageGrid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
+}
+
+void UInventoryGridViewModel::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex) const
+{
+	StorageGrid->RemoveItemFromGrid(ItemToRemove, GridIndex);
+}
+
+void UInventoryGridViewModel::NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const
+{
+	StorageGrid->HandleStackChanged(Result);
+}
+
+FInventoryGridSlotsUpdatedSignature& UInventoryGridViewModel::GetOnGridSlotsUpdatedDelegate() const
+{
+	return StorageGrid->OnGridSlotsUpdated;
+}
+
+FInventoryGridSlotsUpdatedSignature& UInventoryGridViewModel::GetOnGridSlotsResetDelegate() const
+{
+	return StorageGrid->OnGridSlotsReset;
 }

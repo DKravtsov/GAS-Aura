@@ -6,7 +6,7 @@
 #include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventorySpatialStorage.generated.h"
 
-class UInventorySpatialStorageGrid;
+class UInventoryStorageGrid;
 
 /**
  * 
@@ -26,17 +26,17 @@ class UInventorySpatialStorage : public UInventoryStorage
 	TArray<FGameplayTag> GridCategories;
 	
 	UPROPERTY(Transient)
-	TMap<FGameplayTag, TObjectPtr<UInventorySpatialStorageGrid>> InventoryGrids;
+	TMap<FGameplayTag, TObjectPtr<UInventoryStorageGrid>> InventoryGrids;
 
 public:
 
 	virtual void SetupStorage() override;
 
-	UInventorySpatialStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
+	UInventoryStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
 
 protected:
 
-	static TSubclassOf<UInventorySpatialStorageGrid> GetStorageGridClass();
+	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;
 };

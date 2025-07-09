@@ -2,11 +2,11 @@
 
 
 #include "InventoryGlobalSettings.h"
-#include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorageGrid.h"
+#include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 
 UInventoryGlobalSettings::UInventoryGlobalSettings(const FObjectInitializer& ObjectInitializer)
 {
-	SpatialStorageGridClass = UInventorySpatialStorageGrid::StaticClass();
+	SpatialStorageGridClass = UInventoryStorageGrid::StaticClass();
 }
 
 const UInventoryGlobalSettings& UInventoryGlobalSettings::Get()
@@ -15,7 +15,7 @@ const UInventoryGlobalSettings& UInventoryGlobalSettings::Get()
 	return *GlobalSettings;
 }
 
-TSubclassOf<UInventorySpatialStorageGrid> UInventoryGlobalSettings::GetSpatialStorageGridClass()
+TSubclassOf<UInventoryStorageGrid> UInventoryGlobalSettings::GetSpatialStorageGridClass()
 {
 	return Get().SpatialStorageGridClass.LoadSynchronous();
 }
