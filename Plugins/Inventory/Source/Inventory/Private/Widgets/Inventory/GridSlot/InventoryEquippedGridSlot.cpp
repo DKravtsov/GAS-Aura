@@ -22,7 +22,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry,
 		return;
 	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
 	{
-		if (HoverItem->GetItemType().MatchesTag(EquipmentTypeTag)) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
+		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(EquipmentTypeTag)) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
 		{
 			SetOccupiedTexture();
 			Image_GrayedOutIcon->SetVisibility(ESlateVisibility::Collapsed);
@@ -38,7 +38,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouse
 		return;
 	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
 	{
-		if (HoverItem->GetItemType().MatchesTag(EquipmentTypeTag)) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
+		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(EquipmentTypeTag)) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
 		{
 			SetDefaultTexture();
 			Image_GrayedOutIcon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);

@@ -104,7 +104,30 @@ class UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerCo
 
 bool UInventoryStatics::CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag)
 {
-	return IsValid(Item) && !Item->IsStackable() && Item->IsEquipable()
-		&& Item->GetItemType().MatchesTag(EquipmentTypeTag);
+	if (IsValid(Item) && !Item->IsStackable() && Item->IsEquipable())
+	{
+		if (const FInventoryItemEquipmentFragment* EquipFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemEquipmentFragment>())
+		{
+			return EquipFragment->GetEquipmentType().MatchesTag(EquipmentTypeTag);
+		}
+	}
+	return false;
+}
+
+bool UInventoryStatics::IsItemEquipable(const UInventoryItem* Item)
+{
+	return IsValid(Item) && !Item->IsStackable() && Item->IsEquipable() && Item->GetItemManifest().GetFragmentOfType<FInventoryItemEquipmentFragment>();
+}
+
+FGameplayTag UInventoryStatics::GetItemEquipmentTag(const UInventoryItem* Item)
+{
+	if (IsValid(Item))
+	{
+		if (const FInventoryItemEquipmentFragment* EquipFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemEquipmentFragment>())
+		{
+			return EquipFragment->GetEquipmentType();
+		}
+	}
+	return FGameplayTag::EmptyTag;
 }
 

@@ -38,6 +38,7 @@ public:
 	void UpdateStackCount(const int32 NewStackCount);
 
 	const FGameplayTag& GetItemType() const;
+	FGameplayTag GetItemEquipmentTypeTag() const;
 	
 	int32 GetStackCount() const {return StackCount;}
 	

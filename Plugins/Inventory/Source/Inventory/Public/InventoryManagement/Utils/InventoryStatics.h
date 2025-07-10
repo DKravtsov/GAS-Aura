@@ -131,4 +131,7 @@ public:
 
 	static bool CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag);
 
+	static bool IsItemEquipable(const UInventoryItem* Item);
+
+	static FGameplayTag GetItemEquipmentTag(const UInventoryItem* Item);
 };

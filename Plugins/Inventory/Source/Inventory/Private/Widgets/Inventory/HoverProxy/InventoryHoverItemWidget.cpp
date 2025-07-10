@@ -5,6 +5,7 @@
 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 
 void UInventoryHoverItemWidget::SetImageBrush(const FSlateBrush& Brush)
@@ -36,6 +37,11 @@ const FGameplayTag& UInventoryHoverItemWidget::GetItemType() const
 		return InventoryItem->GetItemType();
 	}
 	return FGameplayTag::EmptyTag;
+}
+
+FGameplayTag UInventoryHoverItemWidget::GetItemEquipmentTypeTag() const
+{
+	return UInventoryStatics::GetItemEquipmentTag(GetInventoryItem());
 }
 
 void UInventoryHoverItemWidget::SetIsStackable(bool bStackable)
