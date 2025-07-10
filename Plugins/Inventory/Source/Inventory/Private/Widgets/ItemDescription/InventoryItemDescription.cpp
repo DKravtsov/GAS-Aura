@@ -3,6 +3,7 @@
 
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
 
+#include "Components/NamedSlot.h"
 #include "Components/SizeBox.h"
 
 FVector2D UInventoryItemDescription::GetBoxSize() const
@@ -22,4 +23,12 @@ void UInventoryItemDescription::Hide()
 		Child->Collapse();
 	}
 	SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UInventoryItemDescription::InsertEquippedDescription(UInventoryItemDescription* EquippedDescWidget)
+{
+	if (!IsValid(EquippedDescWidget) || !NamedSlot_EquippedDesc)
+		return;
+
+	NamedSlot_EquippedDesc->AddChild(EquippedDescWidget);
 }

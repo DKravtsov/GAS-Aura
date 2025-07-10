@@ -17,10 +17,15 @@ class UInventoryItemDescription : public UInventoryComposite
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USizeBox> SizeBox_Root;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UNamedSlot> NamedSlot_EquippedDesc;
+
 public:
 
 	FVector2D GetBoxSize() const;
 
 	virtual void Show();
 	virtual void Hide();
+
+	virtual void InsertEquippedDescription(UInventoryItemDescription* EquippedDescWidget);
 };

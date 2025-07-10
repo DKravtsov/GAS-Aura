@@ -7,6 +7,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
+#include "Editor/WidgetCompilerLog.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
@@ -64,26 +65,69 @@ void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
 {
 	auto ItemDescWidget = GetOrCreateItemDescription();
 	ItemDescWidget->Hide();
+	auto EquippedItemDescWidget = GetOrCreateEquippedItemDescription();
+	EquippedItemDescWidget->Hide();
 	SetToolTip(nullptr);
 
+	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(TimerHandle_EquippedDescription);
+
 	const auto& Manifest = Item->GetItemManifest();
-	const FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, &Manifest, ItemDescWidget]()
+	const FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([this, &Manifest, ItemDescWidget, Item]()
 	{
 		ItemDescWidget->Show();
 		SetToolTip(ItemDescWidget);
 
 		Manifest.AssimilateInventoryFragments(ItemDescWidget);
+
+		// for the second item description, showing the equipped item of the same type
+		const FTimerDelegate EquippedTimerDelegate = FTimerDelegate::CreateUObject(this, &UInventoryWidgetSpatial::ShowEquippedItemDescription, Item);
+		GetOwningPlayer()->GetWorldTimerManager().SetTimer(TimerHandle_EquippedDescription, EquippedTimerDelegate, EquippedDescriptionDelay, false);
 	});
 	GetOwningPlayer()->GetWorldTimerManager().SetTimer(TimerHandle_Description, TimerDelegate, DescriptionDelay, false);
+}
+
+void UInventoryWidgetSpatial::ShowEquippedItemDescription(UInventoryItem* Item)
+{
+	const auto& Manifest = Item->GetItemManifest();
+	const auto* EquipFragment = Manifest.GetFragmentOfType<FInventoryItemEquipmentFragment>();
+	if (!EquipFragment)
+		return;
+
+	const FGameplayTag HoveredEquipmentTypeTag = EquipFragment->GetEquipmentType();
+
+	if (FindSlotWithEquippedItem(Item))
+		return; // it's already equipped
+
+	// Find the equipped item of the same type
+	const auto* EquippedGridSlotPtr = EquippedGridSlots.FindByPredicate([HoveredEquipmentTypeTag](const UInventoryEquippedGridSlot* GridSlot)
+	{
+		return GridSlot->GetInventoryItem().IsValid() &&
+			GridSlot->GetInventoryItem()->GetItemManifest().GetFragmentOfType<FInventoryItemEquipmentFragment>()->GetEquipmentType().MatchesTagExact(HoveredEquipmentTypeTag);
+	});
+	const auto FoundEquippedSlot = EquippedGridSlotPtr ? EquippedGridSlotPtr->Get() : nullptr;
+	if (!IsValid(FoundEquippedSlot))
+		return;
+
+	if (!FoundEquippedSlot->GetInventoryItem().IsValid())
+		return;
+
+	UInventoryItem* EquippedItem = FoundEquippedSlot->GetInventoryItem().Get();
+	auto DescriptionWidget = GetOrCreateItemDescription();
+	auto EquippedDescriptionWidget = GetOrCreateEquippedItemDescription();
+	DescriptionWidget->InsertEquippedDescription(EquippedDescriptionWidget);
+	EquippedDescriptionWidget->Show();
+
+	EquippedItem->GetItemManifest().AssimilateInventoryFragments(EquippedDescriptionWidget);
 }
 
 void UInventoryWidgetSpatial::OnInventoryUnhovered()
 {
 	GetOrCreateItemDescription()->Hide();
-	//GetOrCreateItemDescription()->Collapse();
+	GetOrCreateEquippedItemDescription()->Collapse();
 	SetToolTip(nullptr);
 
 	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(TimerHandle_Description);	
+	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(TimerHandle_EquippedDescription);	
 }
 
 bool UInventoryWidgetSpatial::HasHoverItem() const
@@ -274,6 +318,16 @@ UInventoryItemDescription* UInventoryWidgetSpatial::GetOrCreateItemDescription()
 	return ToRawPtr(ItemDescription);
 }
 
+UInventoryItemDescription* UInventoryWidgetSpatial::GetOrCreateEquippedItemDescription()
+{
+	if (!IsValid(EquippedItemDescription))
+	{
+		EquippedItemDescription = CreateWidget<UInventoryItemDescription>(GetOwningPlayer(), EquippedItemDescriptionClass);
+		//CanvasPanel->AddChildToCanvas(EquippedItemDescription);
+	}
+	return ToRawPtr(EquippedItemDescription);
+}
+
 bool UInventoryWidgetSpatial::CanEquipHoverItem(const UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const
 {
 	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid())
@@ -389,3 +443,18 @@ UInventoryEquippedGridSlot* UInventoryWidgetSpatial::FindEquippedGridSlotByType(
 	});
 	return EquippedGridSlotPtr ? EquippedGridSlotPtr->Get() : nullptr;
 }
+
+#if WITH_EDITOR
+void UInventoryWidgetSpatial::ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const
+{
+	Super::ValidateCompiledDefaults(CompileLog);
+	if (!ItemDescriptionClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no ItemDescriptionClass specified.")));
+	}
+	if (!EquippedItemDescriptionClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no EquippedItemDescription specified.")));
+	}
+}
+#endif//WITH_EDITOR

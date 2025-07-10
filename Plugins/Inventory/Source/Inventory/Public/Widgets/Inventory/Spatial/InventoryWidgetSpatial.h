@@ -23,7 +23,16 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	TObjectPtr<UInventoryItemDescription> ItemDescription;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<class UInventoryItemDescription> EquippedItemDescriptionClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryItemDescription> EquippedItemDescription;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DescriptionDelay = 0.2f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float EquippedDescriptionDelay = 0.2f;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UInventoryGrid> InventoryGrid_Equipment;
@@ -55,6 +64,7 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	TWeakObjectPtr<UInventoryGrid> ActiveGrid;
 
 	FTimerHandle TimerHandle_Description;
+	FTimerHandle TimerHandle_EquippedDescription;
 
 public:
 
@@ -83,6 +93,12 @@ public:
 
 	virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) override;
 	
+	//~ Begin UWidget Interface
+#if WITH_EDITOR	
+	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;
+#endif
+	//~ End UWidget Interface
+
 private:
 
 	UFUNCTION()
@@ -100,12 +116,15 @@ private:
 	UFUNCTION()
 	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* EquippedSlottedItem);
 
+	void ShowEquippedItemDescription(UInventoryItem* Item);
+
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInventoryGrid* Grid, UButton* Button);
 
 	UInventoryGrid* GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const;
 
 	UInventoryItemDescription* GetOrCreateItemDescription();
+	UInventoryItemDescription* GetOrCreateEquippedItemDescription();
 
 	bool CanEquipHoverItem(const UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
 
