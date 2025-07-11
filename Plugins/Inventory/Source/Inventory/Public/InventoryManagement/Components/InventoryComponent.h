@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "InventoryGridTypes.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
+#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 #include "InventoryComponent.generated.h"
 
 class UInventoryItemData;
@@ -119,10 +121,10 @@ public:
 	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
 
-	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+	//INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
 
 	TArray<TPair<TWeakObjectPtr<UInventoryItem>, FGameplayTag>> GetEquipStartupItems() const {return StartupEquipment;}
-	bool TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const;
+	bool TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag);
 
 	void ReceivedStartupItems();
 	void ReceivedStartupItemsEquipped() { bStartupItemsEquipped = true; }
@@ -132,6 +134,8 @@ public:
 
 	UFUNCTION()
 	virtual void OnRep_InventoryStorage();
+	
+	void EquipItem(UInventoryItem* InventoryItem, UInventoryItem* ItemToUnequip, FGameplayTag GameplayTag);
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -149,10 +153,13 @@ protected:
 	void Server_ConsumeItem(UInventoryItem* Item, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+	void Server_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+	void Multicast_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag);
+
+	UFUNCTION(Client, Reliable)
+	void Client_RejectEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag);
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
@@ -182,4 +189,5 @@ private:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedStartupInventory();
 
+	FInventoryEquipmentSlot* FindEquippedGridSlotForItem(const UInventoryItem* Item) const;
 };

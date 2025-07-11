@@ -91,7 +91,7 @@ protected:
 
 public:
 
-	virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) override;
+//	virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) override;
 	
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
@@ -133,9 +133,10 @@ private:
 	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
 	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
 
-	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip) const;
+	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& SlotTag) const;
 
 	UInventoryEquippedGridSlot* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
+	UInventoryEquippedGridSlot* FindEquippedGridSlotByTag(const FGameplayTag& SlotTag) const;
 
 	FGameplayTag FindItemBestEquipType(const UInventoryItem* Item) const;
 };

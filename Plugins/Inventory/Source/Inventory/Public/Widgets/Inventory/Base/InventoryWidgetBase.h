@@ -45,7 +45,7 @@ public:
 	//INVENTORY_API virtual class UInventoryEquippedSlottedItemWidget* FindEquippedSlottedItemFor(const UInventoryItem* Item) const { return nullptr; }
 	//INVENTORY_API virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const { return nullptr; }
 
-	INVENTORY_API virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) { return false; }
+//	INVENTORY_API virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) { return false; }
 protected:
 
 	// virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const

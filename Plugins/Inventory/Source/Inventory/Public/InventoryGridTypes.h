@@ -15,6 +15,12 @@ namespace InventoryTags
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_ItemCategory_Consumable);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_ItemCategory_Crafting);
 	
+	/**  Equipment Slots **/
+
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots_Armour);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots_Weapon);
+	
 }
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemGridChangedDelegate, const struct FInventorySlotAvailabilityResult& /*Result*/);
@@ -109,8 +115,12 @@ struct FInventoryStorageGridSlot
 
 private:
 	TWeakObjectPtr<UInventoryItem> InventoryItem;
+
+	UPROPERTY()
 	int32 TileIndex = INDEX_NONE;
+	UPROPERTY()
 	int32 StackCount = 0;
+	UPROPERTY()
 	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
 
 public:
@@ -129,16 +139,42 @@ public:
 
 	bool IsAvailable() const { return !InventoryItem.IsValid(); }
 
-	// void Reset()
-	// {
-	// 	Clear();
-	// 	TileIndex = INDEX_NONE;
-	// }
-
 	void Clear()
 	{
 		StackCount = 0;
 		StartIndex = INDEX_NONE;
 		InventoryItem.Reset();
+	}
+};
+
+USTRUCT()
+struct FInventoryEquipmentSlot
+{
+	GENERATED_BODY()
+	
+private:
+	TWeakObjectPtr<UInventoryItem> InventoryItem;
+
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
+	FGameplayTag EquipmentSlotTag;
+
+	// What type of equipment can be put into this slot
+	// (e.g. "Equipment.Weapons" allows ant weapons, and "Equipment.Weapon.Sword" allows any sword but not axes) 
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems.Equipment"))
+	FGameplayTag EquipmentTypeTag;
+
+public:
+	const TWeakObjectPtr<UInventoryItem>& GetInventoryItem() const { return InventoryItem; }
+	void SetInventoryItem(UInventoryItem* InItem);
+
+	bool IsAvailable() const { return !InventoryItem.IsValid(); }
+
+	const FGameplayTag& GetEquipmentTypeTag() const { return EquipmentTypeTag; }
+	const FGameplayTag& GetEquipmentSlotTag() const { return EquipmentSlotTag; }
+
+	void Clear()
+	{
+		InventoryItem.Reset();
+		EquipmentTypeTag = FGameplayTag::EmptyTag;
 	}
 };

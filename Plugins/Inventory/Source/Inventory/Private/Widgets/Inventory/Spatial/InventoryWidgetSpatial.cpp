@@ -8,6 +8,7 @@
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Editor/WidgetCompilerLog.h"
+#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
@@ -31,12 +32,21 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	
 	ShowEquipmentGrid();
 
-	WidgetTree->ForEachWidget([this](UWidget* Widget)
+	UInventoryEquipmentComponent* EquipmentComponent = UInventoryStatics::GetEquipmentComponent(GetOwningPlayer());
+
+	WidgetTree->ForEachWidget([this, EquipmentComponent](UWidget* Widget)
 	{
-		if (auto GridSlot = Cast<UInventoryEquippedGridSlot>(Widget))
+		if (auto EquipmentSlotWidget = Cast<UInventoryEquippedGridSlot>(Widget))
 		{
-			EquippedGridSlots.Emplace(GridSlot);
-			GridSlot->EquippedGridSlotClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedGridSlotClicked);
+			if (EquipmentSlotWidget->Bind(EquipmentComponent, EquipmentSlotWidget->GetEquipmentSlotTag()))
+			{
+				EquippedGridSlots.Emplace(EquipmentSlotWidget);
+			    EquipmentSlotWidget->EquippedGridSlotClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedGridSlotClicked);
+			}
+			else
+			{
+				UE_LOG(LogInventory, Warning, TEXT("Equipment slot not found: %s"), *EquipmentSlotWidget->GetEquipmentSlotTag().ToString());
+			}
 		}
 	});
 }
@@ -169,53 +179,53 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 	SetActiveGrid(InventoryGrid_Crafting, Button_Crafting);
 }
 
-bool UInventoryWidgetSpatial::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip, UInventoryItem** PreviousEquippedItem)
-{
-	check(IsValid(ItemToEquip));
-	const FGameplayTag EquipmentType = EquipmentTypeTag.IsValid() ? EquipmentTypeTag :  FindItemBestEquipType(ItemToEquip);
-	if (!EquipmentType.IsValid())
-		return false;
-	
-	UInventoryEquippedGridSlot* GridSlot = FindEquippedGridSlotByType(EquipmentType);
-	if (!IsValid(GridSlot))
-		return false;
-	
-	UInventoryItem* ItemToUnequip = nullptr;
-	if (!GridSlot->IsAvailable())
-	{
-		if (bAlwaysEquip)
-		{
-			ItemToUnequip = GridSlot->GetInventoryItem().Get();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
-	const float TileSize = GetTileSize();
-	if (UInventoryEquippedSlottedItemWidget* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentType, TileSize))
-	{
-		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
-
-		if (!GetOwningPlayer()->HasAuthority())
-		{
-			// Inform the server that we've equipped an item (potentially unequipping an item as well)
-			UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
-			check(IsValid(InventoryComponent));
-		
-			InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
-		}
-
-	}
-	InventoryGrid_Equipment->RemoveItemFromGrid(ItemToEquip);
-
-	return true;
-}
+// bool UInventoryWidgetSpatial::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip, UInventoryItem** PreviousEquippedItem)
+// {
+// 	check(IsValid(ItemToEquip));
+// 	const FGameplayTag EquipmentType = EquipmentTypeTag.IsValid() ? EquipmentTypeTag :  FindItemBestEquipType(ItemToEquip);
+// 	if (!EquipmentType.IsValid())
+// 		return false;
+// 	
+// 	UInventoryEquippedGridSlot* GridSlot = FindEquippedGridSlotByType(EquipmentType);
+// 	if (!IsValid(GridSlot))
+// 		return false;
+// 	
+// 	UInventoryItem* ItemToUnequip = nullptr;
+// 	if (!GridSlot->IsAvailable())
+// 	{
+// 		if (bAlwaysEquip)
+// 		{
+// 			ItemToUnequip = GridSlot->GetInventoryItem().Get();
+// 		}
+// 		else
+// 		{
+// 			return false;
+// 		}
+// 	}
+// 	
+// 	const float TileSize = GetTileSize();
+// 	if (UInventoryEquippedSlottedItemWidget* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentType, TileSize))
+// 	{
+// 		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
+//
+// 		if (!GetOwningPlayer()->HasAuthority())
+// 		{
+// 			// Inform the server that we've equipped an item (potentially unequipping an item as well)
+// 			UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+// 			check(IsValid(InventoryComponent));
+// 		
+// 			InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
+// 		}
+//
+// 	}
+// 	InventoryGrid_Equipment->RemoveItemFromGrid(ItemToEquip);
+//
+// 	return true;
+// }
 
 void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag)
 {
-	// Check to see if we can equip the Hover ItemAdd commentMore actions
+	// Check to see if we can equip the Hover Item
 	if (!CanEquipHoverItem(GridSlot, EquipmentTypeTag))
 		return;
 
@@ -232,7 +242,7 @@ void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot
 		UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 		check(IsValid(InventoryComponent));
 
-		InventoryComponent->EquipItem(ItemToEquip, nullptr);
+		InventoryComponent->EquipItem(ItemToEquip, nullptr, GridSlot->GetEquipmentSlotTag());
 	}
 }
 
@@ -256,6 +266,7 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 
 	// Get the Equipped Grid Slot holding this item
 	UInventoryEquippedGridSlot* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
+	checkf(EquippedGridSlot != nullptr, TEXT("EquippedGridSlot must exist if there is EquippedSlottedItem"));
 	
 	// Clear the equipped grid slot of this item (set its inventory item to nullptr)
 	ClearSlotOfItem(EquippedGridSlot);
@@ -270,7 +281,7 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 	MakeEquippedSlottedItem(EquippedSlottedItem, EquippedGridSlot, ItemToEquip);
 	
 	// Broadcast delegates for OnItemEquipped/OnItemUnequipped (from the IC)
-	BroadcastClickedDelegates(ItemToEquip, ItemToUnequip);
+	BroadcastClickedDelegates(ItemToEquip, ItemToUnequip, EquippedGridSlot->GetEquipmentSlotTag());
 }
 
 void UInventoryWidgetSpatial::DisableButton(UButton* Button)
@@ -379,11 +390,11 @@ void UInventoryWidgetSpatial::MakeEquippedSlottedItem(const UInventoryEquippedSl
 	}
 }
 
-void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip) const
+void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& SlotTag) const
 {
 	if (const auto InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
 	{
-		InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
+		InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip, SlotTag);
 	}
 }
 
@@ -435,6 +446,15 @@ UInventoryEquippedGridSlot* UInventoryWidgetSpatial::FindEquippedGridSlotByType(
 	auto* EquippedGridSlotPtr = EquippedGridSlots.FindByPredicate([EquipmentTypeTag](const UInventoryEquippedGridSlot* GridSlot)
 	{
 		return GridSlot->GetEquipmentTypeTag().MatchesTagExact(EquipmentTypeTag);
+	});
+	return EquippedGridSlotPtr ? EquippedGridSlotPtr->Get() : nullptr;
+}
+
+UInventoryEquippedGridSlot* UInventoryWidgetSpatial::FindEquippedGridSlotByTag(const FGameplayTag& SlotTag) const
+{
+	auto* EquippedGridSlotPtr = EquippedGridSlots.FindByPredicate([SlotTag](const UInventoryEquippedGridSlot* GridSlot)
+	{
+		return GridSlot->GetEquipmentSlotTag().MatchesTagExact(SlotTag);
 	});
 	return EquippedGridSlotPtr ? EquippedGridSlotPtr->Get() : nullptr;
 }

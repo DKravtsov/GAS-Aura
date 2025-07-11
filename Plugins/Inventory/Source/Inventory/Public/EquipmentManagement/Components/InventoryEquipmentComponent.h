@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "InventoryGridTypes.h"
 #include "Components/ActorComponent.h"
 #include "InventoryEquipmentComponent.generated.h"
 
@@ -15,6 +16,9 @@ UCLASS(MinimalAPI, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blue
 class UInventoryEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TArray<FInventoryEquipmentSlot> EquipmentSlots;
 
 	TWeakObjectPtr<UInventoryComponent> InventoryComponent;
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
@@ -34,9 +38,20 @@ public:
 
 	void InitializeOwner(APlayerController* PlayerController);
 
-	AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
+	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const {return EquipmentSlots;}
 
+	const FInventoryEquipmentSlot* FindEquipmentSlotByTag(const FGameplayTag& SlotTag) const;
+	FInventoryEquipmentSlot* FindEquipmentSlotForItem(const UInventoryItem* Item);
+
+	bool IsItemEquipped(const UInventoryItem* Item) const;
+	const FInventoryEquipmentSlot* GetEquipmentSlotByItem(const UInventoryItem* Item) const;
+	FInventoryEquipmentSlot* GetEquipmentSlotByItemMutable(const UInventoryItem* Item);
+
+	//AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
+
+	//~ Begin of UActorComponent interface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	//~ End of UActorComponent interface
 	
 protected:
 

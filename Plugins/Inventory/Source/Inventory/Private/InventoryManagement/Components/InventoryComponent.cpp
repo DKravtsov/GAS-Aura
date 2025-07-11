@@ -5,7 +5,9 @@
 
 #include "Inventory.h"
 #include "Components/CapsuleComponent.h"
+#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
@@ -272,27 +274,72 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
 	Server_ConsumeItem(Item, StackCount);
 }
 
-void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+// void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+// {
+// 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+// 	Server_EquipItem(ItemToEquip, ItemToUnequip);
+// }
+
+void UInventoryComponent::EquipItem(UInventoryItem* InventoryItem, UInventoryItem* ItemToUnequip, FGameplayTag GameplayTag)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	Server_EquipItem(ItemToEquip, ItemToUnequip);
+	if (!GetOwner()->HasAuthority())
+	{
+		// TODO: store transaction, we'll need this to confirm/revert after receiving the answer from the server
+		// I guess, transactions should be also reverted by timeout if no response is received.
+		// As an option, server can explicitly send Client_RejectEquip() ?
+	}
+	Server_EquipItem(InventoryItem, ItemToUnequip, GameplayTag);
 }
 
-void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::Client_RejectEquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	Multicast_EquipItem(ItemToEquip, ItemToUnequip);
 }
 
-bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
+{
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
+		*GetNameSafe(ItemToEquip), *EquipmentTypeTag.ToString(), *GetNameSafe(ItemToUnequip));
+
+	// validate the ItemToEquip can be equipped (don't trust anyone)
+	
+	// Find the correct slot to equip the item
+
+	// If the selected slot already has an equipped item, validate if it can be unequipped (and if it's ItemToUnequip?)
+
+	// Before equipping: Remove ItemToEquip from the inventory storage (if applicable).
+		// Note: the item could be already removed from the storage if this command originally came from UI
+	
+		// Unequip the item
+			// Remove ItemToUnequip from the slot
+			// Add ItemToUnequip to the inventory storage (if applicable).
+			// Note: If the command originally came from UI, the Item shouldn't be returned to the storage,
+			// because it's on hover item and will be returned separately. Probably, the best solution how to detect
+			// this case is to have ItemToUnequip argument valid only in this case.
+
+	// Equip item
+		// Add item to the slot
+		// Apply EquipFragment modifiers
+
+	// Notify subscribers about equipping/unequipping fact
+	Multicast_EquipItem(ItemToEquip, ItemToUnequip, EquipmentTypeTag);
+}
+
+bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
 {
 	return true;
 }
 
-void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+
+	if (!GetOwner()->HasAuthority())
+	{
+		// TODO: check if the items to equip and unequip are the same as in the current transaction,
+		// so we can revert if needed
+	}
+
 	OnItemUnequipped.Broadcast(ItemToUnequip);
 	OnItemEquipped.Broadcast(ItemToEquip);
 }
@@ -383,11 +430,35 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	//DOREPLIFETIME(UInventoryComponent, InventoryStorage);
 }
 
-bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const
+bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
+
+	if (!EquipmentTypeTag.IsValid())
+		return false;
 	
-	return InventoryMenu->TryEquipItem(ItemToEquip, EquipmentTypeTag);
+	const auto EquipComp = UInventoryStatics::GetEquipmentComponent(OwningPlayerController.Get());
+	if (EquipComp->IsItemEquipped(ItemToEquip))
+		return false;
+
+	if (!UInventoryStatics::CanEquipItem(ItemToEquip, EquipmentTypeTag))
+		return false;
+
+	FInventoryEquipmentSlot* EquipSlot = EquipComp->FindEquipmentSlotForItem(ItemToEquip);
+	if (!EquipSlot)
+		return false;
+
+	UInventoryItem* ItemToUnequip = nullptr;
+	if (!EquipSlot->IsAvailable())
+	{
+		if (!EquipSlot->GetInventoryItem().IsValid())
+			return false;
+		ItemToUnequip = EquipSlot->GetInventoryItem().Get();
+	}
+
+	Server_EquipItem(ItemToEquip, ItemToUnequip, EquipmentTypeTag);
+	
+	return true;
 }
 
 void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()

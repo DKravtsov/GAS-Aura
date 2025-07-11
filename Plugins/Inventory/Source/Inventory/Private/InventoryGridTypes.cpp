@@ -13,6 +13,11 @@ namespace InventoryTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_ItemCategory_Consumable, "Inventory.ItemCategory.Consumable", "");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_ItemCategory_Crafting, "Inventory.ItemCategory.Crafting", "");
 	
+	/**  Item Categories **/
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_EquipmentSlots, "Inventory.EquipmentSlots", "Slot names for equipment");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_EquipmentSlots_Armour, "Inventory.EquipmentSlots.Armour", "Slot for any armor");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_EquipmentSlots_Weapon, "Inventory.EquipmentSlots.Weapon", "Slot for any weapon");
 }
 
 FInventorySlotAvailabilityResult::FInventorySlotAvailabilityResult()
@@ -49,6 +54,11 @@ FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInvento
 }
 
 void FInventoryStorageGridSlot::SetInventoryItem(UInventoryItem* InItem)
+{
+	InventoryItem = InItem;
+}
+
+void FInventoryEquipmentSlot::SetInventoryItem(UInventoryItem* InItem)
 {
 	InventoryItem = InItem;
 }

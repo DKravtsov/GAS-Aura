@@ -7,6 +7,7 @@
 #include "EquipmentManagement/EquipActor/InventoryEquipActor.h"
 #include "GameFramework/Character.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 
@@ -34,12 +35,64 @@ void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerCont
 	}
 }
 
-AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const
+const FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotByTag(const FGameplayTag& SlotTag) const
 {
-	// if (const auto FoundActor = EquippedActors.Find(EquipmentType))
-	// 	return FoundActor->Get();
+	return EquipmentSlots.FindByPredicate([SlotTag](const FInventoryEquipmentSlot& EquipmentSlot)
+	{
+		return EquipmentSlot.GetEquipmentSlotTag().MatchesTagExact(SlotTag);
+	});
+}
+
+FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotForItem(const UInventoryItem* Item)
+{
+	if (IsValid(Item) && !Item->IsStackable() && Item->IsEquipable())
+	{
+		for (auto& EquippedGridSlot : EquipmentSlots)
+		{
+			if (UInventoryStatics::GetItemEquipmentTag(Item).MatchesTag(EquippedGridSlot.GetEquipmentTypeTag()))
+			{
+				return &EquippedGridSlot;
+			}
+		}
+	}
 	return nullptr;
 }
+
+bool UInventoryEquipmentComponent::IsItemEquipped(const UInventoryItem* Item) const
+{
+	check(IsValid(Item));
+
+	for (auto& EquippedGridSlot : EquipmentSlots)
+	{
+		if (EquippedGridSlot.GetInventoryItem() == Item)
+			return true;
+	}
+	return false;
+}
+
+const FInventoryEquipmentSlot* UInventoryEquipmentComponent::GetEquipmentSlotByItem(const UInventoryItem* Item) const
+{
+	check(IsValid(Item));
+
+	for (auto& EquippedGridSlot : EquipmentSlots)
+	{
+		if (EquippedGridSlot.GetInventoryItem() == Item)
+			return &EquippedGridSlot;
+	}
+	return nullptr;
+}
+
+FInventoryEquipmentSlot* UInventoryEquipmentComponent::GetEquipmentSlotByItemMutable(const UInventoryItem* Item)
+{
+	return const_cast<FInventoryEquipmentSlot*>(GetEquipmentSlotByItem(Item));
+}
+
+// AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const
+// {
+// 	// if (const auto FoundActor = EquippedActors.Find(EquipmentType))
+// 	// 	return FoundActor->Get();
+// 	return nullptr;
+// }
 
 void UInventoryEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

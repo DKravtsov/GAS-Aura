@@ -8,11 +8,26 @@
 #include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
+
+bool UInventoryEquippedGridSlot::Bind(UInventoryEquipmentComponent* EquipComponent,	const FGameplayTag& EquipSlotTag)
+{
+	if (IsValid(EquipComponent) && EquipSlotTag.IsValid())
+	{
+		if (auto* FoundSlot = EquipComponent->FindEquipmentSlotByTag(EquipSlotTag))
+		{
+			EquipmentComponent = EquipComponent;
+			EquipmentSlotTag = EquipSlotTag;
+			return true;
+		}
+	}
+	return false;
+}
 
 void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -22,7 +37,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry,
 		return;
 	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
 	{
-		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(EquipmentTypeTag)) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
+		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(GetEquipmentTypeTag())) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
 		{
 			SetOccupiedTexture();
 			Image_GrayedOutIcon->SetVisibility(ESlateVisibility::Collapsed);
@@ -38,7 +53,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouse
 		return;
 	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
 	{
-		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(EquipmentTypeTag)) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
+		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(GetEquipmentTypeTag())) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
 		{
 			SetDefaultTexture();
 			Image_GrayedOutIcon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -48,8 +63,17 @@ void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouse
 
 FReply UInventoryEquippedGridSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	EquippedGridSlotClicked.Broadcast(this, EquipmentTypeTag);
+	EquippedGridSlotClicked.Broadcast(this, GetEquipmentTypeTag());
 	return FReply::Handled();
+}
+
+const FGameplayTag& UInventoryEquippedGridSlot::GetEquipmentTypeTag() const
+{
+	if (const auto BoundSlot = GetBoundEquipmentSlot(); ensure(BoundSlot))
+	{
+		return BoundSlot->GetEquipmentTypeTag();
+	}
+	return FGameplayTag::EmptyTag;
 }
 
 void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
@@ -57,15 +81,27 @@ void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
 	Image_GrayedOutIcon->SetBrush(Brush);
 }
 
+bool UInventoryEquippedGridSlot::IsAvailable() const
+{
+	const auto BoundSlot = GetBoundEquipmentSlot();
+	return BoundSlot ? BoundSlot->IsAvailable() : false;
+}
+
+TWeakObjectPtr<UInventoryItem> UInventoryEquippedGridSlot::GetInventoryItem() const
+{
+	const auto BoundSlot = GetBoundEquipmentSlot();
+	return BoundSlot ? BoundSlot->GetInventoryItem() : TWeakObjectPtr<UInventoryItem>();
+}
+
 void UInventoryEquippedGridSlot::SetInventoryItem(UInventoryItem* Item)
 {
-	InventoryItem = Item;
+	//InventoryItem = Item;
 }
 
 UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
 {
 	// Check the Equipment Type TagAdd commentMore actions
-	if (!Tag.MatchesTagExact(EquipmentTypeTag))
+	if (!Tag.MatchesTagExact(GetEquipmentTypeTag()))
 		return nullptr;
 	
 	// Get Grid Dimensions
@@ -131,9 +167,14 @@ void UInventoryEquippedGridSlot::UpdateIfPending()
 	}
 }
 
+const FInventoryEquipmentSlot* UInventoryEquippedGridSlot::GetBoundEquipmentSlot() const
+{
+	return EquipmentComponent.IsValid() ? EquipmentComponent->FindEquipmentSlotByTag(EquipmentSlotTag) : nullptr;
+}
+
 void UInventoryEquippedGridSlot::ClearEquippedSlot()
 {
-	SetInventoryItem(nullptr);
+	//SetInventoryItem(nullptr);
 	EquippedSlottedItem = nullptr;
 	PendingEquippingFunction.Reset();
 	bPendingEquipping = false;
