@@ -75,43 +75,32 @@ void UInventoryGridSlotWidget::Bind(UInventoryStorageGrid* InStorageGrid, int32 
 {
 	check(IsValid(InStorageGrid));
 	check(InStorageGrid->GetGridSlots().IsValidIndex(InTileIndex));
-	//StorageGrid = InStorageGrid;
+	StorageGrid = InStorageGrid;
 	GridIndex = InTileIndex;
-	BoundGridStorageSlot = &InStorageGrid->GetGridSlotMutable(GridIndex);
-}
-
-void UInventoryGridSlotWidget::Bind(FInventoryStorageGridSlot* StorageGridSlot)
-{
-	BoundGridStorageSlot = StorageGridSlot;
 }
 
 const FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlot() const
 {
-	//return StorageGrid->GetGridSlot(GridIndex);
-	return *BoundGridStorageSlot;
+	return StorageGrid->GetGridSlot(GridIndex);
 }
 
 FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlotMutable() const
 {
-	//return StorageGrid->GetGridSlotMutable(GridIndex);
-	return *BoundGridStorageSlot;
+	return StorageGrid->GetGridSlotMutable(GridIndex);
 }
 
 int32 UInventoryGridSlotWidget::GetStackCount() const
 {
-	//return StackCount;
 	return GetStorageSlot().GetStackCount();
 }
 
 int32 UInventoryGridSlotWidget::GetStartIndex() const
 {
-	//return StartIndex;
 	return GetStorageSlot().GetStartIndex();
 }
 
 TWeakObjectPtr<UInventoryItem> UInventoryGridSlotWidget::GetInventoryItem() const
 {
-	//return InventoryItem;
 	return GetStorageSlot().GetInventoryItem();
 }
 
@@ -119,9 +108,4 @@ bool UInventoryGridSlotWidget::IsAvailable() const
 {
 	return GridIndex != INDEX_NONE ? GetStorageSlot().IsAvailable() : bIsAvailable;
 }
-
-// void UInventoryGridSlotWidget::SetInventoryItem(UInventoryItem* Item)
-// {
-// 	InventoryItem = Item;
-// }
 

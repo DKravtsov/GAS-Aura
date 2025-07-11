@@ -77,34 +77,25 @@ private:
 
 	int32 GridIndex = INDEX_NONE;
 
-	//TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
-
-	FInventoryStorageGridSlot* BoundGridStorageSlot = nullptr;
+	TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
 
 	bool bIsAvailable = true;
 	
 public:
 
 	void Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex);
-	void Bind(FInventoryStorageGridSlot* StorageGridSlot);
 	
 	const FInventoryStorageGridSlot& GetStorageSlot() const;
 
 	int32 GetTileIndex() const {return GridIndex;}
 
 	int32 GetStackCount() const;
-	//void SetStackCount(const int32 NewStackCount);
 
 	int32 GetStartIndex() const;
-	//void SetStartIndex(const int32 NewStartIndex) { StartIndex = NewStartIndex; }
-
 
 	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const;
-	//void SetInventoryItem(UInventoryItem* Item);
 
-	bool IsAvailable() const;// {return bIsAvailable;}
-	void SetIsAvailable(bool bAvailable) { check(GridIndex == INDEX_NONE); bIsAvailable = bAvailable; }
-
+	bool IsAvailable() const;
 
 	//~ Begin of UUserWidget interface
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
