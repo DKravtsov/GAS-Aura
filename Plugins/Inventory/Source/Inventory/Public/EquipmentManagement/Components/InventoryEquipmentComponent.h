@@ -40,10 +40,13 @@ public:
 
 	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const {return EquipmentSlots;}
 
-	const FInventoryEquipmentSlot* FindEquipmentSlotByTag(const FGameplayTag& SlotTag) const;
+	const FInventoryEquipmentSlot* FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
+	FInventoryEquipmentSlot* FindEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
+	
 	FInventoryEquipmentSlot* FindEquipmentSlotForItem(const UInventoryItem* Item);
 
 	bool IsItemEquipped(const UInventoryItem* Item) const;
+	
 	const FInventoryEquipmentSlot* GetEquipmentSlotByItem(const UInventoryItem* Item) const;
 	FInventoryEquipmentSlot* GetEquipmentSlotByItemMutable(const UInventoryItem* Item);
 

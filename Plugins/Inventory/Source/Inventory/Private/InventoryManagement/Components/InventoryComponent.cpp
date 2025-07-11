@@ -280,56 +280,107 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
 // 	Server_EquipItem(ItemToEquip, ItemToUnequip);
 // }
 
-void UInventoryComponent::EquipItem(UInventoryItem* InventoryItem, UInventoryItem* ItemToUnequip, FGameplayTag GameplayTag)
+void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
+		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
+	
 	if (!GetOwner()->HasAuthority())
 	{
 		// TODO: store transaction, we'll need this to confirm/revert after receiving the answer from the server
 		// I guess, transactions should be also reverted by timeout if no response is received.
 		// As an option, server can explicitly send Client_RejectEquip() ?
 	}
-	Server_EquipItem(InventoryItem, ItemToUnequip, GameplayTag);
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 }
 
-void UInventoryComponent::Client_RejectEquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::Client_RejectEquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
 }
 
-void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
-		*GetNameSafe(ItemToEquip), *EquipmentTypeTag.ToString(), *GetNameSafe(ItemToUnequip));
+		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
 
 	// validate the ItemToEquip can be equipped (don't trust anyone)
 	
 	// Find the correct slot to equip the item
+	UInventoryEquipmentComponent* EquipmentComponent = UInventoryStatics::GetEquipmentComponent(OwningPlayerController.Get());
+	FInventoryEquipmentSlot* EquippedSlot = EquipmentComponent->FindEquipmentSlotMutable(SlotId);
+	if (!ensure(EquippedSlot))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: The Equipment slot not found: %s"), *UEnum::GetValueAsString(SlotId));
+		return;
+	}
 
 	// If the selected slot already has an equipped item, validate if it can be unequipped (and if it's ItemToUnequip?)
+	UInventoryItem* CurrentEquippedItem = EquippedSlot->GetInventoryItem().Get();
+	if (CurrentEquippedItem && CurrentEquippedItem == ItemToEquip)
+	{
+		UE_LOG(LogInventory, Log, TEXT("Server_EquipItem: Trying to equip already equipped item [%s] to slot [%s]"),
+			*ItemToEquip->GetItemType().ToString(), *UEnum::GetValueAsString(SlotId));
+		return;
+	}
+	if (CurrentEquippedItem != ItemToUnequip)
+	{
+		if (ItemToUnequip != nullptr)
+		{
+			UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: Trying to unequip item [%s] that is not equipped in slot [%s]"),
+			   *ItemToEquip->GetItemType().ToString(), *UEnum::GetValueAsString(SlotId));
+			return;
+		}
+		else
+		{
+			// we might call this method with arg ItemToUnequip==null to "autodetect" the item to unequip
+			ItemToUnequip = CurrentEquippedItem;
+		}
+	}
 
-	// Before equipping: Remove ItemToEquip from the inventory storage (if applicable).
-		// Note: the item could be already removed from the storage if this command originally came from UI
+	// Before equipping:
 	
-		// Unequip the item
-			// Remove ItemToUnequip from the slot
-			// Add ItemToUnequip to the inventory storage (if applicable).
-			// Note: If the command originally came from UI, the Item shouldn't be returned to the storage,
-			// because it's on hover item and will be returned separately. Probably, the best solution how to detect
-			// this case is to have ItemToUnequip argument valid only in this case.
+	// Remove ItemToEquip from the inventory storage (if applicable).
+	// Note: the item could be already removed from the storage if this command originally came from UI
+	if (ItemToEquip)
+	{
+		const int32 ItemGridIndex = InventoryStorage->GetItemIndex(ItemToEquip);
+		if (ItemGridIndex != INDEX_NONE)
+		{
+			InventoryStorage->RemoveItemFromGrid(ItemToEquip, ItemGridIndex);
+		}
+	}
+
+	// Unequip the item:
+	if (ItemToUnequip)
+	{
+		// Remove ItemToUnequip from the slot
+		EquippedSlot->SetInventoryItem(nullptr);
+		
+		// Add ItemToUnequip to the inventory storage (if applicable).
+		// Note: If the command originally came from UI, the Item shouldn't be returned to the storage,
+		// because it's on hover item and will be returned separately. Probably, the best solution how to detect
+		// this case is to have ItemToUnequip argument valid only in this case.
+		
+	}
 
 	// Equip item
+	if (ItemToEquip)
+	{
 		// Add item to the slot
+		EquippedSlot->SetInventoryItem(ItemToEquip);
+		
 		// Apply EquipFragment modifiers
-
+	}
 	// Notify subscribers about equipping/unequipping fact
-	Multicast_EquipItem(ItemToEquip, ItemToUnequip, EquipmentTypeTag);
+	Multicast_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 }
 
-bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
+bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
 	return true;
 }
 
-void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
@@ -433,8 +484,8 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
-
-	if (!EquipmentTypeTag.IsValid())
+	return false;
+/*	if (!EquipmentTypeTag.IsValid())
 		return false;
 	
 	const auto EquipComp = UInventoryStatics::GetEquipmentComponent(OwningPlayerController.Get());
@@ -458,7 +509,7 @@ bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGamep
 
 	Server_EquipItem(ItemToEquip, ItemToUnequip, EquipmentTypeTag);
 	
-	return true;
+	return true;*/
 }
 
 void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()

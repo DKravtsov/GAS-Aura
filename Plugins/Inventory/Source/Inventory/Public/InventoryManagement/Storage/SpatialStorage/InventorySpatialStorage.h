@@ -34,6 +34,12 @@ public:
 
 	UInventoryStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
 
+	//~ Begin of UInventoryStorage interface
+	virtual int32 GetItemIndex(UInventoryItem* Item) override;
+	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) override;
+	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) override;
+	//~ End of UInventoryStorage interface
+
 protected:
 
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();

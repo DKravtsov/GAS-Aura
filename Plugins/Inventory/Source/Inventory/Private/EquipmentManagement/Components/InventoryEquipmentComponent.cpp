@@ -35,12 +35,17 @@ void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerCont
 	}
 }
 
-const FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotByTag(const FGameplayTag& SlotTag) const
+const FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const
 {
-	return EquipmentSlots.FindByPredicate([SlotTag](const FInventoryEquipmentSlot& EquipmentSlot)
+	return EquipmentSlots.FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
 	{
-		return EquipmentSlot.GetEquipmentSlotTag().MatchesTagExact(SlotTag);
+		return EquipmentSlot.GetSlotId() == SlotId;
 	});
+}
+
+FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotMutable(EInventoryEquipmentSlot SlotId)
+{
+	return const_cast<FInventoryEquipmentSlot*>(FindEquipmentSlot(SlotId));
 }
 
 FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotForItem(const UInventoryItem* Item)

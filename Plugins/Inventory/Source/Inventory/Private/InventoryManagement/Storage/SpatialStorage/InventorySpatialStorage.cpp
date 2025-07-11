@@ -7,6 +7,7 @@
 #include "InventoryGlobalSettings.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
+#include "Items/InventoryItem.h"
 #include "Items/Manifest/InventoryItemManifest.h"
 
 void UInventorySpatialStorage::SetupStorage()
@@ -51,6 +52,38 @@ UInventoryStorageGrid* UInventorySpatialStorage::FindInventoryGridByCategory(con
 		return GridPtr->Get();
 	}
 	return nullptr;
+}
+
+int32 UInventorySpatialStorage::GetItemIndex(UInventoryItem* Item)
+{
+	if (IsValid(Item))
+	{
+		auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+		check(Grid);
+		return Grid->GetItemIndex(Item);
+	}
+
+	return INDEX_NONE;
+}
+
+void UInventorySpatialStorage::UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount)
+{
+	if (IsValid(NewItem))
+	{
+		auto Grid = FindInventoryGridByCategory(NewItem->GetItemManifest().GetItemCategory());
+		check(Grid);
+		Grid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
+	}
+}
+
+void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex)
+{
+	if (IsValid(ItemToRemove))
+	{
+		auto Grid = FindInventoryGridByCategory(ItemToRemove->GetItemManifest().GetItemCategory());
+		check(Grid);
+		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex);
+	}
 }
 
 FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const

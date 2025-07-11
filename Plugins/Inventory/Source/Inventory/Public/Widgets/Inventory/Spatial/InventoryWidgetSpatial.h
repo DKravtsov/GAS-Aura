@@ -133,10 +133,10 @@ private:
 	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
 	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
 
-	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& SlotTag) const;
+	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId) const;
 
 	UInventoryEquippedGridSlot* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
-	UInventoryEquippedGridSlot* FindEquippedGridSlotByTag(const FGameplayTag& SlotTag) const;
+	UInventoryEquippedGridSlot* FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const;
 
 	FGameplayTag FindItemBestEquipType(const UInventoryItem* Item) const;
 };

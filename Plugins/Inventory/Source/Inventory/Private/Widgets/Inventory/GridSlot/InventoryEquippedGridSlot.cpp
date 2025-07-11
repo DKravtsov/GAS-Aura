@@ -15,14 +15,14 @@
 #include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 
-bool UInventoryEquippedGridSlot::Bind(UInventoryEquipmentComponent* EquipComponent,	const FGameplayTag& EquipSlotTag)
+bool UInventoryEquippedGridSlot::Bind(UInventoryEquipmentComponent* EquipComponent, EInventoryEquipmentSlot SlotId)
 {
-	if (IsValid(EquipComponent) && EquipSlotTag.IsValid())
+	if (IsValid(EquipComponent) && SlotId != EInventoryEquipmentSlot::Invalid)
 	{
-		if (auto* FoundSlot = EquipComponent->FindEquipmentSlotByTag(EquipSlotTag))
+		if (auto* FoundSlot = EquipComponent->FindEquipmentSlot(SlotId))
 		{
 			EquipmentComponent = EquipComponent;
-			EquipmentSlotTag = EquipSlotTag;
+			EquipmentSlotId = SlotId;
 			return true;
 		}
 	}
@@ -169,7 +169,7 @@ void UInventoryEquippedGridSlot::UpdateIfPending()
 
 const FInventoryEquipmentSlot* UInventoryEquippedGridSlot::GetBoundEquipmentSlot() const
 {
-	return EquipmentComponent.IsValid() ? EquipmentComponent->FindEquipmentSlotByTag(EquipmentSlotTag) : nullptr;
+	return EquipmentComponent.IsValid() ? EquipmentComponent->FindEquipmentSlot(EquipmentSlotId) : nullptr;
 }
 
 void UInventoryEquippedGridSlot::ClearEquippedSlot()

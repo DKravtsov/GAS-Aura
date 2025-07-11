@@ -24,6 +24,10 @@ public:
 
 	virtual void SetupStorage() {}
 
+	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;};
+	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}
+	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) {}
+	
 protected:
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const;

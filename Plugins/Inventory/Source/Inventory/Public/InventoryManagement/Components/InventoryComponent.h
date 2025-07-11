@@ -135,7 +135,7 @@ public:
 	UFUNCTION()
 	virtual void OnRep_InventoryStorage();
 	
-	void EquipItem(UInventoryItem* InventoryItem, UInventoryItem* ItemToUnequip, FGameplayTag GameplayTag);
+	void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -153,13 +153,13 @@ protected:
 	void Server_ConsumeItem(UInventoryItem* Item, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag);
+	void Server_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag);
+	void Multicast_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(Client, Reliable)
-	void Client_RejectEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, const FGameplayTag& EquipmentTypeTag);
+	void Client_RejectEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);

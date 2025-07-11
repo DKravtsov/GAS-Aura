@@ -64,6 +64,20 @@ const FInventoryStorageGridSlot& UInventoryStorageGrid::GetGridSlot(const FIntPo
 	return GetGridSlot(Index);
 }
 
+bool UInventoryStorageGrid::ContainsItem(UInventoryItem* Item) const
+{
+	return INDEX_NONE != GetItemIndex(Item);
+}
+
+int32 UInventoryStorageGrid::GetItemIndex(UInventoryItem* Item) const
+{
+	const int32 Index = GridSlots.IndexOfByPredicate([Item](const FInventoryStorageGridSlot& GridSlot)
+	{
+		return GridSlot.GetStartIndex() == GridSlot.GetTileIndex() && GridSlot.GetInventoryItem() == Item;
+	});
+	return Index;
+}
+
 FInventorySlotAvailabilityResult UInventoryStorageGrid::HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
 	FInventorySlotAvailabilityResult Result;

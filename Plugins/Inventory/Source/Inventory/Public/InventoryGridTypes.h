@@ -147,6 +147,30 @@ public:
 	}
 };
 
+UENUM()
+enum class EInventoryEquipmentSlot : uint8
+{
+	Invalid = 255,
+	Slot_0 = 0,
+	Slot_1,
+	Slot_2,
+	Slot_3,
+	Slot_4,
+	Slot_5,
+	Slot_6,
+	Slot_7,
+	Slot_8,
+	Slot_9,
+	Slot_10,
+	Slot_11,
+	Slot_12,
+	Slot_13,
+	Slot_14,
+	Slot_15,
+	MAX UMETA(Hidden),
+};
+ENUM_RANGE_BY_FIRST_AND_LAST(EInventoryEquipmentSlot, EInventoryEquipmentSlot::Slot_0, EInventoryEquipmentSlot::Slot_15);
+
 USTRUCT()
 struct FInventoryEquipmentSlot
 {
@@ -155,8 +179,10 @@ struct FInventoryEquipmentSlot
 private:
 	TWeakObjectPtr<UInventoryItem> InventoryItem;
 
-	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
-	FGameplayTag EquipmentSlotTag;
+	// UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
+	// FGameplayTag EquipmentSlotTag;
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	EInventoryEquipmentSlot SlotId = EInventoryEquipmentSlot::Invalid;
 
 	// What type of equipment can be put into this slot
 	// (e.g. "Equipment.Weapons" allows ant weapons, and "Equipment.Weapon.Sword" allows any sword but not axes) 
@@ -170,7 +196,8 @@ public:
 	bool IsAvailable() const { return !InventoryItem.IsValid(); }
 
 	const FGameplayTag& GetEquipmentTypeTag() const { return EquipmentTypeTag; }
-	const FGameplayTag& GetEquipmentSlotTag() const { return EquipmentSlotTag; }
+	//const FGameplayTag& GetEquipmentSlotTag() const { return EquipmentSlotTag; }
+	EInventoryEquipmentSlot GetSlotId() const { return SlotId; }
 
 	void Clear()
 	{

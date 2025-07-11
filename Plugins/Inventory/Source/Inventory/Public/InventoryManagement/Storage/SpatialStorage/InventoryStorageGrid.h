@@ -65,6 +65,9 @@ public:
 	FInventoryStorageGridSlot& GetGridSlotMutable(const FIntPoint& Position);
 	const FInventoryStorageGridSlot& GetGridSlot(const FIntPoint& Position) const;
 
+	bool ContainsItem(UInventoryItem* Item) const;
+	int32 GetItemIndex(UInventoryItem* Item) const;
+
 	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 	
 	void ConstructGrid(int32 InNumRows, int32 InNumColumns);

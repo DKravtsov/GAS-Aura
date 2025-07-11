@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "InventoryGridSlotWidget.h"
+#include "InventoryGridTypes.h"
 #include "InventoryEquippedGridSlot.generated.h"
 
 class UInventoryEquipmentComponent;
@@ -16,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, 
  * 
  */
 UCLASS()
-class UInventoryEquippedGridSlot : public UInventoryGridSlotWidgetBase//UInventoryGridSlotWidget
+class UInventoryEquippedGridSlot : public UInventoryGridSlotWidgetBase
 {
 	GENERATED_BODY()
 public:
@@ -25,11 +26,11 @@ public:
 
 private:
 
-	//UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems.Equipment"))
-	//FGameplayTag EquipmentTypeTag;
+	// UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
+	// FGameplayTag EquipmentSlotTag;
 
-	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
-	FGameplayTag EquipmentSlotTag;
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	EInventoryEquipmentSlot EquipmentSlotId = EInventoryEquipmentSlot::Invalid;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UOverlay> Overlay_Root;
@@ -43,19 +44,14 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryEquippedSlottedItemWidget> EquippedSlottedItem;
 
-	//TWeakObjectPtr<UInventoryItem> InventoryItem;
-
-	//bool bIsAvailable = true;
-
-	//FInventoryEquipmentSlot* BoundEquipmentSlot = nullptr;
 	TWeakObjectPtr<UInventoryEquipmentComponent> EquipmentComponent;
 
-	bool bPendingEquipping = false;
 	TFunction<void ()> PendingEquippingFunction;
+	bool bPendingEquipping = false;
 	
 public:
 
-	bool Bind(UInventoryEquipmentComponent* EquipComponent, const FGameplayTag& EquipSlotTag);
+	bool Bind(UInventoryEquipmentComponent* EquipComponent, EInventoryEquipmentSlot SlotId);
 
 	//~ Begin of UUserWidget interface
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
@@ -63,7 +59,9 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
-	const FGameplayTag& GetEquipmentSlotTag() const {return EquipmentSlotTag;}
+	//const FGameplayTag& GetEquipmentSlotTag() const {return EquipmentSlotTag;}
+	EInventoryEquipmentSlot GetSlotId() const { return EquipmentSlotId; }
+	
 	const FGameplayTag& GetEquipmentTypeTag() const;
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
