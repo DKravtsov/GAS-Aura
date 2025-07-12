@@ -3,14 +3,13 @@
 
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 
-#include "Inventory.h"
 #include "EquipmentManagement/EquipActor/InventoryEquipActor.h"
 #include "GameFramework/Character.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
-#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 
+#include "DebugHelper.h"
 
 UInventoryEquipmentComponent::UInventoryEquipmentComponent()
 {

@@ -3,7 +3,6 @@
 
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 
-#include "Inventory.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
@@ -11,6 +10,8 @@
 #include "Items/Manifest/InventoryItemManifest.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
+
+#include "DebugHelper.h"
 
 void UInventoryStorageGrid::ConstructGrid()
 {
@@ -243,7 +244,7 @@ void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 	if (!IsValid(Item) || !MatchesCategory(Item))
 		return;
 	
-	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s] tag [%s]"), *Item->GetName(), *Item->GetItemType().ToString())
+	LOG_NETFUNCTIONCALL_OWNER_MSG(OwningActor.Get(), TEXT("Adding item: [%s] tag [%s]"), *Item->GetName(), *Item->GetItemType().ToString())
 
 	auto Result = HasRoomForItem(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);

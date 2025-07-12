@@ -3,7 +3,6 @@
 
 #include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 
-#include "Inventory.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -21,6 +20,8 @@
 #include "Widgets/Inventory/ItemPopUp/InventoryItemPopup.h"
 #include "Widgets/Inventory/SlottedItems/InventorySlottedItemWidget.h"
 #include "Widgets/Inventory/ViewModels//InventoryGridViewModel.h"
+
+#include "DebugHelper.h"
 
 void UInventoryGridWidget::NativeOnInitialized()
 {
@@ -284,7 +285,7 @@ void UInventoryGridWidget::AddItem(const FInventorySlotAvailabilityResult& Resul
 	if (!IsValid(Item) || !MatchesCategory(Item))
 		return;
 	
-	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s]; tag [%s]; count: %d"), *Item->GetName(), *Item->GetItemType().ToString(), Result.TotalRoomToFill);
+	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s]; count: %d"), GetInventoryItemId(Item), Result.TotalRoomToFill);
 
 	AddItemToIndexes(Result, Item);
 }
@@ -929,105 +930,3 @@ void UInventoryGridWidget::ValidateCompiledDefaults(class IWidgetCompilerLog& Co
 	}
 }
 #endif//WITH_EDITOR
-
-/////////////////////    Candidates for removal    /////////////////////
-
-bool UInventoryGridWidget::HasRoomAtIndex(const UInventoryGridSlotWidget* GridSlot, const FIntPoint& Dimensions,
-						const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
-						const int32 MaxStackSize, const FGameplayTag& ItemType) const
-{
-	bool bHasRoomAtIndex = true;
-
-	// TODO: remove this entire method
-	checkNoEntry();
-
-	UInventoryStatics::ForEach2DWithBreak(GridSlots, GridSlot->GetTileIndex(), Dimensions, Columns, [&](const UInventoryGridSlotWidget* CurGridSlot)
-	{
-		if (CheckSlotConstraints(GridSlot, CurGridSlot, CheckedIndexes, OutTentativelyClaimedIndexes, MaxStackSize, ItemType))
-		{
-			OutTentativelyClaimedIndexes.Add(CurGridSlot->GetTileIndex());
-			return true;
-		}
-		bHasRoomAtIndex = false;
-		return false;
-	});
-	
-	return bHasRoomAtIndex;
-}
-
-bool UInventoryGridWidget::CheckSlotConstraints(const UInventoryGridSlotWidget* GridSlot,
-										  const UInventoryGridSlotWidget* CurGridSlot,
-										  const TSet<int32>& CheckedIndexes,
-										  TSet<int32>& OutTentativelyClaimedIndexes,
-										  const int32 MaxStackSize,
-										  const FGameplayTag& ItemType) const
-{
-	// TODO: remove this entire method
-	checkNoEntry();
-
-	// Index claimed?
-	if (CheckedIndexes.Contains(CurGridSlot->GetTileIndex()))
-		return false;
-	
-	// Has valid item?
-	if(!CurGridSlot->GetInventoryItem().IsValid())
-	{
-		OutTentativelyClaimedIndexes.Add(CurGridSlot->GetTileIndex());
-		return true;
-	}
-
-	// Is this grid slot an upper left slot? (we care only about upper left slot because only there our stack stored)
-	if (CurGridSlot->GetStartIndex() != GridSlot->GetTileIndex())
-		return false; 
-	
-	// If so, is this a stackable item?
-	const UInventoryItem* CurItem = CurGridSlot->GetInventoryItem().Get();
-	if (!CurItem->IsStackable())
-		return false;
-	
-	// Is this item the same type as the item we're trying to add?
-	if (!CurItem->GetItemType().MatchesTagExact(ItemType))
-		return false;
-
-	// If stackable, is this slot at the max stack size already?
-	if (GridSlot->GetStackCount() >= MaxStackSize)
-		return false;
-	
-	return true;
-}
-
-int32 UInventoryGridWidget::CalculateStackableFillAmountForSlot(const int32 MaxStackSize,
-														  const int32 Amount, const UInventoryGridSlotWidget* GridSlot) const
-{
-	// TODO: remove this entire method
-	checkNoEntry();
-	const int32 RooInSlot = MaxStackSize - GetStackAmountInSlot(GridSlot);
-	return FMath::Min(Amount, RooInSlot);
-}
-
-int32 UInventoryGridWidget::GetStackAmountInSlot(const UInventoryGridSlotWidget* GridSlot) const
-{
-	// TODO: remove this entire method
-	checkNoEntry();
-	check(GridSlot);
-	const int32 SlotIndex = GridSlot->GetStartIndex() != INDEX_NONE ? GridSlot->GetStartIndex() : GridSlot->GetTileIndex();
-	check(GridViewModel);
-	return GridViewModel->GetGridSlot(SlotIndex).GetStackCount();
-}
-
-void UInventoryGridWidget::AddItem(UInventoryItem* Item)
-{
-	// TODO: remove this entire method
-	checkNoEntry();
-
-	if (!IsValid(Item) || !MatchesCategory(Item))
-		return;
-	
-	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s] tag [%s]"), *Item->GetName(), *Item->GetItemType().ToString())
-
-	//const auto Result = HasRoomForItem(Item->GetItemManifest());
-	FInventorySlotAvailabilityResult Result;
-	ensure(InventoryComponent->GetInventoryStorage()->HasRoomForItem(Result, Item->GetItemManifest()));
-	AddItemToIndexes(Result, Item);
-}
-

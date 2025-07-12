@@ -91,8 +91,6 @@ public:
 
 	float GetTileSize() const { return TileSize; }
 
-	UFUNCTION()
-	INVENTORY_API void AddItem(UInventoryItem* Item);
 	INVENTORY_API void AddItem(const FInventorySlotAvailabilityResult& Result);
 
 	UFUNCTION()
@@ -141,18 +139,7 @@ private:
 	
 	void OnUpdateGridSlots(const TArray<int32>& GridIndexArray);
 
-	bool HasRoomAtIndex(const UInventoryGridSlotWidget* GridSlot, const FIntPoint& Dimensions,
-						const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
-						const int32 MaxStackSize, const FGameplayTag& ItemType) const;
-
-	bool CheckSlotConstraints(const UInventoryGridSlotWidget* GridSlot, const UInventoryGridSlotWidget* CurGridSlot,
-							  const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
-							  const int32 MaxStackSize, const FGameplayTag& ItemType) const;
-
 	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& Dimensions) const;
-
-	int32 GetStackAmountInSlot(const UInventoryGridSlotWidget* GridSlot) const;
-	int32 CalculateStackableFillAmountForSlot(const int32 MaxStackSize, const int32 Amount, const UInventoryGridSlotWidget* GridSlot) const;
 
 	static bool IsLeftMouseButtonClick(const FPointerEvent& MouseEvent);
 	static bool IsRightMouseButtonClick(const FPointerEvent& MouseEvent);

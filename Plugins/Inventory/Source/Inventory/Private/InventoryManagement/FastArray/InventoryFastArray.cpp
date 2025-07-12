@@ -3,11 +3,12 @@
 
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 
-#include "Inventory.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Items/Fragments/InventoryItemFragment.h"
+
+#include "DebugHelper.h"
 
 
 FInventoryEntry::FInventoryEntry()
@@ -42,7 +43,7 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 
 void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_OWNER(OwnerComponent->GetOwner())
+	LOG_NETFUNCTIONCALL_STRUCT(OwnerComponent->GetOwner(), TEXT("InventoryList"))
 
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
 	if (IsValid(InventoryComponent))

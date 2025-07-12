@@ -3,12 +3,13 @@
 
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 
-#include "Inventory.h"
 #include "InventoryGlobalSettings.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "Items/InventoryItem.h"
 #include "Items/Manifest/InventoryItemManifest.h"
+
+#include "DebugHelper.h"
 
 void UInventorySpatialStorage::SetupStorage()
 {

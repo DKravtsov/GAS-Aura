@@ -3,7 +3,6 @@
 
 #include "Widgets/Inventory/Spatial/InventoryWidgetSpatial.h"
 
-#include "Inventory.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
@@ -17,6 +16,8 @@
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 #include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
+
+#include "DebugHelper.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
 {

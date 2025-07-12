@@ -3,7 +3,6 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 
-#include "Inventory.h"
 #include "Components/CapsuleComponent.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
@@ -14,6 +13,8 @@
 #include "Items/InventoryItem.h"
 #include "Items/InventoryItemData.h"
 #include "Items/Fragments/InventoryItemFragment.h"
+
+#include "DebugHelper.h"
 
 UInventoryComponent::UInventoryComponent()
 	: InventoryList(this)
@@ -430,8 +431,8 @@ bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip,
 
 void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("[Slot: %s] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
+		*UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -447,6 +448,7 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 {
 	check(GetOwner()->HasAuthority());
 	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
 	
 	FVector SpawnLocation;
 	FRotator SpawnRotation;
@@ -464,6 +466,8 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 
 void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 StackCount)
 {
+	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
 	if (NewStackCount <= 0)
@@ -502,6 +506,9 @@ void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(
 
 void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
 {
+	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
 	if (NewStackCount <= 0)
@@ -526,12 +533,13 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, InventoryList);
-	//DOREPLIFETIME(UInventoryComponent, InventoryStorage);
+	DOREPLIFETIME(UInventoryComponent, InventoryStorage);
 }
 
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	check(IsValid(ItemToEquip));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], slot [%s]"), *ItemToEquip->GetItemType().ToString(), *UEnum::GetValueAsString(SlotId))
 
 	if (SlotId == EInventoryEquipmentSlot::Invalid)
 		return false;
@@ -699,11 +707,11 @@ bool UInventoryComponent::Server_AddStartupItems_Validate()
 
 void UInventoryComponent::ConstructInventory()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
-	
 	if (!OwningPlayerController->IsLocalController())
 		return;
 
+	LOG_NETFUNCTIONCALL_COMPONENT
+	
 	checkf(!InventoryMenuClass.IsNull(), TEXT("Forgot to set InventoryMenuClass in [%s|%s]"),
 		*GetNameSafe(OwningPlayerController->GetClass()),
 		*GetNameSafe(GetClass())

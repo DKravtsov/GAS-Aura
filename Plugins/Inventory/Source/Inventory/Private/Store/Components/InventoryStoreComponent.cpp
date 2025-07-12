@@ -3,11 +3,11 @@
 
 #include "Store/Components/InventoryStoreComponent.h"
 
-#include "Inventory.h"
 #include "Components/SlateWrapperTypes.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
+
+#include "DebugHelper.h"
 
 
 // Sets default values for this component's properties
