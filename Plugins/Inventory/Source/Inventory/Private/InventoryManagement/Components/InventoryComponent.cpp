@@ -5,7 +5,6 @@
 
 #include "Inventory.h"
 #include "Components/CapsuleComponent.h"
-#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
@@ -70,7 +69,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	}
 }
 
-void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+/*void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
 	
@@ -95,14 +94,14 @@ void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemMa
 	{
 		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, EquipmentTypeTag);
+		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipmentTypeTag);
+		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipToSlot);
 	}
-}
+}*/
 
 FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const
 {
@@ -113,7 +112,7 @@ FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(
 	return Result;
 }
 
-void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
 	
@@ -140,14 +139,56 @@ void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest&
 	{
 		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, EquipmentTypeTag);
+		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipmentTypeTag);
+		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipToSlot);
 	}
 
+}
+
+const FInventoryEquipmentSlot* UInventoryComponent::FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const
+{
+	if (IsValid(Item))
+	{
+		for (const auto& EquipSlot : EquipmentSlots)
+		{
+			if (EquipSlot.GetInventoryItem() == Item)
+				return &EquipSlot;
+		}
+	}
+	return nullptr;
+}
+
+FInventoryEquipmentSlot* UInventoryComponent::FindEquipmentSlotByEquippedItemMutable(const UInventoryItem* Item)
+{
+	return const_cast<FInventoryEquipmentSlot*>(FindEquipmentSlotByEquippedItem(Item));
+}
+
+FInventoryEquipmentSlot* UInventoryComponent::FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty)
+{
+	return EquipmentSlots.FindByPredicate([ItemEquipmentTypeTag, bOnlyEmpty](const FInventoryEquipmentSlot& EquipmentSlot)
+	{
+		return (!bOnlyEmpty || EquipmentSlot.IsAvailable()) && ItemEquipmentTypeTag.MatchesTag(EquipmentSlot.GetEquipmentTypeTag());
+	});
+}
+
+FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId)
+{
+	return EquipmentSlots.FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
+	{
+		return EquipmentSlot.GetSlotId() == SlotId;
+	});
+}
+
+const FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const
+{
+	return EquipmentSlots.FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
+	{
+		return EquipmentSlot.GetSlotId() == SlotId;
+	});
 }
 
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
@@ -181,7 +222,7 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 	return true;
 }
 
-void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
 	
@@ -193,13 +234,16 @@ void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInvento
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
-	if (EquipmentTypeTag.IsValid())
+	if (EquipToSlot != EInventoryEquipmentSlot::Invalid)
 	{
-		StartupEquipment.Emplace(NewItem, EquipmentTypeTag);
+		if (GetEquipmentSlot(EquipToSlot))
+		{
+			StartupEquipment.Emplace(NewItem, EquipToSlot);
+		}
 	}
 }
 
-bool UInventoryComponent::Server_AddNewStartupItem_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+bool UInventoryComponent::Server_AddNewStartupItem_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
 	return true;
 }
@@ -233,7 +277,7 @@ bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponen
 	return true;
 }
 
-void UInventoryComponent::Server_AddStacksToItemAtStart_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::Server_AddStacksToItemAtStart_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
 	
@@ -242,14 +286,9 @@ void UInventoryComponent::Server_AddStacksToItemAtStart_Implementation(const FIn
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
-
-		if (EquipmentTypeTag.IsValid())
-		{
-			StartupEquipment.Emplace(Item, EquipmentTypeTag);
-		}
 	}
 }
-bool UInventoryComponent::Server_AddStacksToItemAtStart_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+bool UInventoryComponent::Server_AddStacksToItemAtStart_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	return true;
 }
@@ -303,15 +342,24 @@ void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemTo
 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
 		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
 
-	// validate the ItemToEquip can be equipped (don't trust anyone)
+	// Todo: validate the ItemToEquip can be equipped (don't trust anyone)
 	
 	// Find the correct slot to equip the item
-	UInventoryEquipmentComponent* EquipmentComponent = UInventoryStatics::GetEquipmentComponent(OwningPlayerController.Get());
-	FInventoryEquipmentSlot* EquippedSlot = EquipmentComponent->FindEquipmentSlotMutable(SlotId);
+	FInventoryEquipmentSlot* EquippedSlot = GetEquipmentSlotMutable(SlotId);
 	if (!ensure(EquippedSlot))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: The Equipment slot not found: %s"), *UEnum::GetValueAsString(SlotId));
 		return;
+	}
+	if (ItemToEquip)
+	{
+		const FGameplayTag& EquipmentType = UInventoryStatics::GetItemEquipmentTag(ItemToEquip);
+		if (!EquipmentType.MatchesTag(EquippedSlot->GetEquipmentTypeTag()))
+		{
+			UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: The Equipment slot [%s] not fit for Item's type: %s"),
+				*UEnum::GetValueAsString(SlotId), *EquipmentType.ToString());
+			return;
+		}
 	}
 
 	// If the selected slot already has an equipped item, validate if it can be unequipped (and if it's ItemToUnequip?)
@@ -481,21 +529,21 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	//DOREPLIFETIME(UInventoryComponent, InventoryStorage);
 }
 
-bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag)
+bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
-	return false;
-/*	if (!EquipmentTypeTag.IsValid())
+
+	if (SlotId == EInventoryEquipmentSlot::Invalid)
 		return false;
 	
-	const auto EquipComp = UInventoryStatics::GetEquipmentComponent(OwningPlayerController.Get());
-	if (EquipComp->IsItemEquipped(ItemToEquip))
-		return false;
+	if (FindEquipmentSlotByEquippedItem(ItemToEquip))
+		return false;// is already equipped
 
+	const FGameplayTag EquipmentTypeTag = UInventoryStatics::GetItemEquipmentTag(ItemToEquip);
 	if (!UInventoryStatics::CanEquipItem(ItemToEquip, EquipmentTypeTag))
 		return false;
 
-	FInventoryEquipmentSlot* EquipSlot = EquipComp->FindEquipmentSlotForItem(ItemToEquip);
+	const FInventoryEquipmentSlot* EquipSlot = GetEquipmentSlot(SlotId);
 	if (!EquipSlot)
 		return false;
 
@@ -507,9 +555,9 @@ bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGamep
 		ItemToUnequip = EquipSlot->GetInventoryItem().Get();
 	}
 
-	Server_EquipItem(ItemToEquip, ItemToUnequip, EquipmentTypeTag);
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 	
-	return true;*/
+	return true;
 }
 
 void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
@@ -525,7 +573,7 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 
 	for (const auto& Item : StartupInventoryItems)
 	{
-		if (!Item.ShouldEquipToSlot.IsValid())
+		if (!Item.bShouldEquip)
 			continue;
 		
 		// in theory, this should be loaded at the moment, so, it should be no additional time spent here
@@ -536,7 +584,10 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 
 			if (auto* InventoryItem = InventoryList.FindFirstItemByType(ItemData->GetItemManifest().GetItemType()))
 			{
-				StartupEquipment.Emplace(InventoryItem, Item.ShouldEquipToSlot);
+				const auto* EquipSlot = FindEquipmentSlotByEquippedItem(InventoryItem);
+				if (EquipSlot == nullptr)
+					continue;
+				StartupEquipment.Emplace(InventoryItem, EquipSlot->GetSlotId());
 			}
 		}
 	}
@@ -570,6 +621,42 @@ void UInventoryComponent::BeginPlay()
 	}
 }
 
+EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(const FInventoryItemProxy& Item, const FInventoryItemManifest& ItemManifest)
+{
+	EInventoryEquipmentSlot EquipSlotId = EInventoryEquipmentSlot::Invalid;
+	while (Item.bShouldEquip)
+	{
+		if (!ItemManifest.GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment)
+			|| ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>())
+		{
+			break;
+		}
+				
+		if (const auto* EquipFragment = ItemManifest.GetFragmentOfType<FInventoryItemEquipmentFragment>())
+		{
+			if (Item.EquipmentSlot == EInventoryEquipmentSlot::Invalid)
+			{
+				// try to find a suitable one
+				if (const auto EquipSlot = FindSuitableEquippedGridSlot(EquipFragment->GetEquipmentType()))
+				{
+					EquipSlotId = EquipSlot->GetSlotId();
+					break;
+				}
+			}
+			else if (const auto EquipSlot = GetEquipmentSlot(Item.EquipmentSlot))
+			{
+				if (EquipFragment->GetEquipmentType().MatchesTag(EquipSlot->GetEquipmentTypeTag()) && EquipSlot->IsAvailable())
+				{
+					EquipSlotId = Item.EquipmentSlot;
+					break;
+				}
+			}
+		}
+		break;
+	}
+	return EquipSlotId;
+}
+
 void UInventoryComponent::Server_AddStartupItems_Implementation()
 {
 	LOG_NETFUNCTIONCALL_COMPONENT
@@ -588,7 +675,8 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 					? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
 					: StackableFragment->GetStackCount();
 			}
-			Server_TryAddStartupItem(ItemData->GetItemManifest(), StackCount, Item.ShouldEquipToSlot);
+			EInventoryEquipmentSlot EquipSlotId = GetValidEquipSlotId(Item, ItemData->GetItemManifest());
+			Server_TryAddStartupItem(ItemData->GetItemManifest(), StackCount, EquipSlotId);
 		}
 	}
 	bStartupItemsInitialized = true;

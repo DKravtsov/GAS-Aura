@@ -17,9 +17,6 @@ class UInventoryEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TArray<FInventoryEquipmentSlot> EquipmentSlots;
-
 	TWeakObjectPtr<UInventoryComponent> InventoryComponent;
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
@@ -38,13 +35,11 @@ public:
 
 	void InitializeOwner(APlayerController* PlayerController);
 
-	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const {return EquipmentSlots;}
+	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const;
 
 	const FInventoryEquipmentSlot* FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
 	FInventoryEquipmentSlot* FindEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
 	
-	FInventoryEquipmentSlot* FindEquipmentSlotForItem(const UInventoryItem* Item);
-
 	bool IsItemEquipped(const UInventoryItem* Item) const;
 	
 	const FInventoryEquipmentSlot* GetEquipmentSlotByItem(const UInventoryItem* Item) const;

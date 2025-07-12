@@ -114,6 +114,21 @@ bool UInventoryStatics::CanEquipItem(const UInventoryItem* Item, const FGameplay
 	return false;
 }
 
+bool UInventoryStatics::CanEquipItem(const FInventoryItemManifest& ItemManifest, const FGameplayTag& EquipmentTypeTag)
+{
+	if (!ItemManifest.GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment))
+		return false;
+	
+	if (ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>())
+		return false;
+	
+	if (const auto* EquipFragment = ItemManifest.GetFragmentOfType<FInventoryItemEquipmentFragment>())
+	{
+		return EquipFragment->GetEquipmentType().MatchesTag(EquipmentTypeTag);
+	}
+	return false;
+}
+
 bool UInventoryStatics::IsItemEquipable(const UInventoryItem* Item)
 {
 	return IsValid(Item) && !Item->IsStackable() && Item->IsEquipable() && Item->GetItemManifest().GetFragmentOfType<FInventoryItemEquipmentFragment>();

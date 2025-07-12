@@ -35,9 +35,15 @@ void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerCont
 	}
 }
 
+const TArray<FInventoryEquipmentSlot>& UInventoryEquipmentComponent::GetEquipmentSlots() const
+{
+	check(InventoryComponent.IsValid());
+	return InventoryComponent->GetEquipmentSlots();
+}
+
 const FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const
 {
-	return EquipmentSlots.FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
+	return GetEquipmentSlots().FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
 	{
 		return EquipmentSlot.GetSlotId() == SlotId;
 	});
@@ -48,26 +54,11 @@ FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotMutable(
 	return const_cast<FInventoryEquipmentSlot*>(FindEquipmentSlot(SlotId));
 }
 
-FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotForItem(const UInventoryItem* Item)
-{
-	if (IsValid(Item) && !Item->IsStackable() && Item->IsEquipable())
-	{
-		for (auto& EquippedGridSlot : EquipmentSlots)
-		{
-			if (UInventoryStatics::GetItemEquipmentTag(Item).MatchesTag(EquippedGridSlot.GetEquipmentTypeTag()))
-			{
-				return &EquippedGridSlot;
-			}
-		}
-	}
-	return nullptr;
-}
-
 bool UInventoryEquipmentComponent::IsItemEquipped(const UInventoryItem* Item) const
 {
 	check(IsValid(Item));
 
-	for (auto& EquippedGridSlot : EquipmentSlots)
+	for (auto& EquippedGridSlot : GetEquipmentSlots())
 	{
 		if (EquippedGridSlot.GetInventoryItem() == Item)
 			return true;
@@ -79,7 +70,7 @@ const FInventoryEquipmentSlot* UInventoryEquipmentComponent::GetEquipmentSlotByI
 {
 	check(IsValid(Item));
 
-	for (auto& EquippedGridSlot : EquipmentSlots)
+	for (auto& EquippedGridSlot : GetEquipmentSlots())
 	{
 		if (EquippedGridSlot.GetInventoryItem() == Item)
 			return &EquippedGridSlot;
@@ -182,20 +173,20 @@ void UInventoryEquipmentComponent::InitStartupEquipment()
 
 	if (!bIsProxy)
 	{
-		for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+		for (const auto& [ItemToEquip, SlotId] : InventoryComponent->GetEquipStartupItems())
 		{
-			if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+			if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), SlotId))
 			{
-				OnItemEquipped(ItemToEquip.Get());
+				//OnItemEquipped(ItemToEquip.Get());
 			}
 		}
 		InventoryComponent->ReceivedStartupItemsEquipped();
 	}
 	else
 	{
-		for (const auto& [ItemToEquip, EquipmentSlotTag] : InventoryComponent->GetEquipStartupItems())
+		for (const auto& [ItemToEquip, SlotId] : InventoryComponent->GetEquipStartupItems())
 		{
-			if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag))
+			//if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), SlotId))
 			{
 				OnItemEquipped(ItemToEquip.Get());
 			}

@@ -8,20 +8,20 @@
 #include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
-#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 
-bool UInventoryEquippedGridSlot::Bind(UInventoryEquipmentComponent* EquipComponent, EInventoryEquipmentSlot SlotId)
+bool UInventoryEquippedGridSlot::Bind(UInventoryComponent* InInventoryComponent, EInventoryEquipmentSlot SlotId)
 {
-	if (IsValid(EquipComponent) && SlotId != EInventoryEquipmentSlot::Invalid)
+	if (IsValid(InInventoryComponent) && SlotId != EInventoryEquipmentSlot::Invalid)
 	{
-		if (auto* FoundSlot = EquipComponent->FindEquipmentSlot(SlotId))
+		if (auto* FoundSlot = InInventoryComponent->GetEquipmentSlot(SlotId))
 		{
-			EquipmentComponent = EquipComponent;
+			InventoryComponent = InInventoryComponent;
 			EquipmentSlotId = SlotId;
 			return true;
 		}
@@ -169,7 +169,7 @@ void UInventoryEquippedGridSlot::UpdateIfPending()
 
 const FInventoryEquipmentSlot* UInventoryEquippedGridSlot::GetBoundEquipmentSlot() const
 {
-	return EquipmentComponent.IsValid() ? EquipmentComponent->FindEquipmentSlot(EquipmentSlotId) : nullptr;
+	return InventoryComponent.IsValid() ? InventoryComponent->GetEquipmentSlot(EquipmentSlotId) : nullptr;
 }
 
 void UInventoryEquippedGridSlot::ClearEquippedSlot()

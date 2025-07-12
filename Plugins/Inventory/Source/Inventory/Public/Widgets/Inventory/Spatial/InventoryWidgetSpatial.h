@@ -116,6 +116,9 @@ private:
 	UFUNCTION()
 	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
 
+	UFUNCTION()
+	void UpdateEquippedItemStatus(UInventoryItem* Item);
+
 	void ShowEquippedItemDescription(UInventoryItem* Item);
 
 	void DisableButton(UButton* Button);

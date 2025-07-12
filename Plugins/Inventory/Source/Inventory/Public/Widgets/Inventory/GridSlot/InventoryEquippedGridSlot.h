@@ -8,8 +8,9 @@
 #include "InventoryGridTypes.h"
 #include "InventoryEquippedGridSlot.generated.h"
 
-class UInventoryEquipmentComponent;
+class UInventoryComponent;
 struct FInventoryEquipmentSlot;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, UInventoryEquippedGridSlot*, GridSlot,
                                              const FGameplayTag&, EquipmentTypeTag);
 
@@ -44,14 +45,14 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryEquippedSlottedItemWidget> EquippedSlottedItem;
 
-	TWeakObjectPtr<UInventoryEquipmentComponent> EquipmentComponent;
+	TWeakObjectPtr<UInventoryComponent> InventoryComponent;
 
 	TFunction<void ()> PendingEquippingFunction;
 	bool bPendingEquipping = false;
 	
 public:
 
-	bool Bind(UInventoryEquipmentComponent* EquipComponent, EInventoryEquipmentSlot SlotId);
+	bool Bind(UInventoryComponent* InInventoryComponent, EInventoryEquipmentSlot SlotId);
 
 	//~ Begin of UUserWidget interface
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

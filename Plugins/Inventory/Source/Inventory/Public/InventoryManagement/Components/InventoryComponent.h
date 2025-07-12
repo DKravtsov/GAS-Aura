@@ -33,11 +33,14 @@ struct FInventoryItemProxy
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bOverrideCount"))
 	FIntPoint MinMaxAmount {1,1};
 
-	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(Categories="GameItems.Equipment"))
-	FGameplayTag ShouldEquipToSlot;
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bShouldEquip"), DisplayName="Equip to slot")
+	EInventoryEquipmentSlot EquipmentSlot = EInventoryEquipmentSlot::Invalid;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(InlineEditConditionToggle))
 	uint8 bOverrideCount:1 = false;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(InlineEditConditionToggle))
+	uint8 bShouldEquip:1 = false;
 
 };
 
@@ -85,10 +88,13 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DropSpawnDistanceMax = 50.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TArray<FInventoryEquipmentSlot> EquipmentSlots;
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TArray<FInventoryItemProxy> StartupInventoryItems;
 
-	TArray<TPair<TWeakObjectPtr<UInventoryItem>, FGameplayTag>> StartupEquipment;
+	TArray<TPair<TWeakObjectPtr<UInventoryItem>, EInventoryEquipmentSlot>> StartupEquipment;
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
@@ -108,6 +114,11 @@ public:
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
 	UInventoryStorage* GetInventoryStorage() const { return InventoryStorage; }
 
+	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const {return EquipmentSlots;}
+
+	const FInventoryEquipmentSlot* GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
+	const FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const;
+
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
 
@@ -121,10 +132,10 @@ public:
 	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
 
-	//INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip);
+	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
-	TArray<TPair<TWeakObjectPtr<UInventoryItem>, FGameplayTag>> GetEquipStartupItems() const {return StartupEquipment;}
-	bool TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag);
+	TArray<TPair<TWeakObjectPtr<UInventoryItem>, EInventoryEquipmentSlot>> GetEquipStartupItems() const {return StartupEquipment;}
+	bool TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId);
 
 	void ReceivedStartupItems();
 	void ReceivedStartupItemsEquipped() { bStartupItemsEquipped = true; }
@@ -134,8 +145,6 @@ public:
 
 	UFUNCTION()
 	virtual void OnRep_InventoryStorage();
-	
-	void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
@@ -173,21 +182,26 @@ private:
 
 	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
 
-	void /*Client*/TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+//	void /*Client*/TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
 	FInventorySlotAvailabilityResult ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const;
-	void Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+	void Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+	void Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag);
+	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedStartupInventory();
 
-	FInventoryEquipmentSlot* FindEquippedGridSlotForItem(const UInventoryItem* Item) const;
+	FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItemMutable(const UInventoryItem* Item);
+	FInventoryEquipmentSlot* FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty = true);
+	FInventoryEquipmentSlot* GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
+
+	EInventoryEquipmentSlot GetValidEquipSlotId(const FInventoryItemProxy& Item, const FInventoryItemManifest& ItemManifest);
+
 };

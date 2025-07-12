@@ -32,13 +32,13 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	
 	ShowEquipmentGrid();
 
-	UInventoryEquipmentComponent* EquipmentComponent = UInventoryStatics::GetEquipmentComponent(GetOwningPlayer());
-
-	WidgetTree->ForEachWidget([this, EquipmentComponent](UWidget* Widget)
+	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(InventoryComponent);
+	WidgetTree->ForEachWidget([this, InventoryComponent](UWidget* Widget)
 	{
 		if (auto EquipmentSlotWidget = Cast<UInventoryEquippedGridSlot>(Widget))
 		{
-			if (EquipmentSlotWidget->Bind(EquipmentComponent, EquipmentSlotWidget->GetSlotId()))
+			if (EquipmentSlotWidget->Bind(InventoryComponent, EquipmentSlotWidget->GetSlotId()))
 			{
 				EquippedGridSlots.Emplace(EquipmentSlotWidget);
 			    EquipmentSlotWidget->EquippedGridSlotClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedGridSlotClicked);
@@ -50,6 +50,9 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 			}
 		}
 	});
+
+	InventoryComponent->OnItemEquipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
 }
 
 FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -223,6 +226,54 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 //
 // 	return true;
 // }
+
+void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
+{
+	if (Item == nullptr)
+		return;
+
+	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Item [%s]"), *Item->GetItemType().ToString());
+	
+	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(InventoryComponent != nullptr);
+
+	const FInventoryEquipmentSlot* EquipmentSlot = InventoryComponent->FindEquipmentSlotByEquippedItem(Item);
+
+	// Because EquippedGridSlot is bound to Equipment slot, if there is no EquipmentSlot containing the item, there also will be no EquippedGridSlot containing it.
+	// That's why we need to search also in EquippedSlottedItem related to this slot widget.
+	static auto FindSlotWidget = [](const UInventoryWidgetSpatial* W, const UInventoryItem* TestItem)-> UInventoryEquippedGridSlot*
+	{
+		const auto FoundSlotPtr = W->EquippedGridSlots.FindByPredicate([TestItem](const UInventoryEquippedGridSlot* EquippedGridSlot)
+        	{
+        		return EquippedGridSlot->GetInventoryItem() == TestItem ||
+        			(EquippedGridSlot->GetEquippedSlottedItem() && EquippedGridSlot->GetEquippedSlottedItem()->GetInventoryItem() == TestItem);
+        	});
+		return FoundSlotPtr ? FoundSlotPtr->Get() : nullptr;
+	};
+	
+	UInventoryEquippedGridSlot* EquippedItemSlotWidget = FindSlotWidget(this, Item);
+	const bool bItemEquipped = EquipmentSlot != nullptr;
+	const bool bItemShownAsEquipped = EquippedItemSlotWidget != nullptr && EquippedItemSlotWidget->GetEquippedSlottedItem() != nullptr;
+	if (bItemEquipped == bItemShownAsEquipped)
+		return;
+
+	if (bItemEquipped)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("EquipDeSync: Item [%s] is equipped in slot [%s] (id %d) but wasn't updated in UI"),
+		// 	*Item->GetItemType().ToString(), *EquipmentSlot->GetEquipmentTypeTag().ToString(), static_cast<int>(EquipmentSlot->GetSlotId()));
+
+		const float TileSize = GetTileSize();
+		if (UInventoryEquippedSlottedItemWidget* EquippedSlottedItem = EquippedItemSlotWidget->OnItemEquipped(Item, EquipmentSlot->GetEquipmentTypeTag(), TileSize))
+		{
+			EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EquipDeSync: Item [%s] was unequipped but is still displayed as equipped in slot [%s] (id %d)"),
+			*Item->GetItemType().ToString(), *EquippedItemSlotWidget->GetEquipmentTypeTag().ToString(), static_cast<int>(EquippedItemSlotWidget->GetSlotId()));
+	}
+}
 
 void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag)
 {

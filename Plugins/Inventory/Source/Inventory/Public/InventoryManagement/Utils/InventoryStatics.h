@@ -8,6 +8,7 @@
 #include "Widgets/Utils/InventoryWidgetUtils.h"
 #include "InventoryStatics.generated.h"
 
+struct FInventoryItemManifest;
 class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
 class UInventoryComponent;
@@ -130,6 +131,7 @@ public:
 	static UInventoryWidgetBase* GetInventoryWidget(const APlayerController* PlayerController);
 
 	static bool CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag);
+	static bool CanEquipItem(const FInventoryItemManifest& ItemManifest, const FGameplayTag& EquipmentTypeTag);
 
 	static bool IsItemEquipable(const UInventoryItem* Item);
 
