@@ -29,7 +29,7 @@ AActor* UInventorySpatialStorage::GetOwningActor() const
 void UInventorySpatialStorage::SetupStorage()
 {
 	AActor* OwningActor = GetOwningActor();
-	LOG_NETFUNCTIONCALL_OWNER(OwningActor)
+	LOG_NETFUNCTIONCALL
 
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
 	check(InventoryComponent);
@@ -121,7 +121,7 @@ FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInterna
 void UInventorySpatialStorage::DebugPrintStorage() const
 {
 	const AActor* OwningActor = GetOwningActor();
-	LOG_NETFUNCTIONCALL_OWNER(OwningActor)
+	LOG_NETFUNCTIONCALL
 	
 	FStringBuilderBase Output;
 	TMap<const UInventoryItem*, FStringBuilderBase::ElementType> ItemIndexMap;

@@ -25,7 +25,7 @@ void UInventoryEquipmentComponent::SetOwningSkeletalMesh(USkeletalMeshComponent*
 
 void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerController)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT(" OwningPC: %s"), *PlayerController->GetName())
+	LOG_NETFUNCTIONCALL_MSG(TEXT(" OwningPC: %s"), *PlayerController->GetName())
 	
 	if (IsValid(PlayerController))
 	{
@@ -91,7 +91,7 @@ FInventoryEquipmentSlot* UInventoryEquipmentComponent::GetEquipmentSlotByItemMut
 
 void UInventoryEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	for (auto& [_, EquippedActor] : EquippedActors)
 	{
@@ -103,7 +103,7 @@ void UInventoryEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayRea
 
 void UInventoryEquipmentComponent::BeginPlay()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	Super::BeginPlay();
 	InitPlayerController();
@@ -111,7 +111,7 @@ void UInventoryEquipmentComponent::BeginPlay()
 
 void UInventoryEquipmentComponent::InitPlayerController()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	if (OwningPlayerController = Cast<APlayerController>(GetOwner()); OwningPlayerController.IsValid())
 	{
@@ -128,7 +128,7 @@ void UInventoryEquipmentComponent::InitPlayerController()
 
 void UInventoryEquipmentComponent::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	if (const ACharacter* OwnerCharacter = OwningPlayerController->GetCharacter())
 	{
@@ -139,7 +139,7 @@ void UInventoryEquipmentComponent::OnPossessedPawnChanged(APawn* OldPawn, APawn*
 
 void UInventoryEquipmentComponent::InitInventoryComponent()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	InventoryComponent = OwningPlayerController->FindComponentByClass<UInventoryComponent>();
 	if (!InventoryComponent.IsValid())
@@ -168,7 +168,7 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 
 void UInventoryEquipmentComponent::InitStartupEquipment()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 
 	if (!bIsProxy)
 	{
@@ -211,7 +211,7 @@ AInventoryEquipActor* UInventoryEquipmentComponent::SpawnEquippedActor(
 	const FInventoryItemManifest& ItemManifest,
 	USkeletalMeshComponent* ParentMesh)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	check(OwningPlayerController.IsValid());
 	const bool bIsClient = GetWorld()->GetNetMode() == NM_Client;
@@ -251,7 +251,7 @@ void UInventoryEquipmentComponent::RemoveEquippedActor(UInventoryItem* Item)
 
 void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item: [%s]"), *GetInventoryItemId(EquippedItem))
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s]"), *GetInventoryItemId(EquippedItem))
 	
 	if (!IsValid(EquippedItem))
 		return;
@@ -279,7 +279,7 @@ void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 
 void UInventoryEquipmentComponent::OnItemUnequipped(UInventoryItem* UnequippedItem)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	if (!IsValid(UnequippedItem))
 		return;

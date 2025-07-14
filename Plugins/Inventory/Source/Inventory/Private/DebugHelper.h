@@ -3,43 +3,18 @@
 #pragma once
 
 #include "Inventory.h"
+#include "Blueprint/UserWidget.h"
 
 #define FUNC_NAME    *FString(__FUNCTION__)
-#define _LOG_CONCAT(A, B) A B
 
-#define LOG_NETFUNCTIONCALL  \
-    UE_LOG(LogInventory, Log, TEXT("[%s] [%s] --> (%s) %s"), NETMODE_WORLD, *GetName(), GetNetRoleText(GetLocalRole()), FUNC_NAME)
 
-#define LOG_NETFUNCTIONCALL_MSG(format, ...) \
-    UE_LOG(LogInventory, Log, _LOG_CONCAT(TEXT("[%s] [%s] --> (%s) %s: "), format), NETMODE_WORLD, *GetName(), GetNetRoleText(GetLocalRole()), FUNC_NAME, ##__VA_ARGS__)
+#define LOG_NETFUNCTIONCALL  INTERNAL_NETFUNCTIONCALL_1(this)
+#define LOG_NETFUNCTIONCALL_MSG(format, ...) INTERNAL_NETFUNCTIONCALL_1V(this, format, ##__VA_ARGS__)
 
-#define LOG_NETFUNCTIONCALL_W  \
-    UE_LOG(LogInventory, Log, TEXT("[%s] [%s:w %s] --> %s"), NETMODE_WORLD, *GetOwningPlayer()->GetName(), *GetName(), FUNC_NAME)
+#define LOG_NETFUNCTIONCALL_STRUCT(OwningObject, StructName) INTERNAL_NETFUNCTIONCALL_2(OwningObject, TEXT(#StructName))
+#define LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningObject, StructName, format, ...) INTERNAL_NETFUNCTIONCALL_IMPL(OwningObject, TEXT(#StructName), format, ##__VA_ARGS__)
 
-#define LOG_NETFUNCTIONCALL_W_MSG(format, ...) \
-    UE_LOG(LogInventory, Log, _LOG_CONCAT(TEXT("[%s] [%s:w %s] --> %s: "), format), NETMODE_WORLD, *GetOwningPlayer()->GetName(), *GetName(), FUNC_NAME, ##__VA_ARGS__)
-
-#define LOG_NETFUNCTIONCALL_COMPONENT \
-    if (auto ComponentOwner = GetOwner()) \
-    { UE_LOG(LogInventory, Log, TEXT("[%s] [%s.%s] --> (%s) %s"), NETMODE_WORLD, *ComponentOwner->GetName(), *GetName(), GetNetRoleText(ComponentOwner->GetLocalRole()), FUNC_NAME); } 
-
-#define LOG_NETFUNCTIONCALL_COMPONENT_MSG(format, ...) \
-    if (auto ComponentOwner = GetOwner()) \
-    { UE_LOG(LogInventory, Log, _LOG_CONCAT(TEXT("[%s] [%s.%s] --> (%s) %s: "), format) , NETMODE_WORLD, *ComponentOwner->GetName(), *GetName(), GetNetRoleText(ComponentOwner->GetLocalRole()), FUNC_NAME, ##__VA_ARGS__); }
-
-#define LOG_NETFUNCTIONCALL_STRUCT(OwningActor, StructName) \
-    { UE_LOG(LogInventory, Log, TEXT("[%s] [%s.%s] --> (%s) %s"), NETMODE_WORLD_A(OwningActor), *OwningActor->GetName(), (StructName), GetNetRoleText(OwningActor->GetLocalRole()), FUNC_NAME); }
-
-#define LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningActor, StructName, format, ...) \
-    { UE_LOG(LogInventory, Log, _LOG_CONCAT(TEXT("[%s] [%s.*] --> (%s) %s: "), format), NETMODE_WORLD_A(OwningActor), *OwningActor->GetName(), (StreuctName), GetNetRoleText(OwningActor->GetLocalRole()), FUNC_NAME, ##__VA_ARGS__); }
-
-#define LOG_NETFUNCTIONCALL_OWNER(OwningActor) \
-    { UE_LOG(LogInventory, Log, TEXT("[%s] [%s.%s] --> (%s) %s"), NETMODE_WORLD_A(OwningActor), *OwningActor->GetName(), *GetName(), GetNetRoleText(OwningActor->GetLocalRole()), FUNC_NAME); }
-
-#define LOG_NETFUNCTIONCALL_OWNER_MSG(OwningActor, format, ...) \
-    { UE_LOG(LogInventory, Log, _LOG_CONCAT(TEXT("[%s] [%s.%s] --> (%s) %s: "), format), NETMODE_WORLD_A(OwningActor), *OwningActor->GetName(), *GetName(), GetNetRoleText(OwningActor->GetLocalRole()), FUNC_NAME, ##__VA_ARGS__); }
-
-static void DebugPrint(const FString& Message, const FColor& Color = FColor::MakeRandomColor(), int32 InKey = -1)
+inline void DebugPrint(const FString& Message, const FColor& Color = FColor::MakeRandomColor(), int32 InKey = -1)
 {
     if (GEngine)
     {
@@ -48,41 +23,57 @@ static void DebugPrint(const FString& Message, const FColor& Color = FColor::Mak
     }
 }
 
+FString GetInventoryItemId(const class UInventoryItem* Item);
 
-INVENTORY_API FString GetInventoryItemId(const class UInventoryItem* Item);
 
 
-#define NETMODE_WORLD NETMODE_WORLD_TEXT(GetWorld())
-#define NETMODE_WORLD_A(A) NETMODE_WORLD_TEXT(A->GetWorld())
 
-#define NETMODE_WORLD_TEXT(World) GetNetModeText(World)
+/*
+ *  Internal stuff
+ */
 
-constexpr const TCHAR* GetNetModeText(const UWorld* World)
+#define INTERNAL_NETFUNCTIONCALL_1(Obj) INTERNAL_NETFUNCTIONCALL_IMPL(Obj, nullptr, )  
+#define INTERNAL_NETFUNCTIONCALL_2(Obj, StructName) INTERNAL_NETFUNCTIONCALL_IMPL(Obj, StructName, )  
+#define INTERNAL_NETFUNCTIONCALL_1V(Obj, format, ...) INTERNAL_NETFUNCTIONCALL_IMPL(Obj, nullptr, format, ##__VA_ARGS__)
+#define INTERNAL_NETFUNCTIONCALL_IMPL(Obj, NameSuffix, format, ...) \
+    { const AActor* Outer_Actor = nullptr; const FString Path_Name = DebugHelper::GetCallerPathAndOwner(Obj, Outer_Actor, NameSuffix);\
+    UE_LOG(LogInventory, Log, INTERNAL_CONCAT(TEXT("[%s] [%s] [%s] [%s] "), format), \
+    DebugHelper::GetNetModeText(Outer_Actor->GetWorld()), DebugHelper::GetNetRoleText(DebugHelper::GetNetRole(Outer_Actor)), *Path_Name, FUNC_NAME, ##__VA_ARGS__); }
+#define INTERNAL_CONCAT(A, B) A B
+
+namespace DebugHelper
 {
-    if (World != nullptr)
+    FORCEINLINE ENetRole GetNetRole(const AActor* Actor) { return Actor ? Actor->GetLocalRole() : ROLE_None; }
+    FORCEINLINE ENetRole GetNetRole(const UUserWidget* Widget) { return Widget ? Widget->GetOwningPlayer()->GetLocalRole() : ROLE_None; }
+
+    FString GetCallerPathAndOwner(const UObject* Object, const AActor* &OwnerActor, const TCHAR* Extra = nullptr);
+    FString GetCallerPathAndOwner(const UUserWidget* Object, const AActor* &OwnerActor, const TCHAR* Extra = nullptr);
+    
+    constexpr const TCHAR* GetNetModeText(const UWorld* World)
     {
-        switch (World->GetNetMode())
+        if (World != nullptr)
         {
-        case NM_Standalone: return TEXT("Standalone");
-        case NM_DedicatedServer: return TEXT("DedicatedServer");
-        case NM_ListenServer: return TEXT("ListenServer");
-        case NM_Client: return TEXT("Client");
-        default:;
+            switch (World->GetNetMode())
+            {
+            case NM_Standalone: return TEXT("Standalone");
+            case NM_DedicatedServer: return TEXT("DedicatedServer");
+            case NM_ListenServer: return TEXT("ListenServer");
+            case NM_Client: return TEXT("Client");
+            default:;
+            }
+        }
+        return TEXT("");
+    }
+
+    constexpr const TCHAR* GetNetRoleText(const ENetRole Role)
+    {
+        switch (Role)
+        {
+        case ROLE_None: return TEXT("None");
+        case ROLE_SimulatedProxy: return TEXT("SimulatedProxy");
+        case ROLE_AutonomousProxy: return TEXT("AutonomousProxy");
+        case ROLE_Authority: return TEXT("Authority");
+        default: return TEXT("Undefined?");
         }
     }
-    return TEXT("");
 }
-
-constexpr const TCHAR* GetNetRoleText(const ENetRole Role)
-{
-    switch (Role)
-    {
-    case ROLE_None: return TEXT("None");
-    case ROLE_SimulatedProxy: return TEXT("SimulatedProxy");
-    case ROLE_AutonomousProxy: return TEXT("AutonomousProxy");
-    case ROLE_Authority: return TEXT("Authority");
-    default: return TEXT("Undefined?");
-    }
-}
-
-

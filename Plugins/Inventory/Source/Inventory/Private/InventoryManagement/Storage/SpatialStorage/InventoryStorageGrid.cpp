@@ -262,7 +262,7 @@ void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 	if (!IsValid(Item) || !MatchesCategory(Item))
 		return;
 	
-	LOG_NETFUNCTIONCALL_OWNER_MSG(OwningActor.Get(), TEXT("Adding item: [%s]"), *GetInventoryItemId(Item))
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Adding item: [%s]"), *GetInventoryItemId(Item))
 
 	auto Result = HasRoomForItem(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);
@@ -351,12 +351,12 @@ void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, con
 
 void UInventoryStorageGrid::OnRep_GridSlots()
 {
-	LOG_NETFUNCTIONCALL_OWNER(OwningActor.Get())
+	LOG_NETFUNCTIONCALL
 }
 
 void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ArrayView)
 {
-	LOG_NETFUNCTIONCALL_OWNER(OwningActor.Get())
+	LOG_NETFUNCTIONCALL
 
 	//OnGridSlotsUpdated.Broadcast(ArrayView);
 }

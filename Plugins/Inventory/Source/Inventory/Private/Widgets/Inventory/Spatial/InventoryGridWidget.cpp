@@ -285,7 +285,7 @@ void UInventoryGridWidget::AddItem(const FInventorySlotAvailabilityResult& Resul
 	if (!IsValid(Item) || !MatchesCategory(Item))
 		return;
 	
-	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Adding item: [%s]; count: %d"), *GetInventoryItemId(Item), Result.TotalRoomToFill);
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Adding item: [%s]; count: %d"), *GetInventoryItemId(Item), Result.TotalRoomToFill);
 
 	AddItemToIndexes(Result, Item);
 }

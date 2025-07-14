@@ -26,7 +26,7 @@ UInventoryComponent::UInventoryComponent()
 
 void UInventoryComponent::OnRep_InventoryStorage()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 }
 
 void UInventoryComponent::ToggleInventoryMenu()
@@ -43,7 +43,7 @@ void UInventoryComponent::ToggleInventoryMenu()
 
 void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	check(ItemComponent != nullptr);
 	//FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
@@ -72,7 +72,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 
 /*void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should run only for local Player Controller"));
 	
@@ -106,7 +106,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 
 FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	FInventorySlotAvailabilityResult Result;
 	InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCountOverride);
@@ -115,7 +115,7 @@ FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(
 
 void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	checkf(OwningPlayerController->HasAuthority(), TEXT("This method should run only on server"));
 
@@ -194,7 +194,7 @@ const FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlot(EInventoryE
 
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	const auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
@@ -225,7 +225,7 @@ bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* It
 
 void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
 	check(NewItem != nullptr);
@@ -251,7 +251,7 @@ bool UInventoryComponent::Server_AddNewStartupItem_Validate(const FInventoryItem
 
 void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	check(IsValid(ItemComponent));
 	const FGameplayTag& ItemType = ItemComponent->GetItemManifest().GetItemType();
@@ -280,7 +280,7 @@ bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponen
 
 void UInventoryComponent::Server_AddStacksToItemAtStart_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	check(GetOwner()->HasAuthority());
 	const FGameplayTag& ItemType = ItemManifest.GetItemType();
@@ -316,13 +316,13 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
 
 // void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
 // {
-// 	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+// 	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 // 	Server_EquipItem(ItemToEquip, ItemToUnequip);
 // }
 
 void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
 		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
 	
 	if (!GetOwner()->HasAuthority())
@@ -340,7 +340,7 @@ void UInventoryComponent::Client_RejectEquipItem_Implementation(UInventoryItem* 
 
 void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
 		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
 
 	// Todo: validate the ItemToEquip can be equipped (don't trust anyone)
@@ -431,7 +431,7 @@ bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip,
 
 void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("[Slot: %d] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
+	LOG_NETFUNCTIONCALL_MSG(TEXT("[Slot: %d] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
 	                                  static_cast<int32>(SlotId), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 
 	if (!GetOwner()->HasAuthority())
@@ -448,7 +448,7 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 {
 	check(GetOwner()->HasAuthority());
 	check(IsValid(Item));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
 	
 	FVector SpawnLocation;
 	FRotator SpawnRotation;
@@ -467,7 +467,7 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 StackCount)
 {
 	check(IsValid(Item));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
 	if (NewStackCount <= 0)
@@ -507,7 +507,7 @@ void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(
 void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
 {
 	check(IsValid(Item));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
 
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
@@ -539,7 +539,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
 {
 	check(IsValid(ItemToEquip));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], slot %d"), *GetInventoryItemId(ItemToEquip), static_cast<int32>(SlotId))
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], slot %d"), *GetInventoryItemId(ItemToEquip), static_cast<int32>(SlotId))
 
 	if (SlotId == EInventoryEquipmentSlot::Invalid)
 		return false;
@@ -573,7 +573,7 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 	if (!bStartupItemsInitialized)
 		return;
 	
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 
 	// recombine on the client the array with items that need to be equipped
 	if (OwningPlayerController->HasAuthority())
@@ -604,7 +604,7 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 
 void UInventoryComponent::BeginPlay()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 
 	if (GetOwner()->HasAuthority())
 	{
@@ -667,7 +667,7 @@ EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(const FInventor
 
 void UInventoryComponent::Server_AddStartupItems_Implementation()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	StartupEquipment.Reserve(StartupInventoryItems.Num());
 		
@@ -710,7 +710,7 @@ void UInventoryComponent::ConstructInventory()
 	if (!OwningPlayerController->IsLocalController())
 		return;
 
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	checkf(!InventoryMenuClass.IsNull(), TEXT("Forgot to set InventoryMenuClass in [%s|%s]"),
 		*GetNameSafe(OwningPlayerController->GetClass()),
@@ -784,7 +784,7 @@ void UInventoryComponent::ReceivedStartupItems()
 {
 	if (!bStartupItemsInitialized)
 	{
-		LOG_NETFUNCTIONCALL_COMPONENT
+		LOG_NETFUNCTIONCALL
 		
 		bStartupItemsInitialized = true;
 		Client_ReceivedStartupInventory();

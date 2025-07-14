@@ -11,7 +11,7 @@
 
 void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryComponent, const FGameplayTag& ItemCategory)
 {
-	LOG_NETFUNCTIONCALL_OWNER_MSG(InInventoryComponent->GetOwner(), TEXT("Grid [%s]"), *ItemCategory.ToString())
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Grid [%s]"), *ItemCategory.ToString())
 	
 	if (const auto Storage = Cast<UInventorySpatialStorage>(InInventoryComponent->GetInventoryStorage()))
 	{

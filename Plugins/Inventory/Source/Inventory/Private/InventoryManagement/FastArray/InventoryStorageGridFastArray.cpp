@@ -86,7 +86,7 @@ void FInventoryStorageGridFastArray::ClearSlot(int32 SlotIndex)
 
 void FInventoryStorageGridFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_STRUCT(OwningGrid->GetOwningActor(), *FString::Printf(TEXT("%s.GridSlots"), *GetNameSafe(OwningGrid)))
+	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), AddedIndices.Num())
 
 	if (IsValid(OwningGrid))
 	{
@@ -96,7 +96,7 @@ void FInventoryStorageGridFastArray::PostReplicatedAdd(const TArrayView<int32>& 
 
 void FInventoryStorageGridFastArray::PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_STRUCT(OwningGrid->GetOwningActor(), *FString::Printf(TEXT("%s.GridSlots"), *GetNameSafe(OwningGrid)))
+	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), ChangedIndices.Num())
 
 	if (IsValid(OwningGrid))
 	{

@@ -32,7 +32,7 @@ void UInventoryStoreComponent::ToggleInventoryMenu()
 
 void UInventoryStoreComponent::BeginPlay()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	Super::BeginPlay();
 
@@ -40,7 +40,7 @@ void UInventoryStoreComponent::BeginPlay()
 
 void UInventoryStoreComponent::ConstructInventory()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	checkf(!InventoryMenuClass.IsNull(), TEXT("Forgot to set InventoryMenuClass in [%s]"), *GetNameSafe(GetClass()));
 	

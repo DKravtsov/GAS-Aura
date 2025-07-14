@@ -233,7 +233,7 @@ void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
 	if (Item == nullptr)
 		return;
 
-	LOG_NETFUNCTIONCALL_W_MSG(TEXT("Item [%s]"), *Item->GetItemType().ToString());
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s]"), *Item->GetItemType().ToString());
 	
 	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 	check(InventoryComponent != nullptr);
