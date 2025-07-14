@@ -43,6 +43,19 @@ struct FInventoryItemProxy
 
 };
 
+USTRUCT(BlueprintType)
+struct FInventoryStartupEquipmentData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	TWeakObjectPtr<UInventoryItem> InventoryItem;
+
+	UPROPERTY()
+	EInventoryEquipmentSlot Slot = EInventoryEquipmentSlot::Invalid;
+};
+
+
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, Within=PlayerController, meta=(BlueprintSpawnableComponent))
 class UInventoryComponent : public UActorComponent
 {
@@ -93,7 +106,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TArray<FInventoryItemProxy> StartupInventoryItems;
 
-	TArray<TPair<TWeakObjectPtr<UInventoryItem>, EInventoryEquipmentSlot>> StartupEquipment;
+
+	TArray<FInventoryStartupEquipmentData> StartupEquipment;
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
@@ -133,7 +147,7 @@ public:
 
 	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
-	TArray<TPair<TWeakObjectPtr<UInventoryItem>, EInventoryEquipmentSlot>> GetEquipStartupItems() const {return StartupEquipment;}
+	TArray<FInventoryStartupEquipmentData> GetEquipStartupItems() const {return StartupEquipment;}
 	bool TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId);
 
 	void ReceivedStartupItems();
