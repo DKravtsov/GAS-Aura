@@ -431,8 +431,8 @@ bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip,
 
 void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("[Slot: %s] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
-		*UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("[Slot: %d] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
+	                                  static_cast<int32>(SlotId), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -539,7 +539,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
 {
 	check(IsValid(ItemToEquip));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], slot [%s]"), *ItemToEquip->GetItemType().ToString(), *UEnum::GetValueAsString(SlotId))
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item [%s], slot %d"), *GetInventoryItemId(ItemToEquip), static_cast<int32>(SlotId))
 
 	if (SlotId == EInventoryEquipmentSlot::Invalid)
 		return false;
@@ -784,8 +784,32 @@ void UInventoryComponent::ReceivedStartupItems()
 {
 	if (!bStartupItemsInitialized)
 	{
+		LOG_NETFUNCTIONCALL_COMPONENT
+		
 		bStartupItemsInitialized = true;
 		Client_ReceivedStartupInventory();
 	}
 }
 
+//#if UE_WITH_CHEAT_MANAGER
+void UInventoryComponent::DebugPrintStorage() const
+{
+	if (InventoryStorage)
+	{
+		InventoryStorage->DebugPrintStorage();
+	}
+	else
+	{
+		DebugPrint(TEXT("DebugPrintStorage: Inventory Storage is null"), FColor::Red);
+	}
+
+	FStringBuilderBase Output;
+	Output += TEXT("Equipment slots:\n");
+	for (const auto& EquipSlot : EquipmentSlots)
+	{
+		Output.Appendf(TEXT("Slot %d (%s): %s\n"), static_cast<int32>(EquipSlot.GetSlotId()),
+			*EquipSlot.GetEquipmentTypeTag().ToString(), *GetInventoryItemId(EquipSlot.GetInventoryItem().Get()));
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
+}
+//#endif//UE_WITH_CHEAT_MANAGER

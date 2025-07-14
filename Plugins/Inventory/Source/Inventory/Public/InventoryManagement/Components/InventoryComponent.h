@@ -146,6 +146,10 @@ public:
 	UFUNCTION()
 	virtual void OnRep_InventoryStorage();
 
+//#if UE_WITH_CHEAT_MANAGER
+	INVENTORY_API void DebugPrintStorage() const;
+//#endif//UE_WITH_CHEAT_MANAGER
+
 protected:
 	INVENTORY_API virtual void BeginPlay() override;
 

@@ -9,7 +9,6 @@
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Items/Manifest/InventoryItemManifest.h"
 #include "Net/UnrealNetwork.h"
-#include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 
 #include "DebugHelper.h"
 
@@ -46,11 +45,7 @@ void UInventoryStorageGrid::ConstructGrid()
 
 	if (!OwningActor.IsValid() || !InventoryComponent.IsValid())
 	{
-		OwningActor = Cast<AActor>(GetOuter());
-		InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningActor.Get());
-
-		InventoryComponent->OnItemAdded.AddDynamic(this, &UInventoryStorageGrid::HandleItemAdded);
-		InventoryComponent->OnStackChanged.AddDynamic(this, &UInventoryStorageGrid::HandleStackChanged);
+		InitOwner();
 	}
 	
 	GridSlots.AddNumberSlots(Rows * Columns);
@@ -267,7 +262,7 @@ void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 	if (!IsValid(Item) || !MatchesCategory(Item))
 		return;
 	
-	LOG_NETFUNCTIONCALL_OWNER_MSG(OwningActor.Get(), TEXT("Adding item: [%s] tag [%s]"), *Item->GetName(), *Item->GetItemType().ToString())
+	LOG_NETFUNCTIONCALL_OWNER_MSG(OwningActor.Get(), TEXT("Adding item: [%s]"), *GetInventoryItemId(Item))
 
 	auto Result = HasRoomForItem(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);

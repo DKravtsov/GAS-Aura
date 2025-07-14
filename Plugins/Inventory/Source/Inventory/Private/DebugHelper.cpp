@@ -6,7 +6,7 @@
 
 #include "Items/InventoryItem.h"
 
-const TCHAR* GetInventoryItemId(const class UInventoryItem* Item)
+FString GetInventoryItemId(const class UInventoryItem* Item)
 {
-	return Item ? *Item->GetItemType().ToString() : TEXT("None");
+	return Item ? Item->GetItemType().ToString() : FString(TEXT("None"));
 }

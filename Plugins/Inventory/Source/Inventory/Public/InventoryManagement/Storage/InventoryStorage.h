@@ -27,7 +27,11 @@ public:
 	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;};
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) {}
-	
+
+	//#if UE_WITH_CHEAT_MANAGER
+	virtual void DebugPrintStorage() const {}
+	//#endif//UE_WITH_CHEAT_MANAGER
+
 protected:
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const;

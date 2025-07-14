@@ -106,3 +106,57 @@ FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInterna
 	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
 	return FInventorySlotAvailabilityResult{};
 }
+
+void UInventorySpatialStorage::DebugPrintStorage() const
+{
+	const AActor* OwningActor = GetOwningActor();
+	LOG_NETFUNCTIONCALL_OWNER(OwningActor)
+	
+	FStringBuilderBase Output;
+	TMap<const UInventoryItem*, FStringBuilderBase::ElementType> ItemIndexMap;
+	int32 ItemIndex = 0;
+	for (const auto& [Tag,Grid] : InventoryGrids)
+	{
+		int32 ColIndex = 0;
+		Output.Appendf(TEXT("\nGrid [%s]:\n"), *Grid->GetItemCategory().ToString());
+		for (const auto& GridSlot : Grid->GetGridSlotsCopy())
+		{
+			if (const UInventoryItem* Item = GridSlot.GetInventoryItem().Get())
+			{
+				FStringBuilderBase::ElementType ItemStr;
+				if (auto Found = ItemIndexMap.Find(Item))
+				{
+					ItemStr = *Found;
+				}
+				else
+				{
+					ItemStr = 'A' + ItemIndex; 
+					ItemIndexMap.Add(Item, ItemStr);
+					++ItemIndex;
+				}
+				
+				Output.Appendf(TEXT("[%c"), ItemStr);
+				if (Item->IsStackable())
+					Output.Appendf(TEXT(",%d"), GridSlot.GetStackCount());
+				Output.AppendChar(']');
+			}
+			else
+			{
+				Output.Append(TEXT("[.]"));
+			}
+			ColIndex++;
+			if (ColIndex >= Columns)
+			{
+				ColIndex = 0;
+				Output.AppendChar('\n');
+			}
+		}
+	}
+	Output.AppendChar('\n');
+	for (const auto& [Item, Index] : ItemIndexMap)
+	{
+		Output.Appendf(TEXT("%c: %s\n"), Index, *Item->GetItemType().ToString());
+	}
+
+	UE_LOG(LogInventory, Warning, TEXT("Print Storage:\n%s"), Output.ToString())
+}

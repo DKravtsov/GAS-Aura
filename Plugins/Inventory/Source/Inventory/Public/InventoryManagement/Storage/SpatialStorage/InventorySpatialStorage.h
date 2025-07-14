@@ -46,6 +46,10 @@ public:
 	virtual bool IsSupportedForNetworking() const override {return true;}
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	//~ End of UObject interface
+
+	//#if UE_WITH_CHEAT_MANAGER
+	virtual void DebugPrintStorage() const override;
+	//#endif//UE_WITH_CHEAT_MANAGER
 protected:
 
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();

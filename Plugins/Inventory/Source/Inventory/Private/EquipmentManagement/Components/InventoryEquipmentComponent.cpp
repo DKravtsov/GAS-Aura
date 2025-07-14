@@ -251,7 +251,7 @@ void UInventoryEquipmentComponent::RemoveEquippedActor(UInventoryItem* Item)
 
 void UInventoryEquipmentComponent::OnItemEquipped(UInventoryItem* EquippedItem)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Item: [%s]"), *GetInventoryItemId(EquippedItem))
 	
 	if (!IsValid(EquippedItem))
 		return;

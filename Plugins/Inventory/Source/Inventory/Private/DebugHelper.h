@@ -49,7 +49,7 @@ static void DebugPrint(const FString& Message, const FColor& Color = FColor::Mak
 }
 
 
-extern const TCHAR* GetInventoryItemId(const class UInventoryItem* Item);
+INVENTORY_API FString GetInventoryItemId(const class UInventoryItem* Item);
 
 
 #define NETMODE_WORLD NETMODE_WORLD_TEXT(GetWorld())
