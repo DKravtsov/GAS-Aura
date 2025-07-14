@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InventoryGridTypes.h"
+#include "InventoryManagement/FastArray/InventoryStorageGridFastArray.h"
 #include "UObject/Object.h"
 #include "InventoryStorageGrid.generated.h"
 
@@ -27,8 +28,8 @@ public:
 private:
 	
 	//~ todo: Replace with FastArray
-	UPROPERTY(Replicated)
-	TArray<FInventoryStorageGridSlot> GridSlots;
+	UPROPERTY(ReplicatedUsing=OnRep_GridSlots)
+	FInventoryStorageGridFastArray GridSlots;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 1;
@@ -39,10 +40,13 @@ private:
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	FGameplayTag ItemCategory;
 
-	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
-	TWeakObjectPtr<AActor> OwningActor;
+	mutable TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+	mutable TWeakObjectPtr<AActor> OwningActor;
 
 public:
+
+	UInventoryStorageGrid();
+	
 	int32 GetIndexFromPosition(const FIntPoint& Position) const
 	{
 		return Position.X + Position.Y * Columns;
@@ -56,17 +60,20 @@ public:
 	const FGameplayTag& GetItemCategory() const {return ItemCategory;}
 	void SetItemCategory(const FGameplayTag& GameplayTag) {ItemCategory = GameplayTag;}
 
+	AActor* GetOwningActor() const;
+
 	int32 GetRows() const {return Rows;}
 	int32 GetColumns() const {return Columns;}
-	const TArray<FInventoryStorageGridSlot>& GetGridSlots() const {return GridSlots;}
-	TArray<FInventoryStorageGridSlot>& GetGridSlotsMutable() {return GridSlots;}
-	FInventoryStorageGridSlot& GetGridSlotMutable(int32 Index);
+	//const TArray<FInventoryStorageGridSlot>& GetGridSlots() const {return GridSlots;}
+	const TArray<FInventoryStorageGridSlot>& GetGridSlotsCopy() const {return GridSlots.GetAllSlots();}
+	//TArray<FInventoryStorageGridSlot>& GetGridSlotsMutable() {return GridSlots;}
 	const FInventoryStorageGridSlot& GetGridSlot(int32 Index) const;
-	FInventoryStorageGridSlot& GetGridSlotMutable(const FIntPoint& Position);
 	const FInventoryStorageGridSlot& GetGridSlot(const FIntPoint& Position) const;
 
 	bool ContainsItem(UInventoryItem* Item) const;
 	int32 GetItemIndex(UInventoryItem* Item) const;
+
+	bool IsValidIndex(int32 Index) const {return GridSlots.IsValidIndex(Index);}
 
 	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 	
@@ -83,9 +90,14 @@ public:
 	void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount);
 	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
 
+	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ArrayView);
+
+	void SetStackCount(int32 GridIndex, int32 NewStackCount);
+
 private:
 	void ConstructGrid();
-	
+	void InitOwner() const;
+
 	bool IsInGridBounds(int32 StartIndex, const FIntPoint& Dimensions) const;
 
 	bool HasRoomAtIndex(const FInventoryStorageGridSlot& GridSlot, const FIntPoint& Dimensions,
@@ -110,4 +122,7 @@ private:
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackAmount);
+
+	UFUNCTION()
+	void OnRep_GridSlots();
 };

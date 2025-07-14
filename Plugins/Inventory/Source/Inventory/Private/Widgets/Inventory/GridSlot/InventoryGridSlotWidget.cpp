@@ -74,7 +74,7 @@ FReply UInventoryGridSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeom
 void UInventoryGridSlotWidget::Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex)
 {
 	check(IsValid(InStorageGrid));
-	check(InStorageGrid->GetGridSlots().IsValidIndex(InTileIndex));
+	check(InStorageGrid->IsValidIndex(InTileIndex));
 	StorageGrid = InStorageGrid;
 	GridIndex = InTileIndex;
 }
@@ -82,11 +82,6 @@ void UInventoryGridSlotWidget::Bind(UInventoryStorageGrid* InStorageGrid, int32 
 const FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlot() const
 {
 	return StorageGrid->GetGridSlot(GridIndex);
-}
-
-FInventoryStorageGridSlot& UInventoryGridSlotWidget::GetStorageSlotMutable() const
-{
-	return StorageGrid->GetGridSlotMutable(GridIndex);
 }
 
 int32 UInventoryGridSlotWidget::GetStackCount() const

@@ -8,19 +8,26 @@
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "Items/InventoryItem.h"
 #include "Items/Manifest/InventoryItemManifest.h"
+#include "Net/UnrealNetwork.h"
 
 #include "DebugHelper.h"
 
+AActor* UInventorySpatialStorage::GetOwningActor() const
+{
+	const UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
+	check(InventoryComponent);
+	AActor* OwningActor = InventoryComponent->GetOwner();
+	check(OwningActor);
+	return OwningActor;
+}
+
 void UInventorySpatialStorage::SetupStorage()
 {
-	InventoryGrids.Reserve(GridCategories.Num());
+	AActor* OwningActor = GetOwningActor();
+	LOG_NETFUNCTIONCALL_OWNER(OwningActor)
 
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
 	check(InventoryComponent);
-	AActor* OwningActor = InventoryComponent->GetOwner();
-	check(OwningActor && OwningActor->HasAuthority());
-	
-	LOG_NETFUNCTIONCALL_OWNER(OwningActor)
 	
 	UClass* GridClass = GetStorageGridClass();
 	check(GridClass != nullptr);
@@ -31,13 +38,10 @@ void UInventorySpatialStorage::SetupStorage()
 		check(IsValid(NewGrid));
 		NewGrid->SetItemCategory(ItemCategory);
 		NewGrid->ConstructGrid(Rows, Columns);
-		
+        
 		InventoryGrids.Emplace(ItemCategory, NewGrid);
 
-		if (InventoryComponent)
-		{
-			InventoryComponent->AddRepSubObj(NewGrid);
-		}
+		InventoryComponent->AddRepSubObj(NewGrid);
 	}
 }
 
@@ -85,6 +89,13 @@ void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, 
 		check(Grid);
 		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex);
 	}
+}
+
+void UInventorySpatialStorage::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInventorySpatialStorage, InventoryGrids);
 }
 
 FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const

@@ -30,6 +30,8 @@ class UInventorySpatialStorage : public UInventoryStorage
 
 public:
 
+	AActor* GetOwningActor() const;
+
 	virtual void SetupStorage() override;
 
 	UInventoryStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
@@ -40,6 +42,10 @@ public:
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) override;
 	//~ End of UInventoryStorage interface
 
+	//~ Begin of UObject interface
+	virtual bool IsSupportedForNetworking() const override {return true;}
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	//~ End of UObject interface
 protected:
 
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();

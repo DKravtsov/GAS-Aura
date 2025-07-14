@@ -108,12 +108,13 @@ struct FInventorySpaceQueryResult
 	int32 UpperLeftIndex = INDEX_NONE;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FInventoryStorageGridSlot
 {
 	GENERATED_BODY()
 
 private:
+	UPROPERTY()
 	TWeakObjectPtr<UInventoryItem> InventoryItem;
 
 	UPROPERTY()

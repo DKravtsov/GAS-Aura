@@ -13,6 +13,33 @@
 
 #include "DebugHelper.h"
 
+namespace
+{
+	AActor* GetOutermostActor(const UObject* Object)
+	{
+		const UObject* Top = Object;
+		for (;;)
+		{
+			UObject* CurrentOuter = Top->GetOuter();
+			if (CurrentOuter->IsA<AActor>())
+			{
+				return Cast<AActor>(CurrentOuter);
+			}
+			if (CurrentOuter->IsA<UPackage>())
+			{
+				return nullptr;
+			}
+			Top = CurrentOuter;
+		}
+
+	}
+}
+
+UInventoryStorageGrid::UInventoryStorageGrid()
+	: GridSlots(this)
+{
+}
+
 void UInventoryStorageGrid::ConstructGrid()
 {
 	check(Rows > 0 && Columns > 0);
@@ -25,38 +52,33 @@ void UInventoryStorageGrid::ConstructGrid()
 		InventoryComponent->OnItemAdded.AddDynamic(this, &UInventoryStorageGrid::HandleItemAdded);
 		InventoryComponent->OnStackChanged.AddDynamic(this, &UInventoryStorageGrid::HandleStackChanged);
 	}
-
-	// clear and reserve
-	GridSlots.Reset(Rows * Columns);
-
-	int32 Index = 0;
-	for (int RowIndex = 0; RowIndex < Rows; RowIndex++)
-	{
-		for (int ColumnIndex = 0; ColumnIndex < Columns; ColumnIndex++)
-		{
-			FInventoryStorageGridSlot& InventoryGridSlot = GridSlots.AddDefaulted_GetRef();
-			check(Index == GetIndexFromPosition(FIntPoint(ColumnIndex, RowIndex)));
-			InventoryGridSlot.SetTileIndex(Index++);
-		}
-	}
+	
+	GridSlots.AddNumberSlots(Rows * Columns);
 }
 
-FInventoryStorageGridSlot& UInventoryStorageGrid::GetGridSlotMutable(int32 GridIndex)
+void UInventoryStorageGrid::InitOwner() const
 {
-	check(GridSlots.IsValidIndex(GridIndex));
-	return GridSlots[GridIndex];
+	OwningActor = GetOutermostActor(this);
+	InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningActor.Get());
+
+	InventoryComponent->OnItemAdded.AddDynamic(this, &UInventoryStorageGrid::HandleItemAdded);
+	InventoryComponent->OnStackChanged.AddDynamic(this, &UInventoryStorageGrid::HandleStackChanged);
+}
+
+AActor* UInventoryStorageGrid::GetOwningActor() const
+{
+	if (!OwningActor.IsValid())
+	{
+		InitOwner();
+		
+	}
+	return OwningActor.Get();
 }
 
 const FInventoryStorageGridSlot& UInventoryStorageGrid::GetGridSlot(int32 GridIndex) const
 {
 	check(GridSlots.IsValidIndex(GridIndex));
-	return GridSlots[GridIndex];
-}
-
-FInventoryStorageGridSlot& UInventoryStorageGrid::GetGridSlotMutable(const FIntPoint& Position)
-{
-	const int32 Index = GetIndexFromPosition(Position);
-	return GetGridSlotMutable(Index);
+	return GridSlots.GetSlot(GridIndex);
 }
 
 const FInventoryStorageGridSlot& UInventoryStorageGrid::GetGridSlot(const FIntPoint& Position) const
@@ -72,8 +94,9 @@ bool UInventoryStorageGrid::ContainsItem(UInventoryItem* Item) const
 
 int32 UInventoryStorageGrid::GetItemIndex(UInventoryItem* Item) const
 {
-	const int32 Index = GridSlots.IndexOfByPredicate([Item](const FInventoryStorageGridSlot& GridSlot)
+	const int32 Index = GridSlots.Entries.IndexOfByPredicate([Item](const FInventoryStorageGridSlotEntry& GridSlotEntry)
 	{
+		const FInventoryStorageGridSlot& GridSlot = GridSlotEntry.Data;
 		return GridSlot.GetStartIndex() == GridSlot.GetTileIndex() && GridSlot.GetInventoryItem() == Item;
 	});
 	return Index;
@@ -98,7 +121,7 @@ FInventorySlotAvailabilityResult UInventoryStorageGrid::HasRoomForItem(const FIn
 	TSet<int32> CheckedIndexes;
 
 	// For each Grid Slot:
-	for (const auto& GridSlot : GridSlots)
+	for (const auto& GridSlot : GridSlots.GetAllSlots())
 	{
 		// If we don't have anymore to fill, break out of the loop early.
 		if (AmountToFill <= 0)
@@ -173,8 +196,9 @@ bool UInventoryStorageGrid::HasRoomAtIndex(const FInventoryStorageGridSlot& Grid
 {
 	bool bHasRoomAtIndex = true;
 
-	UInventoryStatics::ForEach2D(GridSlots, GridSlot.GetTileIndex(), Dimensions, Columns, [&](const FInventoryStorageGridSlot& CurGridSlot)
+	UInventoryStatics::ForEach2D(GridSlots.Entries, GridSlot.GetTileIndex(), Dimensions, Columns, [&](const FInventoryStorageGridSlotEntry& GridSlotEntry)
 	{
+		const FInventoryStorageGridSlot& CurGridSlot = GridSlotEntry.Data;
 		if (CheckSlotConstraints(GridSlot, CurGridSlot, CheckedIndexes, OutTentativelyClaimedIndexes, MaxStackSize, ItemType))
 		{
 			OutTentativelyClaimedIndexes.Add(CurGridSlot.GetTileIndex());
@@ -233,8 +257,7 @@ int32 UInventoryStorageGrid::GetStackAmountInSlot(const FInventoryStorageGridSlo
 	int32 StackCount = GridSlot.GetStackCount();
 	if (const int32 UpperLeftIndex = GridSlot.GetStartIndex(); UpperLeftIndex != INDEX_NONE)
 	{
-		const FInventoryStorageGridSlot& UpperLeftGridSlot = GridSlots[UpperLeftIndex];
-		StackCount = UpperLeftGridSlot.GetStackCount();
+		StackCount = GridSlots.GetStackCount(UpperLeftIndex);
 	}
 	return StackCount;
 }
@@ -261,9 +284,7 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 	{
 		if (Availability.bItemAtIndex)
 		{
-			auto& GridSlot = GridSlots[Availability.Index];
-			const int32 NewStackCount = GridSlot.GetStackCount() + Availability.Amount;
-			GridSlot.SetStackCount(NewStackCount);
+			GridSlots.AddStackCount(Availability.Index, Availability.Amount);
 		}
 		else
 		{
@@ -294,11 +315,11 @@ void UInventoryStorageGrid::AddItemAtIndex(UInventoryItem* Item, int32 Index, bo
 
 void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
 {
-	check(GridSlots.IsValidIndex(Index));
+	check(GridSlots.Entries.IsValidIndex(Index));
 
 	if (bStackable)
 	{
-		GridSlots[Index].SetStackCount(StackAmount);
+		GridSlots.SetStackCount(Index, StackAmount);
 	}
 
 	const FIntPoint Dimensions = UInventoryWidgetUtils::GetGridDimensionsOfItem(NewItem);
@@ -306,12 +327,12 @@ void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32
 	TArray<int32> UpdatedSlots;
 	UpdatedSlots.Reserve(Dimensions.X * Dimensions.Y);
 
-	UInventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns,
-		[&](FInventoryStorageGridSlot& GridSlot)
+	UInventoryStatics::ForEach2D(GridSlots.Entries, Index, Dimensions, GetColumns(),
+		[&](const FInventoryStorageGridSlotEntry& GridSlotEntry)
 		{
-			GridSlot.SetInventoryItem(NewItem);
-			GridSlot.SetStartIndex(Index);
-			UpdatedSlots.Add(GridSlot.GetTileIndex());
+			const int32 GridIndex = GridSlotEntry.Data.GetTileIndex();
+			GridSlots.SetInventoryItem(GridIndex, NewItem, Index);
+			UpdatedSlots.Add(GridIndex);
 		});
 	
 	OnGridSlotsUpdated.Broadcast(UpdatedSlots);
@@ -323,11 +344,29 @@ void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, con
 	TArray<int32> UpdatedSlots;
 	UpdatedSlots.Reserve(Dimensions.X * Dimensions.Y);
 
-	UInventoryStatics::ForEach2D(GridSlots, GridIndex, Dimensions, GetColumns(), [&](FInventoryStorageGridSlot& GridSlot)
+	UInventoryStatics::ForEach2D(GridSlots.Entries, GridIndex, Dimensions, GetColumns(), [&](const FInventoryStorageGridSlotEntry& GridSlotEntry)
 	{
-		UpdatedSlots.Add(GridSlot.GetTileIndex());
-		GridSlot.Clear();
+		const int32 TileIndex = GridSlotEntry.Data.GetTileIndex();
+		UpdatedSlots.Add(TileIndex);
+		GridSlots.ClearSlot(TileIndex);
 	});
 
 	OnGridSlotsReset.Broadcast(UpdatedSlots);
+}
+
+void UInventoryStorageGrid::OnRep_GridSlots()
+{
+	LOG_NETFUNCTIONCALL_OWNER(OwningActor.Get())
+}
+
+void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ArrayView)
+{
+	LOG_NETFUNCTIONCALL_OWNER(OwningActor.Get())
+
+	//OnGridSlotsUpdated.Broadcast(ArrayView);
+}
+
+void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)
+{
+	GridSlots.SetStackCount(GridIndex, NewStackCount);
 }

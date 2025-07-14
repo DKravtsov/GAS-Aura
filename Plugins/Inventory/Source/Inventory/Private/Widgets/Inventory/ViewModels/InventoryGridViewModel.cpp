@@ -66,21 +66,10 @@ UInventoryComponent* UInventoryGridViewModel::GetInventoryComponent() const
 	return InventoryComponent.Get();
 }
 
-const TArray<FInventoryStorageGridSlot>& UInventoryGridViewModel::GetGridSlots() const
-{
-	return StorageGrid->GetGridSlots();
-}
-
 const FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlot(int32 Index) const
 {
-	check(StorageGrid->GetGridSlots().IsValidIndex(Index));
-	return StorageGrid->GetGridSlots()[Index];
-}
-
-FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlotMutable(int32 Index) const
-{
-	check(StorageGrid->GetGridSlots().IsValidIndex(Index));
-	return StorageGrid->GetGridSlotsMutable()[Index];
+	check(StorageGrid->IsValidIndex(Index));
+	return StorageGrid->GetGridSlot(Index);
 }
 
 bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
@@ -90,7 +79,7 @@ bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
 
 void UInventoryGridViewModel::UpdateStackCount(int32 Index, int32 NewStackCount) const
 {
-	GetGridSlotMutable(Index).SetStackCount(NewStackCount);
+	GetStorageGrid()->SetStackCount(Index, NewStackCount);
 }
 
 void UInventoryGridViewModel::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount) const

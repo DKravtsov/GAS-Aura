@@ -57,9 +57,7 @@ public:
 
 	TWeakObjectPtr<UInventoryStorageGrid> GetStorageGrid() const {return StorageGrid;};
 
-	const TArray<FInventoryStorageGridSlot>& GetGridSlots() const;
 	const FInventoryStorageGridSlot& GetGridSlot(int32 Index) const;
-	FInventoryStorageGridSlot& GetGridSlotMutable(int32 Index) const;
 
 	bool IsGridSlotAvailable(int32 Index) const;
 
