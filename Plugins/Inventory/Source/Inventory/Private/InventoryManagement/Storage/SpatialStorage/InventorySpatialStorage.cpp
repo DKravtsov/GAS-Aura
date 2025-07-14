@@ -12,6 +12,11 @@
 
 #include "DebugHelper.h"
 
+UInventorySpatialStorage::UInventorySpatialStorage()
+{
+	GridCategories.Add(InventoryTags::Inventory_ItemCategory_Equipment); // add default category
+}
+
 AActor* UInventorySpatialStorage::GetOwningActor() const
 {
 	const UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
@@ -31,6 +36,12 @@ void UInventorySpatialStorage::SetupStorage()
 	
 	UClass* GridClass = GetStorageGridClass();
 	check(GridClass != nullptr);
+
+	if (!ensure(GridCategories.Num() > 0))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Forgot to create grid categories."))
+		return;
+	}
 	
 	for (const auto& ItemCategory : GridCategories)
 	{
@@ -115,7 +126,7 @@ void UInventorySpatialStorage::DebugPrintStorage() const
 	FStringBuilderBase Output;
 	TMap<const UInventoryItem*, FStringBuilderBase::ElementType> ItemIndexMap;
 	int32 ItemIndex = 0;
-	for (const auto& [Tag,Grid] : InventoryGrids)
+	for (const auto& [Tag, Grid] : InventoryGrids)
 	{
 		int32 ColIndex = 0;
 		Output.Appendf(TEXT("\nGrid [%s]:\n"), *Grid->GetItemCategory().ToString());
@@ -159,4 +170,17 @@ void UInventorySpatialStorage::DebugPrintStorage() const
 	}
 
 	UE_LOG(LogInventory, Warning, TEXT("Print Storage:\n%s"), Output.ToString())
+}
+
+FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const
+{
+	TArray<FString> GridNames;
+	GridNames.Reserve(InventoryGrids.Num());
+	for (const auto& [Tag, Grid] : InventoryGrids)
+	{
+		GridNames.Add(Tag.ToString());
+	}
+	FStringBuilderBase Output;
+	Output.Join(GridNames, TEXT(","));
+	return Output.ToString();
 }

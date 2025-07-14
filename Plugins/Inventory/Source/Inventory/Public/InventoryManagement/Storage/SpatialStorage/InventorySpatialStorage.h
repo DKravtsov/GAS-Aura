@@ -30,6 +30,8 @@ class UInventorySpatialStorage : public UInventoryStorage
 
 public:
 
+	UInventorySpatialStorage();
+
 	AActor* GetOwningActor() const;
 
 	virtual void SetupStorage() override;
@@ -50,6 +52,8 @@ public:
 	//#if UE_WITH_CHEAT_MANAGER
 	virtual void DebugPrintStorage() const override;
 	//#endif//UE_WITH_CHEAT_MANAGER
+
+	FString GetInventoryGridNamesDebugString() const;
 protected:
 
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();

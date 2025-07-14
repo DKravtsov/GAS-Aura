@@ -7,7 +7,6 @@
 #include "InventoryGridTypes.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
-#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 #include "InventoryComponent.generated.h"
 
 class UInventoryItemData;
@@ -67,7 +66,7 @@ public:
 private:
 
 	// Responsible for HOW the inventory is stored
-	UPROPERTY(EditDefaultsOnly, Category="Inventory", Instanced/*, ReplicatedUsing=OnRep_InventoryStorage*/)
+	UPROPERTY(EditDefaultsOnly, Category="Inventory", Instanced, ReplicatedUsing=OnRep_InventoryStorage)
 	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")

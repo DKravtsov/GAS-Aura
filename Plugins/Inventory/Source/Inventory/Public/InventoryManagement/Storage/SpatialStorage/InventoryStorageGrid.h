@@ -31,13 +31,13 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_GridSlots)
 	FInventoryStorageGridFastArray GridSlots;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
+	UPROPERTY()
 	int32 Rows = 1;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
+	UPROPERTY()
 	int32 Columns = 1;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"))
 	FGameplayTag ItemCategory;
 
 	mutable TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
