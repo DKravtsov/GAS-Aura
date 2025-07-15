@@ -75,11 +75,36 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	LOG_NETFUNCTIONCALL
 	
 	check(ItemComponent != nullptr);
-	//FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
+
+	if (!OwningPlayerController->HasAuthority() && OwningPlayerController->IsLocalPlayerController())
+	{
+		// Precheck to not call server RPC if it's not needed.
+		// Server will check the same anyway, so it doesn't make sense to call this check if HasAuthority
+		FInventorySlotAvailabilityResult Result;
+		if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
+		{
+			OnNoRoomInInventory.Broadcast();
+			return;
+		}
+	}
+
+	Server_TryAddItem(ItemComponent);
+}
+
+void UInventoryComponent::Server_TryAddItem_Implementation(UInventoryItemComponent* ItemComponent)
+{
+	LOG_NETFUNCTIONCALL
+	
+	check(ItemComponent != nullptr);
+
 	FInventorySlotAvailabilityResult Result;
 	if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
 	{
-		OnNoRoomInInventory.Broadcast();
+		if (OwningPlayerController->IsLocalPlayerController())
+		{
+			// The client broadcasts this in TryAddItem()
+			OnNoRoomInInventory.Broadcast();
+		}
 		return;
 	}
 
@@ -99,39 +124,10 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	}
 }
 
-/*void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
+bool UInventoryComponent::Server_TryAddItem_Validate(UInventoryItemComponent* ItemComponent)
 {
-	LOG_NETFUNCTIONCALL
-	
-	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should run only for local Player Controller"));
-	
-	FInventorySlotAvailabilityResult Result;
-	if (!InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCount))
-	{
-		OnNoRoomInInventory.Broadcast();
-		return ;
-	}
-	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
-	Result.Item = FoundItem;
-
-	if (Result.Remainder > 0)
-	{
-		UE_LOG(LogInventory, Warning, TEXT("Adding startup item [%s]: inventory has not enough room for %d more item(s) and they will be destroyed."),
-		   *ItemManifest.GetItemType().ToString(), Result.Remainder);
-	}
-
-	if (Result.Item.IsValid() && Result.bStackable)
-	{
-		OnStackChanged.Broadcast(Result);
-		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill);
-	}
-	else
-	{
-		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipToSlot);
-	}
-}*/
+	return true;
+}
 
 FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const
 {
@@ -228,10 +224,7 @@ void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemCompone
 	const auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
 
-	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
-	{
-		OnItemAdded.Broadcast(NewItem);
-	}
+	OnItemAdded.Broadcast(NewItem);
 
 	// tell the item component to destroy its owning actor if Remainder == 0
 	//  otherwise, update the stack count for the pickup
@@ -260,10 +253,8 @@ void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInvento
 	check(NewItem != nullptr);
 	NewItem->SetTotalStackCount(StackCount);
 
-	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
-	{
-		OnItemAdded.Broadcast(NewItem);
-	}
+	OnItemAdded.Broadcast(NewItem);
+
 	if (EquipToSlot != EInventoryEquipmentSlot::Invalid)
 	{
 		if (GetEquipmentSlot(EquipToSlot))
