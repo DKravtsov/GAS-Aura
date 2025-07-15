@@ -416,17 +416,38 @@ void AAuraPlayerController::ClientHideMagicCircle_Implementation()
 void AAuraPlayerController::DebugPrintStorage() const
 {
     const UWorld* World = GetWorld();
-    for (FConstPlayerControllerIterator PCIterator = World->GetPlayerControllerIterator(); PCIterator; ++PCIterator)
+    if (HasAuthority())
     {
-        APlayerController* PC = PCIterator->Get();
-
-        // Don't use debug camera player controllers.
-        if (PC && PC->IsA(ADebugCameraController::StaticClass()))
-            continue;
-        
-        if (const UInventoryComponent* InventoryComp = UInventoryStatics::GetInventoryComponent(PC))
+        for (FConstPlayerControllerIterator PCIterator = World->GetPlayerControllerIterator(); PCIterator; ++PCIterator)
         {
-            InventoryComp->DebugPrintStorage();
+            APlayerController* PC = PCIterator->Get();
+
+            // Don't use debug camera player controllers.
+            if (PC && PC->IsA(ADebugCameraController::StaticClass()))
+                continue;
+        
+            if (const UInventoryComponent* InventoryComp = UInventoryStatics::GetInventoryComponent(PC))
+            {
+                InventoryComp->DebugPrintStorage();
+            }
         }
     }
+    else
+    {
+        if (InventoryComponent.IsValid())
+        {
+            InventoryComponent->DebugPrintStorage();
+        }
+        Server_DebugPrintStorage();
+    }
+}
+
+void AAuraPlayerController::Server_DebugPrintStorage_Implementation() const
+{
+    UE_LOG(LogTemp, Warning, TEXT("\nSERVER:"));
+    if (InventoryComponent.IsValid())
+    {
+        InventoryComponent->DebugPrintStorage();
+    }
+    
 }
