@@ -57,6 +57,24 @@ struct FInventoryStartupEquipmentData
 	EInventoryEquipmentSlot Slot = EInventoryEquipmentSlot::Invalid;
 };
 
+USTRUCT(BlueprintType)
+struct FStorageSetupDataProxy
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(ExcludeBaseStruct))
+	TInstancedStruct<FInventoryStorageSetupData> SetupData;
+
+	// Property to trigger the replication
+	UPROPERTY()
+	int Trigger = 0;
+
+	const FInventoryStorageSetupData* GetData() const;
+	TSubclassOf<UInventoryStorage> GetStorageClass() const;
+
+	void MakeDirty() {++Trigger;}
+};
+
 
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, Within=PlayerController, meta=(BlueprintSpawnableComponent))
 class UInventoryComponent : public UActorComponent
@@ -80,11 +98,11 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category="Inventory", meta=(ExcludeBaseStruct), ReplicatedUsing=OnRep_StorageSetupData)
-	TInstancedStruct<FInventoryStorageSetupData> InventoryStorageSetupData;
+	UPROPERTY(EditAnywhere, Category="Inventory", ReplicatedUsing=OnRep_StorageSetupData)
+	FStorageSetupDataProxy InventoryStorageSetupData;
 
 	// Responsible for HOW the inventory is stored
-	UPROPERTY(Transient, ReplicatedUsing=OnRep_InventoryStorage)
+	UPROPERTY(ReplicatedUsing=OnRep_InventoryStorage)
 	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -164,12 +182,15 @@ public:
 	UFUNCTION()
 	virtual void OnRep_InventoryStorage();
 
+	void ReceivedStorageIsReady();
+
 //#if UE_WITH_CHEAT_MANAGER
 	INVENTORY_API void DebugPrintStorage() const;
 //#endif//UE_WITH_CHEAT_MANAGER
 
 protected:
 	INVENTORY_API void CreateInventoryStorage();
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -191,20 +212,28 @@ protected:
 	void Multicast_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(Client, Reliable)
+	void Client_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
+
+	UFUNCTION(Client, Reliable)
 	void Client_RejectEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 	virtual void GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 
+	UFUNCTION(Server, Reliable)
+	void Server_RequestStartupEquipment();
+
 	UFUNCTION()
 	virtual void OnRep_StorageSetupData();
 private:
+	void SetOwnerInternal();
 
 	void ConstructInventoryMenu();
 	void OpenInventoryMenu();
 	void CloseInventoryMenu();
 
+	void BroadcastEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
 
 //	void /*Client*/TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
@@ -221,7 +250,7 @@ private:
 	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
-	void Client_ReceivedStartupInventory();
+	void Client_ReceivedStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
 
 	FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItemMutable(const UInventoryItem* Item);
 	FInventoryEquipmentSlot* FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty = true);

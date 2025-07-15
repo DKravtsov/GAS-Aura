@@ -154,7 +154,7 @@ void UInventoryEquipmentComponent::InitInventoryComponent()
 		InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryEquipmentComponent::OnItemUnequipped);
 	}
 
-	if (OwningPlayerController->IsLocalController() && !bIsProxy)
+	if (OwningPlayerController->HasAuthority()/*OwningPlayerController->IsLocalController()*/ && !bIsProxy)
 	{
 		WaitForStartupEquipmentReady();
 	}

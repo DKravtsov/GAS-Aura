@@ -16,6 +16,17 @@
 
 #include "DebugHelper.h"
 
+const FInventoryStorageSetupData* FStorageSetupDataProxy::GetData() const
+{
+	return SetupData.GetPtr<FInventoryStorageSetupData>();
+}
+
+TSubclassOf<UInventoryStorage> FStorageSetupDataProxy::GetStorageClass() const
+{
+	const auto Data = GetData();
+	return Data ? Data->StorageClass : nullptr;
+}
+
 UInventoryComponent::UInventoryComponent()
 	: InventoryList(this)
 {
@@ -27,6 +38,24 @@ UInventoryComponent::UInventoryComponent()
 void UInventoryComponent::OnRep_InventoryStorage()
 {
 	LOG_NETFUNCTIONCALL
+
+}
+
+void UInventoryComponent::ReceivedStorageIsReady()
+{
+	LOG_NETFUNCTIONCALL
+
+	// if (IsValid(InventoryStorage) && !IsValid(InventoryMenu))
+	// {
+	// 	SetOwnerInternal();//just in case
+	// 	
+	// 	ConstructInventoryMenu();
+	//
+	// 	if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
+	// 	{
+	// 		Server_AddStartupItems();
+	// 	}
+	// }
 }
 
 void UInventoryComponent::ToggleInventoryMenu()
@@ -429,7 +458,7 @@ bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip,
 	return true;
 }
 
-void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
+void UInventoryComponent::BroadcastEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("[Slot: %d] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
 	                                  static_cast<int32>(SlotId), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
@@ -442,6 +471,20 @@ void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* Ite
 
 	OnItemUnequipped.Broadcast(ItemToUnequip);
 	OnItemEquipped.Broadcast(ItemToEquip);
+}
+
+void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL
+	
+	BroadcastEquipItem(ItemToEquip, ItemToUnequip, SlotId);
+}
+
+void UInventoryComponent::Client_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL
+	
+	BroadcastEquipItem(ItemToEquip, ItemToUnequip, SlotId);
 }
 
 void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCount)
@@ -533,6 +576,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, InventoryList);
+	DOREPLIFETIME(UInventoryComponent, InventoryStorageSetupData);
 	DOREPLIFETIME(UInventoryComponent, InventoryStorage);
 }
 
@@ -568,7 +612,7 @@ bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEq
 	return true;
 }
 
-void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
+void UInventoryComponent::Client_ReceivedStartupInventory_Implementation(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData)
 {
 	if (!bStartupItemsInitialized)
 		return;
@@ -579,36 +623,60 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 	if (OwningPlayerController->HasAuthority())
 		return;
 
-	for (const auto& Item : StartupInventoryItems)
-	{
-		if (!Item.bShouldEquip)
-			continue;
-		
-		// in theory, this should be loaded at the moment, so, it should be no additional time spent here
-		if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
-		{
-			if (ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
-				continue;
-
-			if (auto* InventoryItem = InventoryList.FindFirstItemByType(ItemData->GetItemManifest().GetItemType()))
-			{
-				const auto* EquipSlot = FindEquipmentSlotByEquippedItem(InventoryItem);
-				if (EquipSlot == nullptr)
-					continue;
-				StartupEquipment.Emplace(InventoryItem, EquipSlot->GetSlotId());
-			}
-		}
-	}
+	// for (const auto& Item : StartupInventoryItems)
+	// {
+	// 	if (!Item.bShouldEquip)
+	// 		continue;
+	// 	
+	// 	// in theory, this should be loaded at the moment, so, it should be no additional time spent here
+	// 	if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
+	// 	{
+	// 		if (ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
+	// 			continue;
+	//
+	// 		if (auto* InventoryItem = InventoryList.FindFirstItemByType(ItemData->GetItemManifest().GetItemType()))
+	// 		{
+	// 			const auto* EquipSlot = FindEquipmentSlotByEquippedItem(InventoryItem);
+	// 			if (EquipSlot == nullptr)
+	// 				continue;
+	// 			StartupEquipment.Emplace(InventoryItem, EquipSlot->GetSlotId());
+	// 		}
+	// 	}
+	// }
+	StartupEquipment = StartupEquipmentData;
 }
 
 void UInventoryComponent::CreateInventoryStorage()
 {
+	LOG_NETFUNCTIONCALL
+	
 	check(!IsValid(InventoryStorage));
-	check(InventoryStorageSetupData.IsValid());
+	const auto SetupData = InventoryStorageSetupData.GetData();
+	check(SetupData != nullptr);
 
-	InventoryStorage = NewObject<UInventoryStorage>(this, InventoryStorageSetupData.Get<FInventoryStorageSetupData>().StorageClass);	
+	InventoryStorage = NewObject<UInventoryStorage>(this, SetupData->StorageClass);	
 	check(InventoryStorage);
-	InventoryStorage->SetupStorage(InventoryStorageSetupData);
+	AddRepSubObj(InventoryStorage);
+
+	if (GetOwner()->HasAuthority())
+	{
+		InventoryStorage->SetupStorage(InventoryStorageSetupData.SetupData);
+
+		InventoryStorageSetupData.MakeDirty(); // to trigger replication
+	}
+}
+
+void UInventoryComponent::SetOwnerInternal()
+{
+	if (OwningPlayerController.IsValid())
+		return;
+
+	LOG_NETFUNCTIONCALL
+	
+	OwningPlayerController = CastChecked<APlayerController>(GetOwner());
+	InventoryController = OwningPlayerController->GetComponentByClass<UInventoryPlayerControllerComponent>();
+	checkf(InventoryController != nullptr, TEXT("Player controller [%s] must have InventoryPlayerControllerComponent"),
+	       *OwningPlayerController->GetClass()->GetName());
 }
 
 void UInventoryComponent::BeginPlay()
@@ -622,20 +690,18 @@ void UInventoryComponent::BeginPlay()
 	
 	Super::BeginPlay();
 
-	OwningPlayerController = CastChecked<APlayerController>(GetOwner());
-	InventoryController = OwningPlayerController->GetComponentByClass<UInventoryPlayerControllerComponent>();
-	checkf(InventoryController != nullptr, TEXT("Player controller [%s] must have InventoryPlayerControllerComponent"),
-		*OwningPlayerController->GetClass()->GetName());
+	SetOwnerInternal();
 
-	if (GetOwner()->HasAuthority())
+	if (OwningPlayerController->IsLocalController())
 	{
 		ConstructInventoryMenu();
 
-		if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
+		if (!StartupInventoryItems.IsEmpty())
 		{
 			Server_AddStartupItems();
 		}
 	}
+
 }
 
 EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(const FInventoryItemProxy& Item, const FInventoryItemManifest& ItemManifest)
@@ -697,7 +763,7 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 		}
 	}
 	bStartupItemsInitialized = true;
-	Client_ReceivedStartupInventory();
+	Client_ReceivedStartupInventory(StartupEquipment);
 }
 
 bool UInventoryComponent::Server_AddStartupItems_Validate()
@@ -718,7 +784,7 @@ void UInventoryComponent::OnRep_StorageSetupData()
 {
 	LOG_NETFUNCTIONCALL
 
-	CreateInventoryStorage();
+	//CreateInventoryStorage();
 }
 
 void UInventoryComponent::ConstructInventoryMenu()
@@ -803,7 +869,20 @@ void UInventoryComponent::ReceivedStartupItems()
 		LOG_NETFUNCTIONCALL
 		
 		bStartupItemsInitialized = true;
-		Client_ReceivedStartupInventory();
+		//Client_ReceivedStartupInventory();
+		Server_RequestStartupEquipment();
+	}
+}
+
+void UInventoryComponent::Server_RequestStartupEquipment_Implementation()
+{
+	LOG_NETFUNCTIONCALL
+
+	//Client_ReceivedStartupInventory(StartupEquipment);
+	// resend equip item events
+	for (const auto& [Item, SlotId] : StartupEquipment)
+	{
+		Client_EquipItem(Item.Get(), nullptr, SlotId);
 	}
 }
 

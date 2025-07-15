@@ -12,7 +12,7 @@ struct FInventoryItemManifest;
 /**
  * 
  */
-UCLASS(MinimalAPI)
+UCLASS(MinimalAPI, BlueprintType)
 class UInventoryStorageGrid : public UObject
 {
 	GENERATED_BODY()
@@ -31,13 +31,13 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_GridSlots)
 	FInventoryStorageGridFastArray GridSlots;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	int32 Rows = 1;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	int32 Columns = 1;
 
-	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"))
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"), Replicated)
 	FGameplayTag ItemCategory;
 
 	mutable TWeakObjectPtr<class UInventoryComponent> InventoryComponent;

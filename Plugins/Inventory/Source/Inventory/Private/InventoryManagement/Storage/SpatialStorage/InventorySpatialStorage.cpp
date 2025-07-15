@@ -24,11 +24,16 @@ UInventorySpatialStorage::UInventorySpatialStorage()
 
 AActor* UInventorySpatialStorage::GetOwningActor() const
 {
-	const UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
+	const UInventoryComponent* InventoryComponent = GetOwningInventoryComponent();
 	check(InventoryComponent);
 	AActor* OwningActor = InventoryComponent->GetOwner();
 	check(OwningActor);
 	return OwningActor;
+}
+
+UInventoryComponent* UInventorySpatialStorage::GetOwningInventoryComponent() const
+{
+	return Cast<UInventoryComponent>(GetOuter());
 }
 
 void UInventorySpatialStorage::SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData)
@@ -37,11 +42,10 @@ void UInventorySpatialStorage::SetupStorage(const TInstancedStruct<FInventorySto
 
 	const FInventorySpatialStorageSetupData& SpatialSetupData = SetupData.Get<FInventorySpatialStorageSetupData>();
 
-	AActor* OwningActor = GetOwningActor();
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
+	UInventoryComponent* InventoryComponent = GetOwningInventoryComponent();
 	check(InventoryComponent);
-	
-	UClass* GridClass = GetStorageGridClass();
+
+	const UClass* GridClass = GetStorageGridClass();
 	check(GridClass != nullptr);
 
 	if (!ensure(SpatialSetupData.GridCategories.Num() > 0))
@@ -52,7 +56,7 @@ void UInventorySpatialStorage::SetupStorage(const TInstancedStruct<FInventorySto
 	
 	for (const auto& ItemCategory : SpatialSetupData.GridCategories)
 	{
-		auto NewGrid = NewObject<UInventoryStorageGrid>(OwningActor, GridClass);
+		auto NewGrid = NewObject<UInventoryStorageGrid>(this, GridClass);
 		check(IsValid(NewGrid));
 		NewGrid->SetItemCategory(ItemCategory);
 		NewGrid->ConstructGrid(SpatialSetupData.Rows, SpatialSetupData.Columns);
@@ -127,7 +131,15 @@ FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInterna
 
 void UInventorySpatialStorage::OnRep_InventoryGrids()
 {
-	LOG_NETFUNCTIONCALL_MSG(TEXT(" (Inventory Grids Num = %d"), InventoryGrids.Num())
+	LOG_NETFUNCTIONCALL_MSG(TEXT(" (Inventory Grids Num = %d (%s)"), InventoryGrids.Num(), *GetInventoryGridNamesDebugString())
+
+	if (InventoryGrids.Num() > 0 && InventoryGrids[0] == nullptr)
+		return;
+	
+	if (UInventoryComponent* InventoryComponent = GetOwningInventoryComponent())
+	{
+		InventoryComponent->ReceivedStorageIsReady();
+	}
 }
 
 void UInventorySpatialStorage::DebugPrintStorage() const
@@ -190,7 +202,14 @@ FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const
 	GridNames.Reserve(InventoryGrids.Num());
 	for (const auto& Grid : InventoryGrids)
 	{
-		GridNames.Add(Grid->GetItemCategory().ToString());
+		if (Grid != nullptr)
+		{
+			GridNames.Add(Grid->GetItemCategory().ToString());
+		}
+		else
+		{
+			GridNames.Add(TEXT("(NULL)"));
+		}
 	}
 	if (GridNames.IsEmpty())
 		return TEXT("Empty");

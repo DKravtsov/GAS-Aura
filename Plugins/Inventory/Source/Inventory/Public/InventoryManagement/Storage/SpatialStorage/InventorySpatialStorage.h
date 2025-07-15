@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventorySpatialStorage.generated.h"
 
@@ -44,6 +45,7 @@ public:
 
 	AActor* GetOwningActor() const;
 
+	UInventoryComponent* GetOwningInventoryComponent() const;
 	virtual void SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData) override;
 
 	UInventoryStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 

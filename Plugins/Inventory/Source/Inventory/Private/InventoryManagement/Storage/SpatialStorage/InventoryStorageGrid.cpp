@@ -173,6 +173,9 @@ void UInventoryStorageGrid::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryStorageGrid, GridSlots);
+	DOREPLIFETIME(UInventoryStorageGrid, ItemCategory);
+	DOREPLIFETIME(UInventoryStorageGrid, Rows);
+	DOREPLIFETIME(UInventoryStorageGrid, Columns);
 }
 
 bool UInventoryStorageGrid::IsInGridBounds(int32 StartIndex, const FIntPoint& Dimensions) const
@@ -352,6 +355,12 @@ void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, con
 void UInventoryStorageGrid::OnRep_GridSlots()
 {
 	LOG_NETFUNCTIONCALL
+
+	if (!OwningActor.IsValid())
+	{
+		InitOwner();
+		
+	}
 }
 
 void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ArrayView)

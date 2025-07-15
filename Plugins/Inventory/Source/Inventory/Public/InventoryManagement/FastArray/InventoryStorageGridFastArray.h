@@ -25,10 +25,10 @@ public:
 
 };
 
-USTRUCT()
+USTRUCT(NotBlueprintType)
 struct FInventoryStorageGridFastArray: public FFastArraySerializer
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 private:
 	friend class UInventoryStorageGrid; 
