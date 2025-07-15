@@ -65,7 +65,7 @@ public:
 	int32 GetRows() const {return Rows;}
 	int32 GetColumns() const {return Columns;}
 	//const TArray<FInventoryStorageGridSlot>& GetGridSlots() const {return GridSlots;}
-	const TArray<FInventoryStorageGridSlot>& GetGridSlotsCopy() const {return GridSlots.GetAllSlots();}
+	TArray<FInventoryStorageGridSlot> GetGridSlotsCopy() const {return GridSlots.GetAllSlots();}
 	//TArray<FInventoryStorageGridSlot>& GetGridSlotsMutable() {return GridSlots;}
 	const FInventoryStorageGridSlot& GetGridSlot(int32 Index) const;
 	const FInventoryStorageGridSlot& GetGridSlot(const FIntPoint& Position) const;
