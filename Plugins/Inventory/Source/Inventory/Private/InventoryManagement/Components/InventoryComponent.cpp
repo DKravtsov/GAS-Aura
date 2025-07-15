@@ -599,7 +599,16 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
 			}
 		}
 	}
-	
+}
+
+void UInventoryComponent::CreateInventoryStorage()
+{
+	check(!IsValid(InventoryStorage));
+	check(InventoryStorageSetupData.IsValid());
+
+	InventoryStorage = NewObject<UInventoryStorage>(this, InventoryStorageSetupData.Get<FInventoryStorageSetupData>().StorageClass);	
+	check(InventoryStorage);
+	InventoryStorage->SetupStorage(InventoryStorageSetupData);
 }
 
 void UInventoryComponent::BeginPlay()
@@ -608,10 +617,7 @@ void UInventoryComponent::BeginPlay()
 
 	if (GetOwner()->HasAuthority())
 	{
-		if (ensure(IsValid(InventoryStorage)))
-		{
-			InventoryStorage->SetupStorage();
-		}
+		CreateInventoryStorage();
 	}
 	
 	Super::BeginPlay();
@@ -621,11 +627,14 @@ void UInventoryComponent::BeginPlay()
 	checkf(InventoryController != nullptr, TEXT("Player controller [%s] must have InventoryPlayerControllerComponent"),
 		*OwningPlayerController->GetClass()->GetName());
 
-	ConstructInventory();
-
-	if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
+	if (GetOwner()->HasAuthority())
 	{
-		Server_AddStartupItems();
+		ConstructInventoryMenu();
+
+		if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
+		{
+			Server_AddStartupItems();
+		}
 	}
 }
 
@@ -705,7 +714,14 @@ bool UInventoryComponent::Server_AddStartupItems_Validate()
 // 	//StartupEquipment.Empty();
 // }
 
-void UInventoryComponent::ConstructInventory()
+void UInventoryComponent::OnRep_StorageSetupData()
+{
+	LOG_NETFUNCTIONCALL
+
+	CreateInventoryStorage();
+}
+
+void UInventoryComponent::ConstructInventoryMenu()
 {
 	if (!OwningPlayerController->IsLocalController())
 		return;

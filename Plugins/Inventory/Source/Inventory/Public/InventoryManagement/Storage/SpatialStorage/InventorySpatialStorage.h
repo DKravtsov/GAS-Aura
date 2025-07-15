@@ -8,11 +8,9 @@
 
 class UInventoryStorageGrid;
 
-/**
- * 
- */
-UCLASS(MinimalAPI, Blueprintable)
-class UInventorySpatialStorage : public UInventoryStorage
+
+USTRUCT(BlueprintType)
+struct FInventorySpatialStorageSetupData : public FInventoryStorageSetupData
 {
 	GENERATED_BODY()
 
@@ -24,9 +22,21 @@ class UInventorySpatialStorage : public UInventoryStorage
 
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"))
 	TArray<FGameplayTag> GridCategories;
+
+	FInventorySpatialStorageSetupData();
 	
-	UPROPERTY(Transient)
-	TMap<FGameplayTag, TObjectPtr<UInventoryStorageGrid>> InventoryGrids;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, Blueprintable)
+class UInventorySpatialStorage : public UInventoryStorage
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(ReplicatedUsing=OnRep_InventoryGrids)
+	TArray<TObjectPtr<UInventoryStorageGrid>> InventoryGrids;
 
 public:
 
@@ -34,7 +44,7 @@ public:
 
 	AActor* GetOwningActor() const;
 
-	virtual void SetupStorage() override;
+	virtual void SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData) override;
 
 	UInventoryStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
 
@@ -59,4 +69,8 @@ protected:
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;
+
+private:
+	UFUNCTION()
+	void OnRep_InventoryGrids();
 };

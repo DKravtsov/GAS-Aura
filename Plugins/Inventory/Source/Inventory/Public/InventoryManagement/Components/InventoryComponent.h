@@ -7,8 +7,10 @@
 #include "InventoryGridTypes.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
+#include "StructUtils/InstancedStruct.h"
 #include "InventoryComponent.generated.h"
 
+struct FInventoryStorageSetupData;
 class UInventoryItemData;
 class UInventoryItemComponent;
 struct FInventorySlotAvailabilityResult;
@@ -78,8 +80,11 @@ public:
 
 private:
 
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(ExcludeBaseStruct), ReplicatedUsing=OnRep_StorageSetupData)
+	TInstancedStruct<FInventoryStorageSetupData> InventoryStorageSetupData;
+
 	// Responsible for HOW the inventory is stored
-	UPROPERTY(EditDefaultsOnly, Category="Inventory", Instanced, ReplicatedUsing=OnRep_InventoryStorage)
+	UPROPERTY(Transient, ReplicatedUsing=OnRep_InventoryStorage)
 	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -164,7 +169,8 @@ public:
 //#endif//UE_WITH_CHEAT_MANAGER
 
 protected:
-	INVENTORY_API virtual void BeginPlay() override;
+	INVENTORY_API void CreateInventoryStorage();
+	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
@@ -190,10 +196,12 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 	virtual void GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
-	
+
+	UFUNCTION()
+	virtual void OnRep_StorageSetupData();
 private:
 
-	void ConstructInventory();
+	void ConstructInventoryMenu();
 	void OpenInventoryMenu();
 	void CloseInventoryMenu();
 

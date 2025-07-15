@@ -12,9 +12,14 @@
 
 #include "DebugHelper.h"
 
+FInventorySpatialStorageSetupData::FInventorySpatialStorageSetupData()
+{
+	StorageClass = UInventorySpatialStorage::StaticClass();
+	GridCategories.Add(InventoryTags::Inventory_ItemCategory_Equipment); // add default category
+}
+
 UInventorySpatialStorage::UInventorySpatialStorage()
 {
-	GridCategories.Add(InventoryTags::Inventory_ItemCategory_Equipment); // add default category
 }
 
 AActor* UInventorySpatialStorage::GetOwningActor() const
@@ -26,31 +31,33 @@ AActor* UInventorySpatialStorage::GetOwningActor() const
 	return OwningActor;
 }
 
-void UInventorySpatialStorage::SetupStorage()
+void UInventorySpatialStorage::SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData)
 {
-	AActor* OwningActor = GetOwningActor();
 	LOG_NETFUNCTIONCALL
 
+	const FInventorySpatialStorageSetupData& SpatialSetupData = SetupData.Get<FInventorySpatialStorageSetupData>();
+
+	AActor* OwningActor = GetOwningActor();
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(GetOuter());
 	check(InventoryComponent);
 	
 	UClass* GridClass = GetStorageGridClass();
 	check(GridClass != nullptr);
 
-	if (!ensure(GridCategories.Num() > 0))
+	if (!ensure(SpatialSetupData.GridCategories.Num() > 0))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Forgot to create grid categories."))
 		return;
 	}
 	
-	for (const auto& ItemCategory : GridCategories)
+	for (const auto& ItemCategory : SpatialSetupData.GridCategories)
 	{
 		auto NewGrid = NewObject<UInventoryStorageGrid>(OwningActor, GridClass);
 		check(IsValid(NewGrid));
 		NewGrid->SetItemCategory(ItemCategory);
-		NewGrid->ConstructGrid(Rows, Columns);
+		NewGrid->ConstructGrid(SpatialSetupData.Rows, SpatialSetupData.Columns);
         
-		InventoryGrids.Emplace(ItemCategory, NewGrid);
+		InventoryGrids.Emplace(NewGrid);
 
 		InventoryComponent->AddRepSubObj(NewGrid);
 	}
@@ -63,11 +70,11 @@ TSubclassOf<UInventoryStorageGrid> UInventorySpatialStorage::GetStorageGridClass
 
 UInventoryStorageGrid* UInventorySpatialStorage::FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const
 {
-	if (const auto* GridPtr = InventoryGrids.Find(ItemCategory))
+	const auto* GridPtr = InventoryGrids.FindByPredicate([ItemCategory](const UInventoryStorageGrid* Grid)
 	{
-		return GridPtr->Get();
-	}
-	return nullptr;
+		return Grid->GetItemCategory().MatchesTagExact(ItemCategory);
+	});
+	return GridPtr ? GridPtr->Get() : nullptr;
 }
 
 int32 UInventorySpatialStorage::GetItemIndex(UInventoryItem* Item)
@@ -118,19 +125,24 @@ FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInterna
 	return FInventorySlotAvailabilityResult{};
 }
 
+void UInventorySpatialStorage::OnRep_InventoryGrids()
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT(" (Inventory Grids Num = %d"), InventoryGrids.Num())
+}
+
 void UInventorySpatialStorage::DebugPrintStorage() const
 {
-	const AActor* OwningActor = GetOwningActor();
 	LOG_NETFUNCTIONCALL
 	
 	FStringBuilderBase Output;
 	TMap<const UInventoryItem*, FStringBuilderBase::ElementType> ItemIndexMap;
 	int32 ItemIndex = 0;
-	for (const auto& [Tag, Grid] : InventoryGrids)
+	for (const auto& Grid : InventoryGrids)
 	{
 		int32 ColIndex = 0;
 		Output.Appendf(TEXT("\nGrid [%s]:\n"), *Grid->GetItemCategory().ToString());
-		for (const auto& GridSlot : Grid->GetGridSlotsCopy())
+		const auto AllGridSlots =  Grid->GetGridSlotsCopy();
+		for (const auto& GridSlot : AllGridSlots)
 		{
 			if (const UInventoryItem* Item = GridSlot.GetInventoryItem().Get())
 			{
@@ -156,7 +168,7 @@ void UInventorySpatialStorage::DebugPrintStorage() const
 				Output.Append(TEXT("[.]"));
 			}
 			ColIndex++;
-			if (ColIndex >= Columns)
+			if (ColIndex >= Grid->GetColumns())
 			{
 				ColIndex = 0;
 				Output.AppendChar('\n');
@@ -176,10 +188,12 @@ FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const
 {
 	TArray<FString> GridNames;
 	GridNames.Reserve(InventoryGrids.Num());
-	for (const auto& [Tag, Grid] : InventoryGrids)
+	for (const auto& Grid : InventoryGrids)
 	{
-		GridNames.Add(Tag.ToString());
+		GridNames.Add(Grid->GetItemCategory().ToString());
 	}
+	if (GridNames.IsEmpty())
+		return TEXT("Empty");
 	FStringBuilderBase Output;
 	Output.Join(GridNames, TEXT(","));
 	return Output.ToString();
