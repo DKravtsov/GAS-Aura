@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "InventoryGridTypes.h"
 #include "Components/ActorComponent.h"
+#include "InventoryManagement/FastArray/InventoryEquipmentSlotFastArray.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "StructUtils/InstancedStruct.h"
 #include "InventoryComponent.generated.h"
@@ -24,28 +25,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UI
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryMenuVisibilityChangedSugnature);
 
 USTRUCT(BlueprintType)
-struct FInventoryItemProxy
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TSoftObjectPtr<UInventoryItemData> InventoryItem;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bOverrideCount"))
-	FIntPoint MinMaxAmount {1,1};
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bShouldEquip"), DisplayName="Equip to slot")
-	EInventoryEquipmentSlot EquipmentSlot = EInventoryEquipmentSlot::Invalid;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(InlineEditConditionToggle))
-	uint8 bOverrideCount:1 = false;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(InlineEditConditionToggle))
-	uint8 bShouldEquip:1 = false;
-
-};
-
-USTRUCT(BlueprintType)
 struct FInventoryStartupEquipmentData
 {
 	GENERATED_BODY()
@@ -56,25 +35,6 @@ struct FInventoryStartupEquipmentData
 	UPROPERTY()
 	EInventoryEquipmentSlot Slot = EInventoryEquipmentSlot::Invalid;
 };
-
-USTRUCT(BlueprintType)
-struct FStorageSetupDataProxy
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, Category="Inventory", meta=(ExcludeBaseStruct))
-	TInstancedStruct<FInventoryStorageSetupData> SetupData;
-
-	// Property to trigger the replication
-	UPROPERTY()
-	int Trigger = 0;
-
-	const FInventoryStorageSetupData* GetData() const;
-	TSubclassOf<UInventoryStorage> GetStorageClass() const;
-
-	void MakeDirty() {++Trigger;}
-};
-
 
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, Within=PlayerController, meta=(BlueprintSpawnableComponent))
 class UInventoryComponent : public UActorComponent
@@ -98,8 +58,9 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category="Inventory", ReplicatedUsing=OnRep_StorageSetupData)
-	FStorageSetupDataProxy InventoryStorageSetupData;
+	// Inventory Setup Data
+	UPROPERTY(EditDefaultsOnly, Category="Inventory")
+	TSoftObjectPtr<class UInventorySetupData> InventorySetupData;
 
 	// Responsible for HOW the inventory is stored
 	UPROPERTY(ReplicatedUsing=OnRep_InventoryStorage)
@@ -123,13 +84,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DropSpawnDistanceMax = 50.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TArray<FInventoryEquipmentSlot> EquipmentSlots;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TArray<FInventoryItemProxy> StartupInventoryItems;
-
-
+	// Temp array to sync between client and server. todo: probably can be replaced/removed if equipped items are synced through fast array
 	TArray<FInventoryStartupEquipmentData> StartupEquipment;
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
@@ -138,6 +93,10 @@ private:
 	// List of WHAT is stored in the inventory
 	UPROPERTY(Replicated)
 	FInventoryFastArray InventoryList;
+
+	// List of equipment slots
+	UPROPERTY(Replicated)
+	FInventoryEquipmentSlotFastArray EquipmentSlots;
 
 	uint8 bInventoryMenuOpen:1 = false;
 
@@ -150,7 +109,7 @@ public:
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
 	UInventoryStorage* GetInventoryStorage() const { return InventoryStorage; }
 
-	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const {return EquipmentSlots;}
+	TArray<FInventoryEquipmentSlot> GetEquipmentSlotsCopy() const {return EquipmentSlots.GetAllItems();}
 
 	const FInventoryEquipmentSlot* GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
 	const FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const;
@@ -229,6 +188,10 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_StorageSetupData();
+
+	UFUNCTION()
+	virtual void OnRep_EquipmentSlots();
+	
 private:
 	void SetOwnerInternal();
 
@@ -255,10 +218,11 @@ private:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
 
-	FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItemMutable(const UInventoryItem* Item);
-	FInventoryEquipmentSlot* FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty = true);
+	EInventoryEquipmentSlot FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty = true) const;
+
+	// Be aware, that this also marks the entry dirty for replication
 	FInventoryEquipmentSlot* GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
 
-	EInventoryEquipmentSlot GetValidEquipSlotId(const FInventoryItemProxy& Item, const FInventoryItemManifest& ItemManifest);
+	EInventoryEquipmentSlot GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest);
 
 };

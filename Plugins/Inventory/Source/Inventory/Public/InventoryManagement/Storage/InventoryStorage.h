@@ -44,7 +44,7 @@ public:
 	bool HasRoomForItem(FInventorySlotAvailabilityResult& Result, const UInventoryItemComponent* ItemComponent) const;
 	bool HasRoomForItem(FInventorySlotAvailabilityResult& Result, const struct FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 
-	virtual void SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData) {}
+	virtual void SetupStorage(const FInventoryStorageSetupData* SetupData) {}
 
 	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;};
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}

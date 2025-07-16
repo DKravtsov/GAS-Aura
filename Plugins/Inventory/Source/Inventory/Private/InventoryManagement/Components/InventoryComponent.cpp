@@ -15,6 +15,7 @@
 #include "Items/Fragments/InventoryItemFragment.h"
 
 #include "DebugHelper.h"
+#include "InventoryManagement/Data/InventorySetupData.h"
 
 const FInventoryStorageSetupData* FStorageSetupDataProxy::GetData() const
 {
@@ -29,6 +30,7 @@ TSubclassOf<UInventoryStorage> FStorageSetupDataProxy::GetStorageClass() const
 
 UInventoryComponent::UInventoryComponent()
 	: InventoryList(this)
+	, EquipmentSlots(this) 
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
@@ -179,42 +181,28 @@ const FInventoryEquipmentSlot* UInventoryComponent::FindEquipmentSlotByEquippedI
 {
 	if (IsValid(Item))
 	{
-		for (const auto& EquipSlot : EquipmentSlots)
-		{
-			if (EquipSlot.GetInventoryItem() == Item)
-				return &EquipSlot;
-		}
+		return EquipmentSlots.GetSlotByItem(Item);
 	}
 	return nullptr;
 }
 
-FInventoryEquipmentSlot* UInventoryComponent::FindEquipmentSlotByEquippedItemMutable(const UInventoryItem* Item)
+EInventoryEquipmentSlot UInventoryComponent::FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty) const
 {
-	return const_cast<FInventoryEquipmentSlot*>(FindEquipmentSlotByEquippedItem(Item));
-}
-
-FInventoryEquipmentSlot* UInventoryComponent::FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty)
-{
-	return EquipmentSlots.FindByPredicate([ItemEquipmentTypeTag, bOnlyEmpty](const FInventoryEquipmentSlot& EquipmentSlot)
+	auto* EquipSlot = EquipmentSlots.FindByPredicate([ItemEquipmentTypeTag, bOnlyEmpty](const FInventoryEquipmentSlot& EquipmentSlot)
 	{
 		return (!bOnlyEmpty || EquipmentSlot.IsAvailable()) && ItemEquipmentTypeTag.MatchesTag(EquipmentSlot.GetEquipmentTypeTag());
 	});
+	return EquipSlot ? EquipSlot->GetSlotId() : EInventoryEquipmentSlot::Invalid;
 }
 
 FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId)
 {
-	return EquipmentSlots.FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
-	{
-		return EquipmentSlot.GetSlotId() == SlotId;
-	});
+	return EquipmentSlots.GetSlotByIdMutable(SlotId);
 }
 
 const FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const
 {
-	return EquipmentSlots.FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
-	{
-		return EquipmentSlot.GetSlotId() == SlotId;
-	});
+	return EquipmentSlots.GetSlotById(SlotId);
 }
 
 void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
@@ -567,8 +555,8 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, InventoryList);
-	DOREPLIFETIME(UInventoryComponent, InventoryStorageSetupData);
 	DOREPLIFETIME(UInventoryComponent, InventoryStorage);
+	DOREPLIFETIME(UInventoryComponent, EquipmentSlots);
 }
 
 bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
@@ -610,30 +598,9 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation(const T
 	
 	LOG_NETFUNCTIONCALL
 
-	// recombine on the client the array with items that need to be equipped
 	if (OwningPlayerController->HasAuthority())
 		return;
 
-	// for (const auto& Item : StartupInventoryItems)
-	// {
-	// 	if (!Item.bShouldEquip)
-	// 		continue;
-	// 	
-	// 	// in theory, this should be loaded at the moment, so, it should be no additional time spent here
-	// 	if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
-	// 	{
-	// 		if (ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
-	// 			continue;
-	//
-	// 		if (auto* InventoryItem = InventoryList.FindFirstItemByType(ItemData->GetItemManifest().GetItemType()))
-	// 		{
-	// 			const auto* EquipSlot = FindEquipmentSlotByEquippedItem(InventoryItem);
-	// 			if (EquipSlot == nullptr)
-	// 				continue;
-	// 			StartupEquipment.Emplace(InventoryItem, EquipSlot->GetSlotId());
-	// 		}
-	// 	}
-	// }
 	StartupEquipment = StartupEquipmentData;
 }
 
@@ -641,8 +608,12 @@ void UInventoryComponent::CreateInventoryStorage()
 {
 	LOG_NETFUNCTIONCALL
 	
-	check(!IsValid(InventoryStorage));
-	const auto SetupData = InventoryStorageSetupData.GetData();
+	if (!ensure(!IsValid(InventoryStorage)))
+		return;
+
+	check(InventorySetupData.IsValid());
+
+	const FInventoryStorageSetupData* SetupData = InventorySetupData->InventoryStorage.GetData();
 	check(SetupData != nullptr);
 
 	InventoryStorage = NewObject<UInventoryStorage>(this, SetupData->StorageClass);	
@@ -651,9 +622,12 @@ void UInventoryComponent::CreateInventoryStorage()
 
 	if (GetOwner()->HasAuthority())
 	{
-		InventoryStorage->SetupStorage(InventoryStorageSetupData.SetupData);
+		InventoryStorage->SetupStorage(SetupData);
 
-		InventoryStorageSetupData.MakeDirty(); // to trigger replication
+		for (const auto& [SlotId, EquipmentTypeTag] : InventorySetupData->EquipmentSlots)
+		{
+			EquipmentSlots.AddSlot(SlotId, EquipmentTypeTag);
+		}
 	}
 }
 
@@ -674,6 +648,12 @@ void UInventoryComponent::BeginPlay()
 {
 	LOG_NETFUNCTIONCALL
 
+	if (!InventorySetupData.IsNull())
+	{
+		// force loading
+		InventorySetupData.LoadSynchronous();
+	}
+
 	if (GetOwner()->HasAuthority())
 	{
 		CreateInventoryStorage();
@@ -687,7 +667,7 @@ void UInventoryComponent::BeginPlay()
 	{
 		ConstructInventoryMenu();
 
-		if (!StartupInventoryItems.IsEmpty())
+		if (!InventorySetupData->DefaultStartupInventory.IsEmpty())
 		{
 			Server_AddStartupItems();
 		}
@@ -695,10 +675,10 @@ void UInventoryComponent::BeginPlay()
 
 }
 
-EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(const FInventoryItemProxy& Item, const FInventoryItemManifest& ItemManifest)
+EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest)
 {
 	EInventoryEquipmentSlot EquipSlotId = EInventoryEquipmentSlot::Invalid;
-	while (Item.bShouldEquip)
+	while (true)
 	{
 		if (!ItemManifest.GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment)
 			|| ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>())
@@ -708,20 +688,21 @@ EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(const FInventor
 				
 		if (const auto* EquipFragment = ItemManifest.GetFragmentOfType<FInventoryItemEquipmentFragment>())
 		{
-			if (Item.EquipmentSlot == EInventoryEquipmentSlot::Invalid)
+			if (DesiredSlotId == EInventoryEquipmentSlot::Invalid)
 			{
 				// try to find a suitable one
-				if (const auto EquipSlot = FindSuitableEquippedGridSlot(EquipFragment->GetEquipmentType()))
+				const EInventoryEquipmentSlot FoundSlot = FindSuitableEquippedGridSlot(EquipFragment->GetEquipmentType());
+				if (FoundSlot != EInventoryEquipmentSlot::Invalid)
 				{
-					EquipSlotId = EquipSlot->GetSlotId();
+					EquipSlotId = FoundSlot;
 					break;
 				}
 			}
-			else if (const auto EquipSlot = GetEquipmentSlot(Item.EquipmentSlot))
+			else if (const auto EquipSlot = GetEquipmentSlot(DesiredSlotId))
 			{
 				if (EquipFragment->GetEquipmentType().MatchesTag(EquipSlot->GetEquipmentTypeTag()) && EquipSlot->IsAvailable())
 				{
-					EquipSlotId = Item.EquipmentSlot;
+					EquipSlotId = DesiredSlotId;
 					break;
 				}
 			}
@@ -734,6 +715,8 @@ EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(const FInventor
 void UInventoryComponent::Server_AddStartupItems_Implementation()
 {
 	LOG_NETFUNCTIONCALL
+
+	const TArray<FInventoryItemProxy>& StartupInventoryItems = InventorySetupData->DefaultStartupInventory;
 	
 	StartupEquipment.Reserve(StartupInventoryItems.Num());
 		
@@ -749,7 +732,8 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 					? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
 					: StackableFragment->GetStackCount();
 			}
-			EInventoryEquipmentSlot EquipSlotId = GetValidEquipSlotId(Item, ItemData->GetItemManifest());
+			const EInventoryEquipmentSlot EquipSlotId = Item.bShouldEquip ?
+				GetValidEquipSlotId(Item.EquipmentSlot, ItemData->GetItemManifest()) : EInventoryEquipmentSlot::Invalid;
 			Server_TryAddStartupItem(ItemData->GetItemManifest(), StackCount, EquipSlotId);
 		}
 	}
@@ -776,6 +760,11 @@ void UInventoryComponent::OnRep_StorageSetupData()
 	LOG_NETFUNCTIONCALL
 
 	//CreateInventoryStorage();
+}
+
+void UInventoryComponent::OnRep_EquipmentSlots()
+{
+	LOG_NETFUNCTIONCALL
 }
 
 void UInventoryComponent::ConstructInventoryMenu()
@@ -891,7 +880,7 @@ void UInventoryComponent::DebugPrintStorage() const
 
 	FStringBuilderBase Output;
 	Output += TEXT("Equipment slots:\n");
-	for (const auto& EquipSlot : EquipmentSlots)
+	for (const auto& EquipSlot : EquipmentSlots.GetAllItems())
 	{
 		Output.Appendf(TEXT("Slot %d (%s): %s\n"), static_cast<int32>(EquipSlot.GetSlotId()),
 			*EquipSlot.GetEquipmentTypeTag().ToString(), *GetInventoryItemId(EquipSlot.GetInventoryItem().Get()));

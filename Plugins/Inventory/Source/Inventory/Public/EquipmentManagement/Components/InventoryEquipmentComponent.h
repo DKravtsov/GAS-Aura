@@ -35,17 +35,11 @@ public:
 
 	void InitializeOwner(APlayerController* PlayerController);
 
-	const TArray<FInventoryEquipmentSlot>& GetEquipmentSlots() const;
-
 	const FInventoryEquipmentSlot* FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
-	FInventoryEquipmentSlot* FindEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
 	
 	bool IsItemEquipped(const UInventoryItem* Item) const;
 	
 	const FInventoryEquipmentSlot* GetEquipmentSlotByItem(const UInventoryItem* Item) const;
-	FInventoryEquipmentSlot* GetEquipmentSlotByItemMutable(const UInventoryItem* Item);
-
-	//AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
 
 	//~ Begin of UActorComponent interface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

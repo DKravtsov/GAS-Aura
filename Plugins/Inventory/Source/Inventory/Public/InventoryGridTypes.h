@@ -178,6 +178,7 @@ struct FInventoryEquipmentSlot
 	GENERATED_BODY()
 	
 private:
+	UPROPERTY()
 	TWeakObjectPtr<UInventoryItem> InventoryItem;
 
 	// UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
@@ -200,6 +201,12 @@ public:
 	//const FGameplayTag& GetEquipmentSlotTag() const { return EquipmentSlotTag; }
 	EInventoryEquipmentSlot GetSlotId() const { return SlotId; }
 
+	void Init(EInventoryEquipmentSlot NewSlotId, const FGameplayTag& NewEquipmentTypeTag)
+	{
+		SlotId = NewSlotId;
+		EquipmentTypeTag = NewEquipmentTypeTag;
+	}
+	
 	void Clear()
 	{
 		InventoryItem.Reset();

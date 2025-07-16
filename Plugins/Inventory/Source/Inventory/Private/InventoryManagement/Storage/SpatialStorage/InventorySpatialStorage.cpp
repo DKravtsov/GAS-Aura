@@ -36,11 +36,11 @@ UInventoryComponent* UInventorySpatialStorage::GetOwningInventoryComponent() con
 	return Cast<UInventoryComponent>(GetOuter());
 }
 
-void UInventorySpatialStorage::SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData)
+void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* SetupData)
 {
 	LOG_NETFUNCTIONCALL
 
-	const FInventorySpatialStorageSetupData& SpatialSetupData = SetupData.Get<FInventorySpatialStorageSetupData>();
+	const FInventorySpatialStorageSetupData& SpatialSetupData = *static_cast<const FInventorySpatialStorageSetupData*>(SetupData);
 
 	UInventoryComponent* InventoryComponent = GetOwningInventoryComponent();
 	check(InventoryComponent);

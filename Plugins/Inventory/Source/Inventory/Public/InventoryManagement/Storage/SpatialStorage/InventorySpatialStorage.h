@@ -46,7 +46,7 @@ public:
 	AActor* GetOwningActor() const;
 
 	UInventoryComponent* GetOwningInventoryComponent() const;
-	virtual void SetupStorage(const TInstancedStruct<FInventoryStorageSetupData>& SetupData) override;
+	virtual void SetupStorage(const FInventoryStorageSetupData* SetupData) override;
 
 	UInventoryStorageGrid* FindInventoryGridByCategory(const FGameplayTag& ItemCategory) const; 
 

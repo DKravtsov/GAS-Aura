@@ -34,60 +34,24 @@ void UInventoryEquipmentComponent::InitializeOwner(APlayerController* PlayerCont
 	}
 }
 
-const TArray<FInventoryEquipmentSlot>& UInventoryEquipmentComponent::GetEquipmentSlots() const
-{
-	check(InventoryComponent.IsValid());
-	return InventoryComponent->GetEquipmentSlots();
-}
-
 const FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const
 {
-	return GetEquipmentSlots().FindByPredicate([SlotId](const FInventoryEquipmentSlot& EquipmentSlot)
-	{
-		return EquipmentSlot.GetSlotId() == SlotId;
-	});
-}
-
-FInventoryEquipmentSlot* UInventoryEquipmentComponent::FindEquipmentSlotMutable(EInventoryEquipmentSlot SlotId)
-{
-	return const_cast<FInventoryEquipmentSlot*>(FindEquipmentSlot(SlotId));
+	check(InventoryComponent.IsValid());
+	return InventoryComponent->GetEquipmentSlot(SlotId);
 }
 
 bool UInventoryEquipmentComponent::IsItemEquipped(const UInventoryItem* Item) const
 {
 	check(IsValid(Item));
-
-	for (auto& EquippedGridSlot : GetEquipmentSlots())
-	{
-		if (EquippedGridSlot.GetInventoryItem() == Item)
-			return true;
-	}
-	return false;
+	return GetEquipmentSlotByItem(Item) != nullptr;
 }
 
 const FInventoryEquipmentSlot* UInventoryEquipmentComponent::GetEquipmentSlotByItem(const UInventoryItem* Item) const
 {
 	check(IsValid(Item));
-
-	for (auto& EquippedGridSlot : GetEquipmentSlots())
-	{
-		if (EquippedGridSlot.GetInventoryItem() == Item)
-			return &EquippedGridSlot;
-	}
-	return nullptr;
+	check(InventoryComponent.IsValid());
+	return InventoryComponent->FindEquipmentSlotByEquippedItem(Item);
 }
-
-FInventoryEquipmentSlot* UInventoryEquipmentComponent::GetEquipmentSlotByItemMutable(const UInventoryItem* Item)
-{
-	return const_cast<FInventoryEquipmentSlot*>(GetEquipmentSlotByItem(Item));
-}
-
-// AInventoryEquipActor* UInventoryEquipmentComponent::FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const
-// {
-// 	// if (const auto FoundActor = EquippedActors.Find(EquipmentType))
-// 	// 	return FoundActor->Get();
-// 	return nullptr;
-// }
 
 void UInventoryEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
