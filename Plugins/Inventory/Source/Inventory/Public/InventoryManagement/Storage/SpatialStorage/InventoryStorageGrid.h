@@ -90,7 +90,7 @@ public:
 	void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount);
 	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
 
-	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ArrayView);
+	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices);
 
 	void SetStackCount(int32 GridIndex, int32 NewStackCount);
 
@@ -118,7 +118,7 @@ private:
 	UFUNCTION()
 	void HandleItemAdded(UInventoryItem* Item);
 
-	bool MatchesCategory(UInventoryItem* Item);
+	bool MatchesCategory(const UInventoryItem* Item) const;
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackAmount);

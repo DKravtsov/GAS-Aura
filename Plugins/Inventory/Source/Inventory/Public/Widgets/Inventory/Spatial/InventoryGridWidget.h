@@ -137,7 +137,7 @@ private:
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
 	
-	void OnUpdateGridSlots(const TArray<int32>& GridIndexArray);
+	void OnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
 
 	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& Dimensions) const;
 
@@ -193,5 +193,5 @@ private:
 	void PutHoverItemDown();
 
 	void OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
-	void OnRemovedItemFromGrid(const TArray<int32>& GridIndexArray);
+	void OnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
 };

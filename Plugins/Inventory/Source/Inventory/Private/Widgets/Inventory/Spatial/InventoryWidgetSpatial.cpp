@@ -233,7 +233,7 @@ void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
 	if (Item == nullptr)
 		return;
 
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s]"), *Item->GetItemType().ToString());
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s]"), *GetInventoryItemId(Item));
 	
 	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 	check(InventoryComponent != nullptr);
@@ -278,6 +278,9 @@ void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
 
 void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("EquipSlot [%d]; HoverItem [%s]"), static_cast<int32>(GridSlot->GetSlotId()),
+		GetHoverItem() ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
+
 	// Check to see if we can equip the Hover Item
 	if (!CanEquipHoverItem(GridSlot, EquipmentTypeTag))
 		return;
@@ -310,6 +313,8 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 
 	UInventoryItem* ItemToEquip = IsValid(HoverItem) ? HoverItem->GetInventoryItem() : nullptr;
 	UInventoryItem* ItemToUnequip = EquippedSlottedItem->GetInventoryItem();
+
+	LOG_NETFUNCTIONCALL_MSG(TEXT("ItemToEquip [%s]; ItemToUnequip [%s]"), *GetInventoryItemId(ItemToEquip), *GetInventoryItemId(ItemToUnequip));
 
 	// To avoid putting the hover item back to the inventory
 	ActiveGrid->ClearHoverItem();

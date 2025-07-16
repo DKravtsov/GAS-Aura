@@ -31,7 +31,7 @@ TArray<UInventoryItem*> FInventoryFastArray::GetAllItems() const
 
 void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_STRUCT(OwnerComponent.Get(), InventoryList)
+	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), RemovedIndices.Num())
 
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
 	if (IsValid(InventoryComponent))
@@ -45,7 +45,7 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 
 void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_STRUCT(OwnerComponent.Get(), InventoryList)
+	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), AddedIndices.Num())
 
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
 	if (IsValid(InventoryComponent))

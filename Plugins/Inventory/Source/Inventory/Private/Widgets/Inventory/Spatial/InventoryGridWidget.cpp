@@ -385,7 +385,7 @@ void UInventoryGridWidget::AddSlottedItemToGrid(const int32 Index, const FInvent
 	}
 }
 
-void UInventoryGridWidget::OnUpdateGridSlots(const TArray<int32>& GridIndexArray)
+void UInventoryGridWidget::OnUpdateGridSlots(const TArrayView<int32>& GridIndexArray)
 {
 	for (const int32 GridIndex : GridIndexArray)
 	{
@@ -610,7 +610,7 @@ void UInventoryGridWidget::OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, i
 	
 }
 
-void UInventoryGridWidget::OnRemovedItemFromGrid(const TArray<int32>& GridIndexArray)
+void UInventoryGridWidget::OnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray)
 {
 	for (const int32 GridIndex : GridIndexArray)
 	{
@@ -631,6 +631,9 @@ void UInventoryGridWidget::OnRemovedItemFromGrid(const TArray<int32>& GridIndexA
 
 void UInventoryGridWidget::OnGridSlotClicked(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("EquipIndex [%d]; HoverItem [%s]"), GridSlotIndex,
+		HoverItem ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
+
 	if (!IsValid(HoverItem) || !GridSlots.IsValidIndex(ItemDropIndex))
 		return;
 
@@ -697,11 +700,14 @@ int32 UInventoryGridWidget::GetMaxStackSize(const UInventoryItem* Item)
 void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
 {
 	check(GridSlots.IsValidIndex(GridIndex));
-	UE_LOG(LogTemp, Warning, TEXT("Clicked on item: %d"), GridIndex);
-
-	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
-	
 	UInventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+
+	LOG_NETFUNCTIONCALL_MSG(TEXT("GridIndex [%d]; ClickedItem [%s]; HoverItem [%s]"), GridIndex,
+		*GetInventoryItemId(ClickedInventoryItem),
+		GetHoverItem() ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
+
+	// remove item description widget
+	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
 
 	if (!IsValid(HoverItem))
 	{

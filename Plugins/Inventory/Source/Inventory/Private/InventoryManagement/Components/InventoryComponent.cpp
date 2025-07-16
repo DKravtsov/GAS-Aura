@@ -13,9 +13,9 @@
 #include "Items/InventoryItem.h"
 #include "Items/InventoryItemData.h"
 #include "Items/Fragments/InventoryItemFragment.h"
+#include "InventoryManagement/Data/InventorySetupData.h"
 
 #include "DebugHelper.h"
-#include "InventoryManagement/Data/InventorySetupData.h"
 
 const FInventoryStorageSetupData* FStorageSetupDataProxy::GetData() const
 {
@@ -886,5 +886,10 @@ void UInventoryComponent::DebugPrintStorage() const
 			*EquipSlot.GetEquipmentTypeTag().ToString(), *GetInventoryItemId(EquipSlot.GetInventoryItem().Get()));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
+}
+
+TArray<UInventoryItem*> UInventoryComponent::GetAllInventoryItems() const
+{
+	return InventoryList.GetAllItems();
 }
 //#endif//UE_WITH_CHEAT_MANAGER

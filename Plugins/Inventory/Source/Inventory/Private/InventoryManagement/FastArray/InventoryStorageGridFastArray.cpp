@@ -88,7 +88,7 @@ void FInventoryStorageGridFastArray::PostReplicatedAdd(const TArrayView<int32>& 
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), AddedIndices.Num())
 
-	if (IsValid(OwningGrid))
+	if (IsValid(OwningGrid) && AddedIndices.Num() > 0)
 	{
 		OwningGrid->NotifyGridChanged(AddedIndices);
 	}
@@ -98,7 +98,7 @@ void FInventoryStorageGridFastArray::PostReplicatedChange(const TArrayView<int32
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), ChangedIndices.Num())
 
-	if (IsValid(OwningGrid))
+	if (IsValid(OwningGrid) && ChangedIndices.Num() > 0)
 	{
 		OwningGrid->NotifyGridChanged(ChangedIndices);
 	}

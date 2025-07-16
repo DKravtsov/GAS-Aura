@@ -145,6 +145,7 @@ public:
 
 //#if UE_WITH_CHEAT_MANAGER
 	INVENTORY_API void DebugPrintStorage() const;
+	TArray<UInventoryItem*> GetAllInventoryItems() const;
 //#endif//UE_WITH_CHEAT_MANAGER
 
 protected:

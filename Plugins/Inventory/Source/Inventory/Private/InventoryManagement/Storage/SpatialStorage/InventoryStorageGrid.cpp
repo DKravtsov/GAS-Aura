@@ -294,7 +294,7 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 	OnStackChanged.Broadcast(Result);
 }
 
-bool UInventoryStorageGrid::MatchesCategory(UInventoryItem* Item)
+bool UInventoryStorageGrid::MatchesCategory(const UInventoryItem* Item) const
 {
 	return Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
 }
@@ -313,6 +313,8 @@ void UInventoryStorageGrid::AddItemAtIndex(UInventoryItem* Item, int32 Index, bo
 
 void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
 {
+	LOG_NETFUNCTIONCALL
+	
 	check(GridSlots.Entries.IsValidIndex(Index));
 
 	if (bStackable)
@@ -363,11 +365,14 @@ void UInventoryStorageGrid::OnRep_GridSlots()
 	}
 }
 
-void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ArrayView)
+void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices)
 {
 	LOG_NETFUNCTIONCALL
 
-	//OnGridSlotsUpdated.Broadcast(ArrayView);
+	if (GetOwningActor()->HasAuthority() || ChangedIndices.IsEmpty())
+		return;
+	
+	OnGridSlotsUpdated.Broadcast(ChangedIndices);
 }
 
 void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)

@@ -25,7 +25,7 @@ namespace InventoryTags
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemGridChangedDelegate, const struct FInventorySlotAvailabilityResult& /*Result*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemChangedDelegate, class UInventoryItem* /*Item*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryGridSlotsUpdatedSignature, const TArray<int32>& /*GridIndexArray*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryGridSlotsUpdatedSignature, const TArrayView<int32>& /*GridIndexArray*/);
 
 USTRUCT()
 struct FInventorySlotAvailability
