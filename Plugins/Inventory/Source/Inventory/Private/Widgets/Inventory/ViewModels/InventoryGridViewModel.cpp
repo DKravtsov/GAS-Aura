@@ -39,21 +39,6 @@ void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryCompone
 	
 	InventoryComponent = InInventoryComponent;
 	StorageGrid = InGrid;
-
-	StorageGrid->OnItemAdded.AddLambda([this](const FInventorySlotAvailabilityResult& Result)
-	{
-		OnItemAdded.Broadcast(Result);
-	});
-
-	StorageGrid->OnStackChanged.AddLambda([this](const FInventorySlotAvailabilityResult& Result)
-	{
-		OnStackChanged.Broadcast(Result);
-	});
-
-	StorageGrid->OnItemRemoved.AddLambda([this](UInventoryItem* Item)
-	{
-		OnItemRemoved.Broadcast(Item);
-	});
 }
 
 int32 UInventoryGridViewModel::GetRows() const
@@ -105,6 +90,26 @@ void UInventoryGridViewModel::RemoveItemFromGrid(UInventoryItem* ItemToRemove, c
 void UInventoryGridViewModel::NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const
 {
 	StorageGrid->HandleStackChanged(Result);
+}
+
+bool UInventoryGridViewModel::HasAuthority() const
+{
+	return InventoryComponent.IsValid() && InventoryComponent->GetOwner()->HasAuthority();
+}
+
+FInventoryItemGridChangedDelegate& UInventoryGridViewModel::GetOnItemAddedDelegate() const
+{
+	return StorageGrid->OnItemAdded;
+}
+
+FInventoryItemChangedDelegate& UInventoryGridViewModel::GetOnItemRemovedDelegate() const
+{
+	return StorageGrid->OnItemRemoved;
+}
+
+FInventoryItemGridChangedDelegate& UInventoryGridViewModel::GetOnStackChangedDelegate() const
+{
+	return StorageGrid->OnStackChanged;
 }
 
 FInventoryGridSlotsUpdatedSignature& UInventoryGridViewModel::GetOnGridSlotsUpdatedDelegate() const

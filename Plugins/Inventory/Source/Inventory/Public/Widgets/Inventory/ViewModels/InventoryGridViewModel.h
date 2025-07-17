@@ -27,9 +27,9 @@ class UInventoryGridViewModel : public UObject
 
 public:
 
-	FInventoryItemGridChangedDelegate OnItemAdded;
-	FInventoryItemChangedDelegate OnItemRemoved;
-	FInventoryItemGridChangedDelegate OnStackChanged;
+	FInventoryItemGridChangedDelegate& GetOnItemAddedDelegate() const;
+	FInventoryItemChangedDelegate& GetOnItemRemovedDelegate() const;
+	FInventoryItemGridChangedDelegate& GetOnStackChangedDelegate() const;
 	
 //	FInventoryItemGridSignature OnItemRemovedFromGrid; // Item has beeb removed from the grid but not from the inventory (yet)
 //	FInventoryItemGridSignature OnGridSlotsUpdated;
@@ -67,5 +67,9 @@ public:
 	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex) const;
 
 	void NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const;
+
+private:
+
+	bool HasAuthority() const;
 
 };
