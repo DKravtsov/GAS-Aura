@@ -61,6 +61,8 @@ public:
 
 	bool IsValidIndex(int32 Index) const {return Entries.IsValidIndex(Index);}
 
+	bool IsSlotAvailable(int32 SlotIndex) const;
+
 	//~ Begin of FFastArraySerializer interface (NOTE: intentionally not virtual; invoked via templated code)
 	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
 	void PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize);

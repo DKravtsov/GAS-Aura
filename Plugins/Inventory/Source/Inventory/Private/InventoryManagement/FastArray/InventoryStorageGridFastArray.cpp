@@ -84,6 +84,11 @@ void FInventoryStorageGridFastArray::ClearSlot(int32 SlotIndex)
 	MarkItemDirty(Entries[SlotIndex]);
 }
 
+bool FInventoryStorageGridFastArray::IsSlotAvailable(int32 SlotIndex) const
+{
+	return GetSlot(SlotIndex).IsAvailable(); 
+}
+
 void FInventoryStorageGridFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), AddedIndices.Num())

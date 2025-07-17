@@ -32,8 +32,8 @@ void UInventoryGridWidget::NativeOnInitialized()
 	CreateGridViewModel();
 	if (ensure(GridViewModel))
 	{
-		GridViewModel->OnItemAdded.AddUObject(this, &UInventoryGridWidget::AddItem);
-		GridViewModel->OnStackChanged.AddUObject(this, &UInventoryGridWidget::OnStackChanged);
+		GridViewModel->GetOnItemAddedToGridDelegate().AddUObject(this, &UInventoryGridWidget::AddItemToGrid);
+		GridViewModel->GetOnStackChangedDelegate().AddUObject(this, &UInventoryGridWidget::OnStackChanged);
 		//GridViewModel->OnItemRemovedFromGrid.AddUObject(this, &ThisClass::OnRemovedItemFromGrid);
 		GridViewModel->GetOnGridSlotsResetDelegate().AddUObject(this, &UInventoryGridWidget::OnRemovedItemFromGrid);
 		GridViewModel->GetOnGridSlotsUpdatedDelegate().AddUObject(this, &UInventoryGridWidget::OnUpdateGridSlots);
@@ -279,7 +279,7 @@ bool UInventoryGridWidget::IsInGridBounds(const int32 StartIndex, const FIntPoin
 	return EndColumn <= Columns && EndRow <= Rows;
 }
 
-void UInventoryGridWidget::AddItem(const FInventorySlotAvailabilityResult& Result)
+void UInventoryGridWidget::AddItemToGrid(const FInventorySlotAvailabilityResult& Result)
 {
 	UInventoryItem* Item = Result.Item.Get();
 	if (!IsValid(Item) || !MatchesCategory(Item))
