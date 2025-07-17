@@ -210,6 +210,5 @@ public:
 	void Clear()
 	{
 		InventoryItem.Reset();
-		EquipmentTypeTag = FGameplayTag::EmptyTag;
 	}
 };
