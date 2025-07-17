@@ -106,23 +106,23 @@ private:
 public:
 	INVENTORY_API UInventoryComponent();
 
+	void AddRepSubObj(UObject* SubObj);
+
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
 	UInventoryStorage* GetInventoryStorage() const { return InventoryStorage; }
-
-	TArray<FInventoryEquipmentSlot> GetEquipmentSlotsCopy() const {return EquipmentSlots.GetAllItems();}
-
-	const FInventoryEquipmentSlot* GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
-	const FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
 
+	TArray<FInventoryEquipmentSlot> GetEquipmentSlotsCopy() const {return EquipmentSlots.GetAllItems();}
+
+	const FInventoryEquipmentSlot* GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
+	const FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const;
+
 	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
-
-	void AddRepSubObj(UObject* SubObj);
 
 	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
@@ -134,13 +134,8 @@ public:
 
 	void ReceivedStartupItems();
 	void ReceivedStartupItemsEquipped() { bStartupItemsEquipped = true; }
-
 	bool AreStartupItemsInitialized() const { return bStartupItemsInitialized; }
 	bool AreStartupItemsEquipped() const { return bStartupItemsEquipped; }
-
-	UFUNCTION()
-	virtual void OnRep_InventoryStorage();
-
 	void ReceivedStorageIsReady();
 
 //#if UE_WITH_CHEAT_MANAGER
@@ -192,7 +187,10 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_EquipmentSlots();
-	
+
+	UFUNCTION()
+	virtual void OnRep_InventoryStorage();
+
 private:
 	void SetOwnerInternal();
 
