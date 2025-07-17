@@ -91,7 +91,7 @@ public:
 
 	float GetTileSize() const { return TileSize; }
 
-	INVENTORY_API void AddItem(const FInventorySlotAvailabilityResult& Result);
+	INVENTORY_API void AddItemToGrid(const FInventorySlotAvailabilityResult& Result);
 
 	UFUNCTION()
 	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);

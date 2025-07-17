@@ -270,7 +270,7 @@ void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 	auto Result = HasRoomForItem(Item->GetItemManifest());
 	AddItemToIndexes(Result, Item);
 	Result.Item = Item;
-	OnItemAdded.Broadcast(Result);
+	OnItemAddedToGrid.Broadcast(Result);
 }
 
 void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityResult& Result)

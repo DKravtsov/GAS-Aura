@@ -79,6 +79,7 @@ private:
 
 	TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
 
+	// todo: is this property still needed?
 	bool bIsAvailable = true;
 	
 public:
@@ -103,8 +104,5 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
-private:
-
-	FInventoryStorageGridSlot& GetStorageSlotMutable() const;
 	
 };

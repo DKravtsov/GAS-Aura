@@ -97,9 +97,9 @@ bool UInventoryGridViewModel::HasAuthority() const
 	return InventoryComponent.IsValid() && InventoryComponent->GetOwner()->HasAuthority();
 }
 
-FInventoryItemGridChangedDelegate& UInventoryGridViewModel::GetOnItemAddedDelegate() const
+FInventoryItemGridChangedDelegate& UInventoryGridViewModel::GetOnItemAddedToGridDelegate() const
 {
-	return StorageGrid->OnItemAdded;
+	return StorageGrid->OnItemAddedToGrid;
 }
 
 FInventoryItemChangedDelegate& UInventoryGridViewModel::GetOnItemRemovedDelegate() const

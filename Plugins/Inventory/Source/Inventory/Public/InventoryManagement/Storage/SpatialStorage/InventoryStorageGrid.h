@@ -19,7 +19,7 @@ class UInventoryStorageGrid : public UObject
 
 public:
 
-	FInventoryItemGridChangedDelegate OnItemAdded;
+	FInventoryItemGridChangedDelegate OnItemAddedToGrid;
 	FInventoryItemChangedDelegate OnItemRemoved;
 	FInventoryItemGridChangedDelegate OnStackChanged;
 	FInventoryGridSlotsUpdatedSignature OnGridSlotsUpdated;

@@ -27,7 +27,7 @@ class UInventoryGridViewModel : public UObject
 
 public:
 
-	FInventoryItemGridChangedDelegate& GetOnItemAddedDelegate() const;
+	FInventoryItemGridChangedDelegate& GetOnItemAddedToGridDelegate() const;
 	FInventoryItemChangedDelegate& GetOnItemRemovedDelegate() const;
 	FInventoryItemGridChangedDelegate& GetOnStackChangedDelegate() const;
 	
