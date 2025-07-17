@@ -74,21 +74,29 @@ bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
 
 void UInventoryGridViewModel::UpdateStackCount(int32 Index, int32 NewStackCount) const
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Index: %d, NewStackCount: %d"), Index, NewStackCount)
+	
 	GetStorageGrid()->SetStackCount(Index, NewStackCount);
 }
 
 void UInventoryGridViewModel::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount) const
 {
 	StorageGrid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s], GridIndex: %d"), *GetInventoryItemId(NewItem), Index)
 }
 
 void UInventoryGridViewModel::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex) const
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s], GridIndex: %d"), *GetInventoryItemId(ItemToRemove), GridIndex)
+	
 	StorageGrid->RemoveItemFromGrid(ItemToRemove, GridIndex);
 }
 
 void UInventoryGridViewModel::NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const
 {
+	LOG_NETFUNCTIONCALL
+
+	// TODO: Should process on server
 	StorageGrid->HandleStackChanged(Result);
 }
 

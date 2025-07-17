@@ -377,6 +377,8 @@ void UInventoryGridWidget::PutHoverItemDown()
 
 void UInventoryGridWidget::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Adding slotted item: [%s]; index: %d"), *GetInventoryItemId(SlottedItem->GetInventoryItem()), Index);
+
 	const FIntPoint Pos = UInventoryWidgetUtils::GetPositionFromIndex(Index, Columns);
 	if (UGridSlot* const GridSlot = GridWidget->AddChildToGrid(SlottedItem, Pos.Y, Pos.X))
 	{
@@ -387,6 +389,8 @@ void UInventoryGridWidget::AddSlottedItemToGrid(const int32 Index, const FInvent
 
 void UInventoryGridWidget::OnUpdateGridSlots(const TArrayView<int32>& GridIndexArray)
 {
+	LOG_NETFUNCTIONCALL
+	
 	for (const int32 GridIndex : GridIndexArray)
 	{
 		if (ensure(GridSlots.IsValidIndex(GridIndex)))
@@ -398,6 +402,8 @@ void UInventoryGridWidget::OnUpdateGridSlots(const TArrayView<int32>& GridIndexA
 
 void UInventoryGridWidget::ConstructGrid()
 {
+	LOG_NETFUNCTIONCALL
+	
 	check(GridViewModel);
 	Rows = GridViewModel->GetRows();
 	Columns = GridViewModel->GetColumns();
@@ -434,6 +440,8 @@ bool UInventoryGridWidget::MatchesCategory(const UInventoryItem* Item) const
 
 void UInventoryGridWidget::OnStackChanged(const FInventorySlotAvailabilityResult& Result)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] New total stack amount: %d"), *GetInventoryItemId(Result.Item.Get()), Result.TotalRoomToFill)
+	
 	if (!MatchesCategory(Result.Item.Get()))
 		return;
 
@@ -466,6 +474,8 @@ bool UInventoryGridWidget::IsRightMouseButtonClick(const FPointerEvent& MouseEve
 
 void UInventoryGridWidget::PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Index: %d"), GridIndex)
+	
 	AssignHoverItem(ClickedItem, GridIndex, GridIndex);
 
 	RemoveItemFromGrid(ClickedItem, GridIndex);
@@ -473,6 +483,8 @@ void UInventoryGridWidget::PickUpItemInInventory(UInventoryItem* ClickedItem, co
 
 void UInventoryGridWidget::PutDownItemInInventoryAtIndex(const int32 GridIndex)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Index: %d"), GridIndex)
+	
 	check(IsValid(HoverItem));
 	AddItemAtIndex(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
 	GridViewModel->UpdateGridSlots(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
@@ -502,6 +514,8 @@ void UInventoryGridWidget::SwapWithHoverItem(UInventoryItem* ClickedInventoryIte
 	if (!IsValid(HoverItem))
 		return;
 
+	LOG_NETFUNCTIONCALL
+	
 	UInventoryItem* TempItem = HoverItem->GetInventoryItem();
 	const int32 TempStackCount = HoverItem->GetStackCount();
 	const bool bTempStackable = HoverItem->IsStackable();
@@ -515,6 +529,8 @@ void UInventoryGridWidget::SwapWithHoverItem(UInventoryItem* ClickedInventoryIte
 
 void UInventoryGridWidget::AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex, const int32 PrevGridIndex)
 {
+	LOG_NETFUNCTIONCALL
+	
 	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(ClickedItem);
 	if (GridFragment == nullptr)
 		return;
@@ -570,6 +586,8 @@ void UInventoryGridWidget::OnHide()
 
 void UInventoryGridWidget::RemoveItemFromGrid(UInventoryItem* Item)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s]"), *GetInventoryItemId(Item))
+	
 	check(IsValid(Item));
 	check(!Item->IsStackable()); // this method must not be called for stackable items
 
@@ -593,6 +611,8 @@ void UInventoryGridWidget::RemoveItemFromGrid(UInventoryItem* ClickedItem, const
 
 void UInventoryGridWidget::OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], Index: %d"), *GetInventoryItemId(ItemToRemove), GridIndex)
+	
 	FIntPoint Dimensions = UInventoryWidgetUtils::GetGridDimensionsOfItem(ItemToRemove);
 	UInventoryStatics::ForEach2D(GridSlots, GridIndex, Dimensions, Columns, [](UInventoryGridSlotWidget* GridSlot)
 	{
@@ -612,6 +632,8 @@ void UInventoryGridWidget::OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, i
 
 void UInventoryGridWidget::OnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT(" (num=%d)"), GridIndexArray.Num())
+	
 	for (const int32 GridIndex : GridIndexArray)
 	{
 		if (!ensure(GridSlots.IsValidIndex(GridIndex)))

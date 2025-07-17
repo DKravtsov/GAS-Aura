@@ -278,6 +278,8 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 	if (!MatchesCategory(Result.Item.Get()))
 		return;
 
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s]"), *GetInventoryItemId(Result.Item.Get()))
+
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
 		if (Availability.bItemAtIndex)
