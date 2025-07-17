@@ -18,6 +18,7 @@
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
 
 #include "DebugHelper.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
 {
@@ -52,8 +53,9 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 		}
 	});
 
-	InventoryComponent->OnItemEquipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
-	InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	//InventoryComponent->OnItemEquipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	//InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	InventoryComponent->OnItemEquipStatusChanged.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
 }
 
 FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -418,6 +420,12 @@ void UInventoryWidgetSpatial::ClearSlotOfItem(UInventoryEquippedGridSlot* Equipp
 {
 	if (IsValid(EquippedGridSlot))
 	{
+		// todo: move this to ViewModel
+		if (UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
+		{
+			InventoryComponent->GetEquipmentSlotMutable(EquippedGridSlot->GetSlotId())->Clear();
+		}
+
 		EquippedGridSlot->ClearEquippedSlot();
 	}
 }

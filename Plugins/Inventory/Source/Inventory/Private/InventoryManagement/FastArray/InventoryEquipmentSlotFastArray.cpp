@@ -4,6 +4,7 @@
 #include "InventoryManagement/FastArray/InventoryEquipmentSlotFastArray.h"
 
 #include "DebugHelper.h"
+#include "InventoryManagement/Components/InventoryComponent.h"
 
 TArray<FInventoryEquipmentSlot> FInventoryEquipmentSlotFastArray::GetAllItems() const
 {
@@ -24,6 +25,13 @@ void FInventoryEquipmentSlotFastArray::PostReplicatedAdd(const TArrayView<int32>
 void FInventoryEquipmentSlotFastArray::PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent, EquipmentSlots, TEXT(" (num = %d)"), ChangedIndices.Num())
+	if (auto* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	{
+		for (const int32 Index : ChangedIndices)
+		{
+			InventoryComponent->OnItemEquipStatusChanged.Broadcast(Entries[Index].Data.GetInventoryItem().Get());
+		}
+	}
 }
 
 const FInventoryEquipmentSlot* FInventoryEquipmentSlotFastArray::GetSlotById(EInventoryEquipmentSlot SlotId) const

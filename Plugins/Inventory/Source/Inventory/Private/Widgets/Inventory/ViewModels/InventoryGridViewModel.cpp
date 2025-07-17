@@ -81,8 +81,10 @@ void UInventoryGridViewModel::UpdateStackCount(int32 Index, int32 NewStackCount)
 
 void UInventoryGridViewModel::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount) const
 {
-	StorageGrid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s], GridIndex: %d"), *GetInventoryItemId(NewItem), Index)
+	
+	//StorageGrid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
+	InventoryComponent->Server_UpdateSlots(NewItem, Index, bStackable, StackAmount);
 }
 
 void UInventoryGridViewModel::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex) const
@@ -90,6 +92,10 @@ void UInventoryGridViewModel::RemoveItemFromGrid(UInventoryItem* ItemToRemove, c
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s], GridIndex: %d"), *GetInventoryItemId(ItemToRemove), GridIndex)
 	
 	StorageGrid->RemoveItemFromGrid(ItemToRemove, GridIndex);
+	if (!HasAuthority())
+	{
+		InventoryComponent->Server_RemoveFromStorage(ItemToRemove, GridIndex);
+	}
 }
 
 void UInventoryGridViewModel::NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const

@@ -49,6 +49,7 @@ public:
 	FStackChangedSignature OnStackChanged;
 	FItemEquipStatusChangedSignature OnItemEquipped;
 	FItemEquipStatusChangedSignature OnItemUnequipped;
+	FItemEquipStatusChangedSignature OnItemEquipStatusChanged;
 
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
 	FInventoryMenuVisibilityChangedSugnature OnInventoryMenuOpened;
@@ -120,6 +121,8 @@ public:
 
 	const FInventoryEquipmentSlot* GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
 	const FInventoryEquipmentSlot* FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const;
+	// Be aware, that this also marks the entry dirty for replication
+	FInventoryEquipmentSlot* GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
@@ -143,6 +146,12 @@ public:
 	TArray<UInventoryItem*> GetAllInventoryItems() const;
 //#endif//UE_WITH_CHEAT_MANAGER
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_UpdateSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_RemoveFromStorage(UInventoryItem* ItemToRemove, const int32 GridIndex);
+	
 protected:
 	INVENTORY_API void CreateInventoryStorage();
 
@@ -151,11 +160,8 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TryAddItem(UInventoryItemComponent* ItemComponent);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
+	void AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
+	void AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DropItem(UInventoryItem* Item, int32 StackCount);
@@ -201,26 +207,18 @@ private:
 	void BroadcastEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 	void SpawnDroppedItem(UInventoryItem* Item, int32 StackCount);
 
-//	void /*Client*/TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
-	FInventorySlotAvailabilityResult ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const;
-	void Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();
 	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
+	void AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
+	void AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
 
 	EInventoryEquipmentSlot FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty = true) const;
 
-	// Be aware, that this also marks the entry dirty for replication
-	FInventoryEquipmentSlot* GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId);
 
 	EInventoryEquipmentSlot GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest);
 

@@ -11,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "DebugHelper.h"
+#include "Algo/Partition.h"
 
 namespace
 {
@@ -328,12 +329,14 @@ void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32
 
 	TArray<int32> UpdatedSlots;
 	UpdatedSlots.Reserve(Dimensions.X * Dimensions.Y);
+	const bool bHasAuthority = OwningActor->HasAuthority();
 
 	UInventoryStatics::ForEach2D(GridSlots.Entries, Index, Dimensions, GetColumns(),
 		[&](const FInventoryStorageGridSlotEntry& GridSlotEntry)
 		{
 			const int32 GridIndex = GridSlotEntry.Data.GetTileIndex();
-			GridSlots.SetInventoryItem(GridIndex, NewItem, Index);
+			if (bHasAuthority)
+				GridSlots.SetInventoryItem(GridIndex, NewItem, Index);
 			UpdatedSlots.Add(GridIndex);
 		});
 	
@@ -369,12 +372,19 @@ void UInventoryStorageGrid::OnRep_GridSlots()
 
 void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices)
 {
-	LOG_NETFUNCTIONCALL
-
 	if (GetOwningActor()->HasAuthority() || ChangedIndices.IsEmpty())
 		return;
+
+	const int32 Num = ChangedIndices.Num();
+	const int32 SplitIndex = Algo::Partition(ChangedIndices, [this](int32 Index)
+	{
+		return GridSlots.IsSlotAvailable(Index);
+	});
 	
-	OnGridSlotsUpdated.Broadcast(ChangedIndices);
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Set: %d; Reset: %d"), Num-SplitIndex, SplitIndex)
+	
+	OnGridSlotsReset.Broadcast(ChangedIndices.Slice(0, SplitIndex));
+	OnGridSlotsUpdated.Broadcast(ChangedIndices.Slice(SplitIndex, Num - SplitIndex));
 }
 
 void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)
