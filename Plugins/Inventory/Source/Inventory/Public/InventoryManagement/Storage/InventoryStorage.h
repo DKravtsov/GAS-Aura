@@ -51,7 +51,7 @@ public:
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) {}
 
 	//#if UE_WITH_CHEAT_MANAGER
-	virtual void DebugPrintStorage() const {}
+	virtual void DebugPrintStorage(FStringBuilderBase& Output, TFunctionRef<TCHAR (const UInventoryItem*)> ItemIndexFunc) const {}
 	//#endif//UE_WITH_CHEAT_MANAGER
 
 protected:

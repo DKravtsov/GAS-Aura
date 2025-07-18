@@ -142,22 +142,10 @@ void UInventorySpatialStorage::OnRep_InventoryGrids()
 	}
 }
 
-void UInventorySpatialStorage::DebugPrintStorage() const
+void UInventorySpatialStorage::DebugPrintStorage(FStringBuilderBase& Output, TFunctionRef<TCHAR (const UInventoryItem*)> ItemIndexFunc) const
 {
 	LOG_NETFUNCTIONCALL
-	
-	FStringBuilderBase Output;
 
-	UInventoryComponent* InventoryComponent = GetOwningInventoryComponent();
-	TArray<UInventoryItem*> AllItems = InventoryComponent->GetAllInventoryItems();
-
-	checkf(AllItems.Num() < ('Z' - 'A'), TEXT("Probably we need more robust identification here"));
-	auto GetItemGlyph = [AllItems](const UInventoryItem* Item) -> TCHAR
-	{
-		return 'A' + AllItems.IndexOfByKey(Item);
-	};
-	
-	int32 ItemIndex = 0;
 	for (const auto& Grid : InventoryGrids)
 	{
 		int32 ColIndex = 0;
@@ -167,7 +155,7 @@ void UInventorySpatialStorage::DebugPrintStorage() const
 		{
 			if (const UInventoryItem* Item = GridSlot.GetInventoryItem().Get())
 			{
-				const FStringBuilderBase::ElementType ItemStr = GetItemGlyph(Item);
+				const FStringBuilderBase::ElementType ItemStr = ItemIndexFunc(Item);
 				Output.Appendf(TEXT("[%c"), ItemStr);
 				if (Item->IsStackable())
 					Output.Appendf(TEXT(",%d"), GridSlot.GetStackCount());
@@ -185,13 +173,6 @@ void UInventorySpatialStorage::DebugPrintStorage() const
 			}
 		}
 	}
-	Output.AppendChar('\n');
-	for (int32 Index = 0; Index < AllItems.Num(); Index++)
-	{
-		Output.Appendf(TEXT("%c: %s\n"), 'A' + Index, *GetInventoryItemId(AllItems[Index]));
-	}
-
-	UE_LOG(LogInventory, Warning, TEXT("Print Storage:\n%s"), Output.ToString())
 }
 
 FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const

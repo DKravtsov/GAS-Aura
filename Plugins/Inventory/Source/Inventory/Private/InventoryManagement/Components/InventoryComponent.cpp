@@ -889,27 +889,39 @@ bool UInventoryComponent::Server_RemoveFromStorage_Validate(UInventoryItem* Item
 //#if UE_WITH_CHEAT_MANAGER
 void UInventoryComponent::DebugPrintStorage() const
 {
-	if (InventoryStorage)
-	{
-		InventoryStorage->DebugPrintStorage();
-	}
-	else
+	if (!IsValid(InventoryStorage))
 	{
 		DebugPrint(TEXT("DebugPrintStorage: Inventory Storage is null"), FColor::Red);
+		return;
 	}
 
+	TArray<UInventoryItem*> AllItems = InventoryList.GetAllItems();
+
+	// For now, each item will have its own letter A-Z. It can be changed in future
+	auto GetItemIndex = [&AllItems](const UInventoryItem* Item) -> TCHAR
+	{
+		return Item ? 'A' + AllItems.IndexOfByKey(Item) : '-';
+	};
+	checkf(AllItems.Num() < ('Z' - 'A'), TEXT("Probably we need more robust identification here"));
 	FStringBuilderBase Output;
+	Output.Append(TEXT("Items:\n"));
+	for (int32 Index = 0; Index < AllItems.Num(); Index++)
+	{
+		Output.Appendf(TEXT("%c: %s\n"), 'A' + Index, *GetInventoryItemId(AllItems[Index]));
+	}
+	Output.AppendChar('\n');
+
+	Output.Append(TEXT("Storage:\n"));
+	InventoryStorage->DebugPrintStorage(Output, GetItemIndex);
+
 	Output += TEXT("Equipment slots:\n");
 	for (const auto& EquipSlot : EquipmentSlots.GetAllItems())
 	{
-		Output.Appendf(TEXT("Slot %d (%s): %s\n"), static_cast<int32>(EquipSlot.GetSlotId()),
-			*EquipSlot.GetEquipmentTypeTag().ToString(), *GetInventoryItemId(EquipSlot.GetInventoryItem().Get()));
+		Output.Appendf(TEXT("Slot %d (%s): (%c) %s\n"), static_cast<int32>(EquipSlot.GetSlotId()),
+			*EquipSlot.GetEquipmentTypeTag().ToString(),
+			GetItemIndex(EquipSlot.GetInventoryItem().Get()),
+			*GetInventoryItemId(EquipSlot.GetInventoryItem().Get()));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
-}
-
-TArray<UInventoryItem*> UInventoryComponent::GetAllInventoryItems() const
-{
-	return InventoryList.GetAllItems();
 }
 //#endif//UE_WITH_CHEAT_MANAGER
