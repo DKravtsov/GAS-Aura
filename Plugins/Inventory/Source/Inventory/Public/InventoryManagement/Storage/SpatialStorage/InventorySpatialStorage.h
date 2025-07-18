@@ -62,7 +62,7 @@ public:
 	//~ End of UObject interface
 
 	//#if UE_WITH_CHEAT_MANAGER
-	virtual void DebugPrintStorage() const override;
+	virtual void DebugPrintStorage(FStringBuilderBase& Output, TFunctionRef<TCHAR (const UInventoryItem*)> ItemIndexFunc) const override;
 	//#endif//UE_WITH_CHEAT_MANAGER
 
 	FString GetInventoryGridNamesDebugString() const;

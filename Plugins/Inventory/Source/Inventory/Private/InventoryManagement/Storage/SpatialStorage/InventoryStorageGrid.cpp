@@ -263,7 +263,7 @@ int32 UInventoryStorageGrid::GetStackAmountInSlot(const FInventoryStorageGridSlo
 
 void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 {
-	if (!IsValid(Item) || !MatchesCategory(Item))
+	if (!IsValid(Item) || !MatchesCategory(Item) || !OwningActor->HasAuthority())
 		return;
 	
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Adding item: [%s]"), *GetInventoryItemId(Item))
@@ -316,7 +316,7 @@ void UInventoryStorageGrid::AddItemAtIndex(UInventoryItem* Item, int32 Index, bo
 
 void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
 {
-	LOG_NETFUNCTIONCALL
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], Index: %d, Stack: %d"), *GetInventoryItemId(NewItem), Index, StackAmount)
 	
 	check(GridSlots.Entries.IsValidIndex(Index));
 
@@ -345,6 +345,8 @@ void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32
 
 void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], Index: %d"), *GetInventoryItemId(ItemToRemove), GridIndex)
+
 	const FIntPoint Dimensions = UInventoryWidgetUtils::GetGridDimensionsOfItem(ItemToRemove);
 	TArray<int32> UpdatedSlots;
 	UpdatedSlots.Reserve(Dimensions.X * Dimensions.Y);
@@ -375,16 +377,8 @@ void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> 
 	if (GetOwningActor()->HasAuthority() || ChangedIndices.IsEmpty())
 		return;
 
-	const int32 Num = ChangedIndices.Num();
-	const int32 SplitIndex = Algo::Partition(ChangedIndices, [this](int32 Index)
-	{
-		return GridSlots.IsSlotAvailable(Index);
-	});
-	
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Set: %d; Reset: %d"), Num-SplitIndex, SplitIndex)
-	
-	OnGridSlotsReset.Broadcast(ChangedIndices.Slice(0, SplitIndex));
-	OnGridSlotsUpdated.Broadcast(ChangedIndices.Slice(SplitIndex, Num - SplitIndex));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Changed: %d;"), ChangedIndices.Num())
+	OnGridSlotsUpdated.Broadcast(ChangedIndices);
 }
 
 void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)

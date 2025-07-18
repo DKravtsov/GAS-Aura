@@ -53,9 +53,15 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 		}
 	});
 
-	//InventoryComponent->OnItemEquipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
-	//InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
-	InventoryComponent->OnItemEquipStatusChanged.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	if (GetOwningPlayer()->HasAuthority())
+	{
+		InventoryComponent->OnItemEquipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+		InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	}
+	else
+	{
+		InventoryComponent->OnItemEquipStatusChanged.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	}
 }
 
 FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

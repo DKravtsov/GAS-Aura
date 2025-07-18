@@ -91,12 +91,12 @@ bool FInventoryStorageGridFastArray::IsSlotAvailable(int32 SlotIndex) const
 
 void FInventoryStorageGridFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), AddedIndices.Num())
-
-	if (IsValid(OwningGrid) && AddedIndices.Num() > 0)
-	{
-		OwningGrid->NotifyGridChanged(AddedIndices);
-	}
+	// LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningGrid, GridSlots, TEXT(" (num=%d)"), AddedIndices.Num())
+	//
+	// if (IsValid(OwningGrid) && AddedIndices.Num() > 0)
+	// {
+	// 	OwningGrid->NotifyGridChanged(AddedIndices);
+	// }
 }
 
 void FInventoryStorageGridFastArray::PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
