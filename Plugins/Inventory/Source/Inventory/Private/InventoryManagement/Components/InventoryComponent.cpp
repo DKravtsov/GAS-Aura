@@ -359,16 +359,16 @@ void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemTo
 	UInventoryItem* CurrentEquippedItem = EquippedSlot->GetInventoryItem().Get();
 	if (CurrentEquippedItem && CurrentEquippedItem == ItemToEquip)
 	{
-		UE_LOG(LogInventory, Log, TEXT("Server_EquipItem: Trying to equip already equipped item [%s] to slot [%s]"),
-			*ItemToEquip->GetItemType().ToString(), *UEnum::GetValueAsString(SlotId));
+		UE_LOG(LogInventory, Log, TEXT("Server_EquipItem: Trying to equip already equipped item [%s] to slot %d"),
+			*ItemToEquip->GetItemType().ToString(), static_cast<int32>(SlotId));
 		return;
 	}
 	if (CurrentEquippedItem != ItemToUnequip)
 	{
 		if (ItemToUnequip != nullptr)
 		{
-			UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: Trying to unequip item [%s] that is not equipped in slot [%s]"),
-			   *ItemToEquip->GetItemType().ToString(), *UEnum::GetValueAsString(SlotId));
+			UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: Trying to unequip item [%s] that is not equipped in slot %d"),
+			   *ItemToUnequip->GetItemType().ToString(), static_cast<int32>(SlotId));
 			return;
 		}
 		else
