@@ -68,6 +68,10 @@ public:
 
 	void NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const;
 
+	void AssignHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 PrevGridIndex);
+	void ClearHoverItem();
+	void FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
+	
 private:
 
 	bool HasAuthority() const;

@@ -528,6 +528,8 @@ void UInventoryGridWidget::ClearHoverItem()
 	HoverItem = nullptr;
 
 	ShowDefaultCursor();
+
+	GridViewModel->ClearHoverItem();
 }
 
 void UInventoryGridWidget::SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex)
@@ -597,6 +599,8 @@ void UInventoryGridWidget::AssignHoverItem(UInventoryItem* ClickedItem, const in
 	{
 		HoverItem->SetPreviousGridIndex(PrevGridIndex);
 	}
+
+	GridViewModel->AssignHoverItem(ClickedItem, GridIndex, PrevGridIndex);
 }
 
 void UInventoryGridWidget::OnHide()
@@ -778,7 +782,8 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
 			return;
 		}
-		
+
+		GridViewModel->FillInStacksOrConsumeHover(ClickedInventoryItem, GridIndex, HoverItem->GetPreviousGridIndex());
 		FillInStacksOrConsumeHover(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
 		return;
 	}

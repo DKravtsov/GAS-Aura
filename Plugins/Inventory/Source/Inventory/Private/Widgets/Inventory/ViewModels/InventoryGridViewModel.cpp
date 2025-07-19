@@ -106,6 +106,36 @@ void UInventoryGridViewModel::NotifyStackChanged(const FInventorySlotAvailabilit
 	StorageGrid->HandleStackChanged(Result);
 }
 
+void UInventoryGridViewModel::AssignHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 PrevGridIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!HasAuthority())
+	{
+		InventoryComponent->Server_AssignHoverItem(InventoryItem, GridIndex, PrevGridIndex);
+	}
+}
+
+void UInventoryGridViewModel::ClearHoverItem()
+{
+	LOG_NETFUNCTIONCALL
+	
+	if (!HasAuthority())
+	{
+		InventoryComponent->Server_ClearHoverItem();
+	}
+}
+
+void UInventoryGridViewModel::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] from %d to %d"), *GetInventoryItemId(Item), SourceIndex, TargetIndex)
+	if (!HasAuthority())
+	{
+		InventoryComponent->Server_FillInStacksOrConsumeHover(Item, TargetIndex, SourceIndex);
+	}
+	
+}
+
 bool UInventoryGridViewModel::HasAuthority() const
 {
 	return InventoryComponent.IsValid() && InventoryComponent->GetOwner()->HasAuthority();

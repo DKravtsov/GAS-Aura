@@ -85,7 +85,7 @@ int32 UInventorySpatialStorage::GetItemIndex(UInventoryItem* Item)
 {
 	if (IsValid(Item))
 	{
-		auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 		check(Grid);
 		return Grid->GetItemIndex(Item);
 	}
@@ -93,11 +93,22 @@ int32 UInventorySpatialStorage::GetItemIndex(UInventoryItem* Item)
 	return INDEX_NONE;
 }
 
+int32 UInventorySpatialStorage::GetItemStackCount(UInventoryItem* Item, int32 GridIndex)
+{
+	if (IsValid(Item))
+	{
+		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+		check(Grid);
+		return Grid->GetStackCount(GridIndex);
+	}
+	return 0;
+}
+
 void UInventorySpatialStorage::UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount)
 {
 	if (IsValid(NewItem))
 	{
-		auto Grid = FindInventoryGridByCategory(NewItem->GetItemManifest().GetItemCategory());
+		const auto Grid = FindInventoryGridByCategory(NewItem->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
 	}
@@ -107,10 +118,17 @@ void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, 
 {
 	if (IsValid(ItemToRemove))
 	{
-		auto Grid = FindInventoryGridByCategory(ItemToRemove->GetItemManifest().GetItemCategory());
+		const auto Grid = FindInventoryGridByCategory(ItemToRemove->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex);
 	}
+}
+
+int32 UInventorySpatialStorage::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount)
+{
+	const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+	check(Grid);
+	return Grid->FillInStacksOrConsumeHover(Item, TargetIndex, AddStackCount);
 }
 
 void UInventorySpatialStorage::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

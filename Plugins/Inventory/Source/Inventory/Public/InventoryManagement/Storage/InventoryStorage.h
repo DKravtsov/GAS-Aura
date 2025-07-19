@@ -47,8 +47,11 @@ public:
 	virtual void SetupStorage(const FInventoryStorageSetupData* SetupData) {}
 
 	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;};
+	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) {return 0;};
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) {}
+	// returns remainder
+	virtual int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount) { return 0;}
 
 	//#if UE_WITH_CHEAT_MANAGER
 	virtual void DebugPrintStorage(FStringBuilderBase& Output, TFunctionRef<TCHAR (const UInventoryItem*)> ItemIndexFunc) const {}

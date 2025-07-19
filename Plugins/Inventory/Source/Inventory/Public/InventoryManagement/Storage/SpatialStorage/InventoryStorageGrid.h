@@ -92,7 +92,11 @@ public:
 
 	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices);
 
+	int32 GetStackCount(int32 GridIndex) const;
 	void SetStackCount(int32 GridIndex, int32 NewStackCount);
+
+	// returns remainder
+	int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount);
 
 private:
 	void ConstructGrid();

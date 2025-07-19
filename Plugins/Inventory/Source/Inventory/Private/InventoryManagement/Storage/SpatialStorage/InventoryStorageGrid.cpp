@@ -299,7 +299,7 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 
 bool UInventoryStorageGrid::MatchesCategory(const UInventoryItem* Item) const
 {
-	return Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
+	return Item && Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
 }
 
 void UInventoryStorageGrid::AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem)
@@ -381,7 +381,40 @@ void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> 
 	OnGridSlotsUpdated.Broadcast(ChangedIndices);
 }
 
+int32 UInventoryStorageGrid::GetStackCount(int32 GridIndex) const
+{
+	return GridSlots.GetStackCount(GridIndex);
+}
+
 void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)
 {
 	GridSlots.SetStackCount(GridIndex, NewStackCount);
+}
+
+int32 UInventoryStorageGrid::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount)
+{
+	int32 Remainder = AddStackCount;
+	if (!MatchesCategory(Item))
+		return Remainder;
+
+	const int32 CurrentStackCount =  GridSlots.GetStackCount(TargetIndex);
+	
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] (AddCount: %d) to %d (OldCount: %d)"), *GetInventoryItemId(Item),
+		AddStackCount, TargetIndex, CurrentStackCount);
+
+	const auto StackableFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>();
+	if (StackableFragment == nullptr)
+		return Remainder;
+	const int32 MaxStackCount = StackableFragment->GetMaxStackSize();
+
+	const int32 FillAmount = FMath::Min(AddStackCount, MaxStackCount - CurrentStackCount);
+	if (FillAmount == 0)
+		return Remainder;
+	
+	const int32 NewStackCount = CurrentStackCount + FillAmount;
+	Remainder = AddStackCount - FillAmount;
+
+	GridSlots.SetStackCount(TargetIndex, NewStackCount);
+
+	return Remainder;
 }

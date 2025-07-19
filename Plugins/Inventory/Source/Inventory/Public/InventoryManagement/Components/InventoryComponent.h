@@ -99,6 +99,17 @@ private:
 	UPROPERTY(Replicated)
 	FInventoryEquipmentSlotFastArray EquipmentSlots;
 
+	struct FHoverItemProxy
+	{
+		TWeakObjectPtr<UInventoryItem> InventoryItem;
+		int32 PreviousIndex = INDEX_NONE; // index on grid where this item was taken
+		int32 StackCount = 0;
+		bool bStackable = false; // a shortcut whether this item is stackable or not
+	};
+
+	// This is needed on the server to track what's happened on the client. Note: it won't be used on the listen server's local PC #todo: should it?
+	TOptional<FHoverItemProxy> HoverItem;
+
 	uint8 bInventoryMenuOpen:1 = false;
 
 	uint8 bStartupItemsInitialized:1 = false;
@@ -150,6 +161,14 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_RemoveFromStorage(UInventoryItem* ItemToRemove, const int32 GridIndex);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AssignHoverItem(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ClearHoverItem();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
 	
 protected:
 	INVENTORY_API void CreateInventoryStorage();

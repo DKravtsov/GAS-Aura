@@ -588,6 +588,16 @@ void UInventoryComponent::Client_ReceivedStartupInventory_Implementation(const T
 	StartupEquipment = StartupEquipmentData;
 }
 
+void UInventoryComponent::Server_ClearHoverItem_Implementation()
+{
+	HoverItem.Reset();
+}
+
+bool UInventoryComponent::Server_ClearHoverItem_Validate()
+{
+	return true;
+}
+
 void UInventoryComponent::CreateInventoryStorage()
 {
 	LOG_NETFUNCTIONCALL
@@ -882,6 +892,56 @@ void UInventoryComponent::Server_RemoveFromStorage_Implementation(UInventoryItem
 }
 
 bool UInventoryComponent::Server_RemoveFromStorage_Validate(UInventoryItem* ItemToRemove, const int32 GridIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!HoverItem.IsSet())
+	{
+		UE_LOG(LogInventory, Error, TEXT("FillInStacksOrConsumeHover: Source hover item is not defined. Target: [%s] index %d"),
+			*GetInventoryItemId(Item), TargetIndex)
+		return;
+	}
+	const int32 Remainder = InventoryStorage->FillInStacksOrConsumeHover(Item, TargetIndex, HoverItem->StackCount);
+	if (Remainder == 0)
+	{
+		HoverItem.Reset();
+	}
+	else
+	{
+		HoverItem->StackCount = Remainder;
+	}
+}
+
+bool UInventoryComponent::Server_FillInStacksOrConsumeHover_Validate(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_AssignHoverItem_Implementation(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!HoverItem.IsSet())
+	{
+		HoverItem = FHoverItemProxy();
+	}
+	HoverItem->InventoryItem = Item;
+	HoverItem->bStackable = Item->IsStackable();
+	
+	HoverItem->StackCount = GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	if (PrevGridIndex != INDEX_NONE)
+	{
+		HoverItem->PreviousIndex = PrevGridIndex;
+	}
+
+}
+
+bool UInventoryComponent::Server_AssignHoverItem_Validate(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex)
 {
 	return true;
 }
