@@ -30,10 +30,6 @@ public:
 	FInventoryItemGridChangedDelegate& GetOnItemAddedToGridDelegate() const;
 	FInventoryItemChangedDelegate& GetOnItemRemovedDelegate() const;
 	FInventoryItemGridChangedDelegate& GetOnStackChangedDelegate() const;
-	
-//	FInventoryItemGridSignature OnItemRemovedFromGrid; // Item has beeb removed from the grid but not from the inventory (yet)
-//	FInventoryItemGridSignature OnGridSlotsUpdated;
-
 	FInventoryGridSlotsUpdatedSignature& GetOnGridSlotsUpdatedDelegate() const;
 	FInventoryGridSlotsUpdatedSignature& GetOnGridSlotsResetDelegate() const;
 
@@ -67,8 +63,9 @@ public:
 	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex) const;
 
 	void AssignHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 PrevGridIndex);
-	void ClearHoverItem(); // clear hover item
-	void PutDownHoverItem(const FInventorySlotAvailabilityResult& Result); // put hover item back into inventory and clear the hover item
+	void ClearHoverItem();
+	// puts hover item back into inventory and clears the hover item
+	void PutDownHoverItem(const FInventorySlotAvailabilityResult& Result);
 	void FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
 	// Split <SplitAmount> stack from stackable item in slot to HoverItem
 	void SplitStackToHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 SplitAmount);

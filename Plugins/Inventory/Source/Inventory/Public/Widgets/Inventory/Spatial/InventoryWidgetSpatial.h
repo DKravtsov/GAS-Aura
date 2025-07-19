@@ -81,18 +81,8 @@ public:
 	virtual float GetTileSize() const override;
 	virtual void OnCloseMenu() override;
 	virtual void OnOpenedMenu() override;
-	// virtual bool IsItemEquipped(const UInventoryItem* Item) const override;
-	// virtual bool CanEquipItem(const UInventoryItem* Item) const override;
-	// virtual class UInventoryEquippedSlottedItemWidget* FindEquippedSlottedItemFor(const UInventoryItem* Item) const override;
-	// virtual UInventoryItem* GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const override;
-protected:
-	//virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;;
 	//~ End of UInventoryWidgetBase interface
 
-public:
-
-//	virtual bool TryEquipItem(UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip = false, UInventoryItem** PreviousEquippedItem = nullptr) override;
-	
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
 	virtual void ValidateCompiledDefaults(class IWidgetCompilerLog& CompileLog) const override;

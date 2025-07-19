@@ -64,7 +64,7 @@ private:
 	TSoftObjectPtr<class UInventorySetupData> InventorySetupData;
 
 	// Responsible for HOW the inventory is stored
-	UPROPERTY(ReplicatedUsing=OnRep_InventoryStorage)
+	UPROPERTY(Replicated)
 	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -85,7 +85,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DropSpawnDistanceMax = 50.f;
 
-	// Temp array to sync between client and server. todo: probably can be replaced/removed if equipped items are synced through fast array
+	// Temp array to sync between client and server.
+	// todo: probably can be replaced/removed if equipped items are synced through fast array or RPC
 	TArray<FInventoryStartupEquipmentData> StartupEquipment;
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
@@ -107,7 +108,8 @@ private:
 		bool bStackable = false; // a shortcut whether this item is stackable or not
 	};
 
-	// This is needed on the server to track what's happened on the client. Note: it won't be used on the listen server's local PC #todo: should it?
+	// This is needed on the server to track what's happened on the client.
+	// Note: it won't be used on the listen server's local PC - it's always IsSet() == false there.
 	TOptional<FHoverItemProxy> HoverItem;
 
 	uint8 bInventoryMenuOpen:1 = false;
@@ -221,9 +223,6 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_EquipmentSlots();
-
-	UFUNCTION()
-	virtual void OnRep_InventoryStorage();
 
 private:
 	void SetOwnerInternal();

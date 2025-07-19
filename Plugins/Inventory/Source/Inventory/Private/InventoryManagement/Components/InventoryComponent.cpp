@@ -37,27 +37,9 @@ UInventoryComponent::UInventoryComponent()
 	bReplicateUsingRegisteredSubObjectList = true;
 }
 
-void UInventoryComponent::OnRep_InventoryStorage()
-{
-	LOG_NETFUNCTIONCALL
-
-}
-
 void UInventoryComponent::ReceivedStorageIsReady()
 {
 	LOG_NETFUNCTIONCALL
-
-	// if (IsValid(InventoryStorage) && !IsValid(InventoryMenu))
-	// {
-	// 	SetOwnerInternal();//just in case
-	// 	
-	// 	ConstructInventoryMenu();
-	//
-	// 	if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
-	// 	{
-	// 		Server_AddStartupItems();
-	// 	}
-	// }
 }
 
 void UInventoryComponent::ToggleInventoryMenu()

@@ -79,9 +79,6 @@ private:
 
 	TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
 
-	// todo: is this property still needed?
-	bool bIsAvailable = true;
-	
 public:
 
 	void Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex);

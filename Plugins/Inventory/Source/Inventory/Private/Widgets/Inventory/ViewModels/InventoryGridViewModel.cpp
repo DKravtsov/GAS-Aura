@@ -86,7 +86,6 @@ void UInventoryGridViewModel::UpdateGridSlots(UInventoryItem* NewItem, const int
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s], GridIndex: %d"), *GetInventoryItemId(NewItem), Index)
 	
-	//StorageGrid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
 	InventoryComponent->Server_UpdateSlots(NewItem, Index, bStackable, StackAmount);
 }
 

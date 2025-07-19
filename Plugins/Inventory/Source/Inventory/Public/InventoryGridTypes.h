@@ -181,8 +181,6 @@ private:
 	UPROPERTY()
 	TWeakObjectPtr<UInventoryItem> InventoryItem;
 
-	// UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
-	// FGameplayTag EquipmentSlotTag;
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	EInventoryEquipmentSlot SlotId = EInventoryEquipmentSlot::Invalid;
 
@@ -198,7 +196,6 @@ public:
 	bool IsAvailable() const { return !InventoryItem.IsValid(); }
 
 	const FGameplayTag& GetEquipmentTypeTag() const { return EquipmentTypeTag; }
-	//const FGameplayTag& GetEquipmentSlotTag() const { return EquipmentSlotTag; }
 	EInventoryEquipmentSlot GetSlotId() const { return SlotId; }
 
 	void Init(EInventoryEquipmentSlot NewSlotId, const FGameplayTag& NewEquipmentTypeTag)

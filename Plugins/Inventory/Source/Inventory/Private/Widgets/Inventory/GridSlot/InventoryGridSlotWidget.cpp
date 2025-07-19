@@ -101,6 +101,6 @@ TWeakObjectPtr<UInventoryItem> UInventoryGridSlotWidget::GetInventoryItem() cons
 
 bool UInventoryGridSlotWidget::IsAvailable() const
 {
-	return GridIndex != INDEX_NONE ? GetStorageSlot().IsAvailable() : bIsAvailable;
+	return GetStorageSlot().IsAvailable();
 }
 

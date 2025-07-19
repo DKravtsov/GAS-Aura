@@ -27,9 +27,6 @@ public:
 
 private:
 
-	// UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.EquipmentSlots"))
-	// FGameplayTag EquipmentSlotTag;
-
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	EInventoryEquipmentSlot EquipmentSlotId = EInventoryEquipmentSlot::Invalid;
 
@@ -60,7 +57,6 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
-	//const FGameplayTag& GetEquipmentSlotTag() const {return EquipmentSlotTag;}
 	EInventoryEquipmentSlot GetSlotId() const { return EquipmentSlotId; }
 	
 	const FGameplayTag& GetEquipmentTypeTag() const;
