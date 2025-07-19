@@ -946,6 +946,37 @@ bool UInventoryComponent::Server_AssignHoverItem_Validate(UInventoryItem* Item, 
 	return true;
 }
 
+void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!IsValid(Item) || !Item->IsStackable())
+		return;
+	
+	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	if (StackCount < 2)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot split stack with 1 item: [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
+		Server_ClearHoverItem(); // just in case, to prevent next usage
+		return;
+	}
+	
+	if (!HoverItem.IsSet())
+	{
+		HoverItem.Emplace(Item, GridIndex, StackCount, Item->IsStackable());
+	}
+
+	SplitAmount = FMath::Min(SplitAmount, StackCount - 1);
+
+	HoverItem->StackCount = SplitAmount;
+	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, StackCount - SplitAmount);
+}
+
+bool UInventoryComponent::Server_SplitStackToHoverItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	return true;
+}
+
 //#if UE_WITH_CHEAT_MANAGER
 void UInventoryComponent::DebugPrintStorage() const
 {

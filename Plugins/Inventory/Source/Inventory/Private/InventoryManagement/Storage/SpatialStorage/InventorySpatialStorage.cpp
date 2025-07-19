@@ -104,6 +104,16 @@ int32 UInventorySpatialStorage::GetItemStackCount(UInventoryItem* Item, int32 Gr
 	return 0;
 }
 
+void UInventorySpatialStorage::SetItemStackCount(UInventoryItem* Item, int32 GridIndex, int32 NewStackCount)
+{
+	if (IsValid(Item))
+	{
+		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+		check(Grid);
+		Grid->SetStackCount(GridIndex, NewStackCount);
+	}
+}
+
 void UInventorySpatialStorage::UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount)
 {
 	if (IsValid(NewItem))

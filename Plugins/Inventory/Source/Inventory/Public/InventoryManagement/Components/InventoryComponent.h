@@ -169,7 +169,10 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
-	
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SplitStackToHoverItem(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount);
+
 protected:
 	INVENTORY_API void CreateInventoryStorage();
 

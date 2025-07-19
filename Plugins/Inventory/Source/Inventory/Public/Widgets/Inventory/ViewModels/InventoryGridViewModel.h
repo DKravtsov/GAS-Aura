@@ -71,6 +71,8 @@ public:
 	void AssignHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 PrevGridIndex);
 	void ClearHoverItem();
 	void FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
+	// Split <SplitAmount> stack from stackable item in slot to HoverItem
+	void SplitStackToHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 SplitAmount);
 	
 private:
 

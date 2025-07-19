@@ -53,6 +53,7 @@ public:
 	//~ Begin of UInventoryStorage interface
 	virtual int32 GetItemIndex(UInventoryItem* Item) override;
 	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) override;
+	virtual void SetItemStackCount(UInventoryItem* Item, int32 GridIndex, int32 NewStackCount) override;
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) override;
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) override;
 	virtual int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount) override;

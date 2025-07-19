@@ -902,6 +902,7 @@ void UInventoryGridWidget::OnPopupMenuSplit(const int32 SplitAmount, const int32
 	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - SplitAmount;
 	
 	AssignHoverItem(RightClickedItem, UpperLeftIndex, UpperLeftIndex);
+	GridViewModel->SplitStackToHoverItem(RightClickedItem, UpperLeftIndex, SplitAmount);
 	check(IsValid(HoverItem));
 	HoverItem->UpdateStackCount(SplitAmount);
 	

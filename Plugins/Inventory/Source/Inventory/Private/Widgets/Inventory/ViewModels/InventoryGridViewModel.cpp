@@ -136,6 +136,15 @@ void UInventoryGridViewModel::FillInStacksOrConsumeHover(UInventoryItem* Item, i
 	
 }
 
+void UInventoryGridViewModel::SplitStackToHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 SplitAmount)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item[%s] index: %d, SplitAmount = %d"), *GetInventoryItemId(InventoryItem), GridIndex, SplitAmount)
+	if (!HasAuthority())
+	{
+		InventoryComponent->Server_SplitStackToHoverItem(InventoryItem, GridIndex, SplitAmount);
+	}
+}
+
 bool UInventoryGridViewModel::HasAuthority() const
 {
 	return InventoryComponent.IsValid() && InventoryComponent->GetOwner()->HasAuthority();
