@@ -8,7 +8,6 @@
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryEquipmentSlotFastArray.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
-#include "StructUtils/InstancedStruct.h"
 #include "InventoryComponent.generated.h"
 
 struct FInventoryStorageSetupData;
@@ -152,7 +151,6 @@ public:
 	void ReceivedStartupItemsEquipped() { bStartupItemsEquipped = true; }
 	bool AreStartupItemsInitialized() const { return bStartupItemsInitialized; }
 	bool AreStartupItemsEquipped() const { return bStartupItemsEquipped; }
-	void ReceivedStorageIsReady();
 
 //#if UE_WITH_CHEAT_MANAGER
 	INVENTORY_API void DebugPrintStorage() const;
@@ -218,12 +216,6 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void Server_RequestStartupEquipment();
 
-	UFUNCTION()
-	virtual void OnRep_StorageSetupData();
-
-	UFUNCTION()
-	virtual void OnRep_EquipmentSlots();
-
 private:
 	void SetOwnerInternal();
 
@@ -237,12 +229,12 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();
 	
-	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
-	void AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot);
+	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray); 
+	void AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray);
 	void AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
-	void Client_ReceivedStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
+	void Client_EquipStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
 
 	EInventoryEquipmentSlot FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty = true) const;
 

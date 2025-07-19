@@ -157,19 +157,6 @@ FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInterna
 	return FInventorySlotAvailabilityResult{};
 }
 
-void UInventorySpatialStorage::OnRep_InventoryGrids()
-{
-	LOG_NETFUNCTIONCALL_MSG(TEXT(" (Inventory Grids Num = %d (%s)"), InventoryGrids.Num(), *GetInventoryGridNamesDebugString())
-
-	if (InventoryGrids.Num() > 0 && InventoryGrids[0] == nullptr)
-		return;
-	
-	if (UInventoryComponent* InventoryComponent = GetOwningInventoryComponent())
-	{
-		InventoryComponent->ReceivedStorageIsReady();
-	}
-}
-
 void UInventorySpatialStorage::DebugPrintStorage(FStringBuilderBase& Output, TFunctionRef<TCHAR (const UInventoryItem*)> ItemIndexFunc) const
 {
 	LOG_NETFUNCTIONCALL

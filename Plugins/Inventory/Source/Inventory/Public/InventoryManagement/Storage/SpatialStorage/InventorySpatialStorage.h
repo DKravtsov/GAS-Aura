@@ -36,7 +36,7 @@ class UInventorySpatialStorage : public UInventoryStorage
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(ReplicatedUsing=OnRep_InventoryGrids)
+	UPROPERTY(Replicated)
 	TArray<TObjectPtr<UInventoryStorageGrid>> InventoryGrids;
 
 public:
@@ -74,8 +74,4 @@ protected:
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const override;
-
-private:
-	UFUNCTION()
-	void OnRep_InventoryGrids();
 };

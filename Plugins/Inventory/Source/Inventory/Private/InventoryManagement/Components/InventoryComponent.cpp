@@ -37,11 +37,6 @@ UInventoryComponent::UInventoryComponent()
 	bReplicateUsingRegisteredSubObjectList = true;
 }
 
-void UInventoryComponent::ReceivedStorageIsReady()
-{
-	LOG_NETFUNCTIONCALL
-}
-
 void UInventoryComponent::ToggleInventoryMenu()
 {
 	if (bInventoryMenuOpen)
@@ -121,7 +116,7 @@ bool UInventoryComponent::Server_TryAddItem_Validate(UInventoryItemComponent* It
 	return true;
 }
 
-void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
+void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray)
 {
 	LOG_NETFUNCTIONCALL
 	
@@ -151,7 +146,7 @@ void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemMa
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipToSlot);
+		AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipToSlot, OutStartupEquipmentArray);
 	}
 
 }
@@ -209,7 +204,7 @@ void UInventoryComponent::AddNewItem(UInventoryItemComponent* ItemComponent, int
 	}
 }
 
-void UInventoryComponent::AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot)
+void UInventoryComponent::AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray)
 {
 	LOG_NETFUNCTIONCALL
 	
@@ -225,7 +220,7 @@ void UInventoryComponent::AddNewStartupItem(const FInventoryItemManifest& ItemMa
 	{
 		if (GetEquipmentSlot(EquipToSlot))
 		{
-			StartupEquipment.Emplace(NewItem, EquipToSlot);
+			OutStartupEquipmentArray.Emplace(NewItem, EquipToSlot);
 		}
 	}
 }
@@ -287,12 +282,6 @@ void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 GridIndex, int
 {
 	Server_ConsumeItem(Item, GridIndex, StackCount);
 }
-
-// void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
-// {
-// 	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-// 	Server_EquipItem(ItemToEquip, ItemToUnequip);
-// }
 
 void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
@@ -559,19 +548,6 @@ bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEq
 	return true;
 }
 
-void UInventoryComponent::Client_ReceivedStartupInventory_Implementation(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData)
-{
-	if (!bStartupItemsInitialized)
-		return;
-	
-	LOG_NETFUNCTIONCALL
-
-	if (OwningPlayerController->HasAuthority())
-		return;
-
-	StartupEquipment = StartupEquipmentData;
-}
-
 void UInventoryComponent::Server_ClearHoverItem_Implementation()
 {
 	HoverItem.Reset();
@@ -731,37 +707,16 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 			}
 			const EInventoryEquipmentSlot EquipSlotId = Item.bShouldEquip ?
 				GetValidEquipSlotId(Item.EquipmentSlot, ItemData->GetItemManifest()) : EInventoryEquipmentSlot::Invalid;
-			TryAddStartupItem(ItemData->GetItemManifest(), StackCount, EquipSlotId);
+			TryAddStartupItem(ItemData->GetItemManifest(), StackCount, EquipSlotId, StartupEquipment);
 		}
 	}
 	bStartupItemsInitialized = true;
-	Client_ReceivedStartupInventory(StartupEquipment);
+	//Client_ReceivedStartupInventory(StartupEquipment);
 }
 
 bool UInventoryComponent::Server_AddStartupItems_Validate()
 {
 	return true;
-}
-
-// void UInventoryComponent::EquipStartupItems()
-// {
-// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : StartupEquipment)
-// 	{
-// 		InventoryMenu->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag);
-// 	}
-// 	//StartupEquipment.Empty();
-// }
-
-void UInventoryComponent::OnRep_StorageSetupData()
-{
-	LOG_NETFUNCTIONCALL
-
-	//CreateInventoryStorage();
-}
-
-void UInventoryComponent::OnRep_EquipmentSlots()
-{
-	LOG_NETFUNCTIONCALL
 }
 
 void UInventoryComponent::ConstructInventoryMenu()
@@ -846,7 +801,6 @@ void UInventoryComponent::ReceivedStartupItems()
 		LOG_NETFUNCTIONCALL
 		
 		bStartupItemsInitialized = true;
-		//Client_ReceivedStartupInventory();
 		Server_RequestStartupEquipment();
 	}
 }
@@ -855,9 +809,13 @@ void UInventoryComponent::Server_RequestStartupEquipment_Implementation()
 {
 	LOG_NETFUNCTIONCALL
 
-	//Client_ReceivedStartupInventory(StartupEquipment);
+	Client_EquipStartupInventory(StartupEquipment);
+}
+
+void UInventoryComponent::Client_EquipStartupInventory_Implementation(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData)
+{
 	// resend equip item events
-	for (const auto& [Item, SlotId] : StartupEquipment)
+	for (const auto& [Item, SlotId] : StartupEquipmentData)
 	{
 		Client_EquipItem(Item.Get(), nullptr, SlotId);
 	}
