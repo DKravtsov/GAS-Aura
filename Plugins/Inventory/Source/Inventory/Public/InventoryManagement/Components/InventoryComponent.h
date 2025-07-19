@@ -139,7 +139,7 @@ public:
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
 
 	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
-	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 StackCount = 1);
+	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount = 1);
 
 	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
@@ -164,14 +164,21 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AssignHoverItem(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex);
+	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ClearHoverItem();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PutDownHoverItem();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SplitStackToHoverItem(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SwapStackCountWithHoverItem(UInventoryItem* Item, int32 GridIndex);
 
 protected:
 	INVENTORY_API void CreateInventoryStorage();
@@ -188,7 +195,7 @@ protected:
 	void Server_DropItem(UInventoryItem* Item, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ConsumeItem(UInventoryItem* Item, int32 StackCount);
+	void Server_ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);

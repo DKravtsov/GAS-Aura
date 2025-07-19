@@ -66,13 +66,13 @@ public:
 	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount) const;
 	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex) const;
 
-	void NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const;
-
 	void AssignHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 PrevGridIndex);
-	void ClearHoverItem();
+	void ClearHoverItem(); // clear hover item
+	void PutDownHoverItem(const FInventorySlotAvailabilityResult& Result); // put hover item back into inventory and clear the hover item
 	void FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
 	// Split <SplitAmount> stack from stackable item in slot to HoverItem
 	void SplitStackToHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 SplitAmount);
+	void SwapStackCountWithHoverItem(UInventoryItem* InventoryItem, int32 GridIndex);
 	
 private:
 

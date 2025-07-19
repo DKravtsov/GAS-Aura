@@ -301,9 +301,9 @@ void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
 	Server_DropItem(Item, StackCount);
 }
 
-void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
+void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
-	Server_ConsumeItem(Item, StackCount);
+	Server_ConsumeItem(Item, GridIndex, StackCount);
 }
 
 // void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
@@ -470,19 +470,21 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 	std::ignore = ItemManifest.SpawnPickupActor(GetOwner(), SpawnLocation, SpawnRotation);
 }
 
-void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 StackCount)
+void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
 	check(IsValid(Item));
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
-	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+	const int32 NewTotalStackCount = Item->GetTotalStackCount() - StackCount;
 
-	if (NewStackCount <= 0)
+	if (NewTotalStackCount <= 0)
 	{
 		InventoryList.RemoveItem(Item);
 	}
 	else
 	{
-		Item->SetTotalStackCount(NewStackCount);
+		Item->SetTotalStackCount(NewTotalStackCount);
+		const int32 NewStackCount = InventoryStorage->GetItemStackCount(Item, GridIndex) - StackCount;
+		InventoryStorage->SetItemStackCount(Item, GridIndex, NewStackCount);
 	}
 	
 	if (const auto ConsumableFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemConsumableFragment>())
@@ -491,7 +493,7 @@ void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item
 	}
 }
 
-bool UInventoryComponent::Server_ConsumeItem_Validate(UInventoryItem* Item, int32 StackCount)
+bool UInventoryComponent::Server_ConsumeItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
 	return true;
 }
@@ -594,6 +596,25 @@ void UInventoryComponent::Server_ClearHoverItem_Implementation()
 }
 
 bool UInventoryComponent::Server_ClearHoverItem_Validate()
+{
+	return true;
+}
+
+void UInventoryComponent::Server_PutDownHoverItem_Implementation()
+{
+	if (!HoverItem.IsSet())
+		return;
+	
+	FInventorySlotAvailabilityResult Result;
+	ensure(GetInventoryStorage()->HasRoomForItem(Result, HoverItem->InventoryItem->GetItemManifest(), HoverItem->StackCount));
+	Result.Item = HoverItem->InventoryItem;
+
+	OnStackChanged.Broadcast(Result);
+
+	HoverItem.Reset();
+}
+
+bool UInventoryComponent::Server_PutDownHoverItem_Validate()
 {
 	return true;
 }
@@ -900,10 +921,13 @@ void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInve
 {
 	LOG_NETFUNCTIONCALL
 
-	if (!HoverItem.IsSet())
+	if (!IsValid(Item) || !Item->IsStackable())
+		return;
+
+	if (!HoverItem.IsSet() || HoverItem->InventoryItem != Item)
 	{
-		UE_LOG(LogInventory, Error, TEXT("FillInStacksOrConsumeHover: Source hover item is not defined. Target: [%s] index %d"),
-			*GetInventoryItemId(Item), TargetIndex)
+		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
+			*GetInventoryItemId(Item), *GetInventoryItemId(HoverItem.IsSet() ? HoverItem->InventoryItem.Get() : nullptr))
 		return;
 	}
 	const int32 Remainder = InventoryStorage->FillInStacksOrConsumeHover(Item, TargetIndex, HoverItem->StackCount);
@@ -957,7 +981,7 @@ void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventory
 	if (StackCount < 2)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Cannot split stack with 1 item: [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
-		Server_ClearHoverItem(); // just in case, to prevent next usage
+		HoverItem.Reset(); // just in case, to prevent next usage
 		return;
 	}
 	
@@ -973,6 +997,30 @@ void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventory
 }
 
 bool UInventoryComponent::Server_SplitStackToHoverItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SwapStackCountWithHoverItem_Implementation(UInventoryItem* Item, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!IsValid(Item) || !Item->IsStackable())
+		return;
+	
+	if (!HoverItem.IsSet() || HoverItem->InventoryItem != Item)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
+			*GetInventoryItemId(Item), *GetInventoryItemId(HoverItem.IsSet() ? HoverItem->InventoryItem.Get() : nullptr))
+		return;
+	}
+
+	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, HoverItem->StackCount);
+	HoverItem->StackCount = StackCount;
+}
+
+bool UInventoryComponent::Server_SwapStackCountWithHoverItem_Validate(UInventoryItem* Item, int32 GridIndex)
 {
 	return true;
 }

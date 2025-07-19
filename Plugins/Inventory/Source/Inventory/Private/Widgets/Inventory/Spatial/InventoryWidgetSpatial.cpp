@@ -427,10 +427,10 @@ void UInventoryWidgetSpatial::ClearSlotOfItem(UInventoryEquippedGridSlot* Equipp
 	if (IsValid(EquippedGridSlot))
 	{
 		// todo: move this to ViewModel
-		if (UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
-		{
-			InventoryComponent->GetEquipmentSlotMutable(EquippedGridSlot->GetSlotId())->Clear();
-		}
+		// if (UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
+		// {
+		// 	InventoryComponent->GetEquipmentSlotMutable(EquippedGridSlot->GetSlotId())->Clear();
+		// }
 
 		EquippedGridSlot->ClearEquippedSlot();
 	}

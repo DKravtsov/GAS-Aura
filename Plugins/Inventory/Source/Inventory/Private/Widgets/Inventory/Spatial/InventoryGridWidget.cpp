@@ -300,7 +300,7 @@ void UInventoryGridWidget::AddItemToIndexes(const FInventorySlotAvailabilityResu
 	}
 }
 
-void UInventoryGridWidget::AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable,	const int32 StackAmount)
+void UInventoryGridWidget::AddItemAtIndex(UInventoryItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount)
 {
 	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(Item);
 	if (GridFragment == nullptr)
@@ -366,11 +366,14 @@ void UInventoryGridWidget::PutHoverItemDown()
 		return;
 
 	FInventorySlotAvailabilityResult Result;
-	ensure(InventoryComponent->GetInventoryStorage()->HasRoomForItem(Result, HoverItem->GetInventoryItem()->GetItemManifest(), HoverItem->GetStackCount()));
-	
-	Result.Item = HoverItem->GetInventoryItem();
+	if (GetOwningPlayer()->HasAuthority())
+	{
+		ensure(InventoryComponent->GetInventoryStorage()->HasRoomForItem(Result, HoverItem->GetInventoryItem()->GetItemManifest(), HoverItem->GetStackCount()));
+    
+		Result.Item = HoverItem->GetInventoryItem();
+	}
 
-	GridViewModel->NotifyStackChanged(Result);
+	GridViewModel->PutDownHoverItem(Result);
 
 	ClearHoverItem();
 }
@@ -779,6 +782,7 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 		// Should we swap their stack counts?
 		if (ClickedStackCount == MaxStackSize && HoveredStackCount < MaxStackSize)
 		{
+			GridViewModel->SwapStackCountWithHoverItem(ClickedInventoryItem, GridIndex);
 			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
 			return;
 		}
@@ -922,7 +926,7 @@ void UInventoryGridWidget::OnPopupMenuConsume(const int32 GridIndex)
 	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - 1;
 	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
 	
-	InventoryComponent->ConsumeItem(RightClickedItem);
+	InventoryComponent->ConsumeItem(RightClickedItem, GridIndex, 1);
 
 	if (NewStackCount <= 0)
 	{

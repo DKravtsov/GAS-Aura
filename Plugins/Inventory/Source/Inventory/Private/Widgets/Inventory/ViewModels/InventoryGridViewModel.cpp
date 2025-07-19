@@ -75,8 +75,11 @@ bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
 void UInventoryGridViewModel::UpdateStackCount(int32 Index, int32 NewStackCount) const
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Index: %d, NewStackCount: %d"), Index, NewStackCount)
-	
-	GetStorageGrid()->SetStackCount(Index, NewStackCount);
+
+	if (!HasAuthority())
+	{
+		GetStorageGrid()->SetStackCount(Index, NewStackCount);
+	}
 }
 
 void UInventoryGridViewModel::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount) const
@@ -96,14 +99,6 @@ void UInventoryGridViewModel::RemoveItemFromGrid(UInventoryItem* ItemToRemove, c
 	{
 		InventoryComponent->Server_RemoveFromStorage(ItemToRemove, GridIndex);
 	}
-}
-
-void UInventoryGridViewModel::NotifyStackChanged(const FInventorySlotAvailabilityResult& Result) const
-{
-	LOG_NETFUNCTIONCALL
-
-	// TODO: Should process on server
-	StorageGrid->HandleStackChanged(Result);
 }
 
 void UInventoryGridViewModel::AssignHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 PrevGridIndex)
@@ -126,6 +121,20 @@ void UInventoryGridViewModel::ClearHoverItem()
 	}
 }
 
+void UInventoryGridViewModel::PutDownHoverItem(const FInventorySlotAvailabilityResult& Result)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (HasAuthority())
+	{
+		StorageGrid->HandleStackChanged(Result);
+	}
+	else
+	{// ignore the Result, the server knows better
+		InventoryComponent->Server_PutDownHoverItem();
+	}
+}
+
 void UInventoryGridViewModel::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] from %d to %d"), *GetInventoryItemId(Item), SourceIndex, TargetIndex)
@@ -142,6 +151,15 @@ void UInventoryGridViewModel::SplitStackToHoverItem(UInventoryItem* InventoryIte
 	if (!HasAuthority())
 	{
 		InventoryComponent->Server_SplitStackToHoverItem(InventoryItem, GridIndex, SplitAmount);
+	}
+}
+
+void UInventoryGridViewModel::SwapStackCountWithHoverItem(UInventoryItem* InventoryItem, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item[%s] index: %d"), *GetInventoryItemId(InventoryItem), GridIndex)
+	if (!HasAuthority())
+	{
+		InventoryComponent->Server_SwapStackCountWithHoverItem(InventoryItem, GridIndex);
 	}
 }
 
