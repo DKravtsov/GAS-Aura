@@ -933,7 +933,7 @@ void UInventoryComponent::Server_AssignHoverItem_Implementation(UInventoryItem* 
 	HoverItem->InventoryItem = Item;
 	HoverItem->bStackable = Item->IsStackable();
 	
-	HoverItem->StackCount = GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	HoverItem->StackCount = HoverItem->bStackable ? GetInventoryStorage()->GetItemStackCount(Item, GridIndex) : 0;
 	if (PrevGridIndex != INDEX_NONE)
 	{
 		HoverItem->PreviousIndex = PrevGridIndex;
