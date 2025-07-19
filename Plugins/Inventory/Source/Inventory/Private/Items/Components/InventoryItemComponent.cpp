@@ -49,14 +49,17 @@ void UInventoryItemComponent::CopyManifestFromData()
 
 void UInventoryItemComponent::BeginPlay()
 {
-	if (!bOverrideItemManifest && !ItemData.IsNull())
+	if (GetOwner()->HasAuthority())
 	{
-		ItemManifest = ItemData.LoadSynchronous()->GetItemManifest();
-	}
+		if (!bOverrideItemManifest && !ItemData.IsNull())
+		{
+			ItemManifest = ItemData.LoadSynchronous()->GetItemManifest();
+		}
 	
-	if (!ItemManifest.PickupActorClass)
-	{
-		ItemManifest.PickupActorClass = GetOwner()->GetClass();
+		if (!ItemManifest.PickupActorClass)
+		{
+			ItemManifest.PickupActorClass = GetOwner()->GetClass();
+		}
 	}
 	Super::BeginPlay();
 }
