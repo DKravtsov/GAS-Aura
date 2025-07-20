@@ -7,6 +7,7 @@
 #include "InventoryGridTypes.h"
 #include "InventoryGridViewModel.generated.h"
 
+class UInventoryGridWidget;
 class UInventoryStorageGrid;
 struct FGameplayTag;
 struct FInventoryStorageGridSlot;
@@ -40,8 +41,7 @@ private:
 
 public:
 
-	void Initialize(UInventoryComponent* InInventoryComponent, const FGameplayTag& ItemCategory);
-	void Initialize(UInventoryComponent* InInventoryComponent, UInventoryStorageGrid* InGrid);
+	void Initialize(UInventoryGridWidget* InGridWidget, const FGameplayTag& ItemCategory);
 
 	int32 GetRows() const;
 
@@ -72,6 +72,8 @@ public:
 	void SwapStackCountWithHoverItem(UInventoryItem* InventoryItem, int32 GridIndex);
 	
 private:
+	void Initialize(UInventoryComponent* InInventoryComponent, const FGameplayTag& ItemCategory);
+	void Initialize(UInventoryComponent* InInventoryComponent, UInventoryStorageGrid* InGrid);
 
 	bool HasAuthority() const;
 

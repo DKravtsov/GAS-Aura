@@ -91,8 +91,6 @@ public:
 
 	float GetTileSize() const { return TileSize; }
 
-	INVENTORY_API void AddItemToGrid(const FInventorySlotAvailabilityResult& Result);
-
 	UFUNCTION()
 	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
 
@@ -115,6 +113,11 @@ public:
 
 	void RemoveItemFromGrid(UInventoryItem* Item);
 
+	void HandleAddItemToGrid(const FInventorySlotAvailabilityResult& Result);
+	void HandleOnStackChanged(const FInventorySlotAvailabilityResult& Result);
+	void HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
+	void HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
+
 
 private:
 
@@ -122,9 +125,6 @@ private:
 	void CreateGridViewModel();
 	
 	bool MatchesCategory(const UInventoryItem* Item) const;
-
-	UFUNCTION()
-	void OnStackChanged(const FInventorySlotAvailabilityResult& Result);
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	UInventorySlottedItemWidget* CreateSlottedItemWidget(UInventoryItem* Item, int32 Index,
@@ -136,8 +136,6 @@ private:
 	                         const FInventoryItemImageFragment& ImageFragment) const;
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
-	
-	void OnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
 
 	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& Dimensions) const;
 
@@ -191,7 +189,4 @@ private:
 	static FSlateBrush GetTempBrush();
 
 	void PutHoverItemDown();
-
-	void OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
-	void OnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
 };

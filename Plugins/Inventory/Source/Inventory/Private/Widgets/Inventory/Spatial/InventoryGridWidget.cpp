@@ -30,14 +30,14 @@ void UInventoryGridWidget::NativeOnInitialized()
 	InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 
 	CreateGridViewModel();
-	if (ensure(GridViewModel))
-	{
-		GridViewModel->GetOnItemAddedToGridDelegate().AddUObject(this, &UInventoryGridWidget::AddItemToGrid);
-		GridViewModel->GetOnStackChangedDelegate().AddUObject(this, &UInventoryGridWidget::OnStackChanged);
-		//GridViewModel->OnItemRemovedFromGrid.AddUObject(this, &ThisClass::OnRemovedItemFromGrid);
-		GridViewModel->GetOnGridSlotsResetDelegate().AddUObject(this, &UInventoryGridWidget::OnRemovedItemFromGrid);
-		GridViewModel->GetOnGridSlotsUpdatedDelegate().AddUObject(this, &UInventoryGridWidget::OnUpdateGridSlots);
-	}
+	// if (ensure(GridViewModel))
+	// {
+	// 	GridViewModel->GetOnItemAddedToGridDelegate().AddUObject(this, &UInventoryGridWidget::AddItemToGrid);
+	// 	GridViewModel->GetOnStackChangedDelegate().AddUObject(this, &UInventoryGridWidget::OnStackChanged);
+	// 	//GridViewModel->OnItemRemovedFromGrid.AddUObject(this, &ThisClass::OnRemovedItemFromGrid);
+	// 	GridViewModel->GetOnGridSlotsResetDelegate().AddUObject(this, &UInventoryGridWidget::OnRemovedItemFromGrid);
+	// 	GridViewModel->GetOnGridSlotsUpdatedDelegate().AddUObject(this, &UInventoryGridWidget::OnUpdateGridSlots);
+	// }
 
 	ConstructGrid();
 }
@@ -46,8 +46,8 @@ void UInventoryGridWidget::CreateGridViewModel()
 {
 	if (!IsValid(GridViewModel))
 	{
-		GridViewModel = NewObject<UInventoryGridViewModel>(InventoryComponent->GetOwner());
-		GridViewModel->Initialize(InventoryComponent.Get(), ItemCategory);
+		GridViewModel = NewObject<UInventoryGridViewModel>(GetOwningPlayer());
+		GridViewModel->Initialize(this, ItemCategory);
 	}
 }
 
@@ -279,7 +279,7 @@ bool UInventoryGridWidget::IsInGridBounds(const int32 StartIndex, const FIntPoin
 	return EndColumn <= Columns && EndRow <= Rows;
 }
 
-void UInventoryGridWidget::AddItemToGrid(const FInventorySlotAvailabilityResult& Result)
+void UInventoryGridWidget::HandleAddItemToGrid(const FInventorySlotAvailabilityResult& Result)
 {
 	UInventoryItem* Item = Result.Item.Get();
 	if (!IsValid(Item) || !MatchesCategory(Item))
@@ -390,7 +390,7 @@ void UInventoryGridWidget::AddSlottedItemToGrid(const int32 Index, const FInvent
 	}
 }
 
-void UInventoryGridWidget::OnUpdateGridSlots(const TArrayView<int32>& GridIndexArray)
+void UInventoryGridWidget::HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray)
 {
 	LOG_NETFUNCTIONCALL
 
@@ -462,7 +462,7 @@ bool UInventoryGridWidget::MatchesCategory(const UInventoryItem* Item) const
 	return Item->GetItemManifest().GetItemCategory().MatchesTag(ItemCategory);
 }
 
-void UInventoryGridWidget::OnStackChanged(const FInventorySlotAvailabilityResult& Result)
+void UInventoryGridWidget::HandleOnStackChanged(const FInventorySlotAvailabilityResult& Result)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] New total stack amount: %d"), *GetInventoryItemId(Result.Item.Get()), Result.TotalRoomToFill)
 	
@@ -637,28 +637,7 @@ void UInventoryGridWidget::RemoveItemFromGrid(UInventoryItem* ClickedItem, const
 	GridViewModel->RemoveItemFromGrid(ClickedItem, GridIndex);
 }
 
-void UInventoryGridWidget::OnRemovedItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex)
-{
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], Index: %d"), *GetInventoryItemId(ItemToRemove), GridIndex)
-	
-	FIntPoint Dimensions = UInventoryWidgetUtils::GetGridDimensionsOfItem(ItemToRemove);
-	UInventoryStatics::ForEach2D(GridSlots, GridIndex, Dimensions, Columns, [](UInventoryGridSlotWidget* GridSlot)
-	{
-		GridSlot->SetDefaultTexture();
-	});
-
-	if (SlottedItems.Contains(GridIndex))
-	{
-		TObjectPtr<UInventorySlottedItemWidget> FoundSlottedItem;
-		if (SlottedItems.RemoveAndCopyValue(GridIndex, FoundSlottedItem))
-		{
-			FoundSlottedItem->RemoveFromParent();
-		}
-	}
-	
-}
-
-void UInventoryGridWidget::OnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray)
+void UInventoryGridWidget::HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT(" (num=%d)"), GridIndexArray.Num())
 	

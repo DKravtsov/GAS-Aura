@@ -8,6 +8,33 @@
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
+
+void UInventoryGridViewModel::Initialize(UInventoryGridWidget* InGridWidget, const FGameplayTag& ItemCategory)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Widget [%s] Category [%s]"), *InGridWidget->GetName(), *ItemCategory.ToString())
+	
+	APlayerController* PC = InGridWidget->GetOwningPlayer();
+	check(PC);
+	
+	InventoryComponent = UInventoryStatics::GetInventoryComponent(PC);
+	check(InventoryComponent.IsValid());
+	
+	const UInventorySpatialStorage* Storage = Cast<UInventorySpatialStorage>(InventoryComponent->GetInventoryStorage());
+	checkf(Storage, TEXT("GridViewModel initialization failed. The InventoryStorage is null. InventoryComponent [%s]"),
+		*GetNameSafe(InventoryComponent.Get()));
+
+	StorageGrid = Storage->FindInventoryGridByCategory(ItemCategory);
+	checkf(StorageGrid.IsValid(), TEXT("GridViewModel initialization failed. Couldn't find the inventory grid. InventoryComponent [%s]. Looked for [%s] but there are only: %s"),
+				*GetNameSafe(InventoryComponent.Get()), *ItemCategory.ToString(), *Storage->GetInventoryGridNamesDebugString())
+
+	GetOnItemAddedToGridDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleAddItemToGrid);
+	GetOnStackChangedDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleOnStackChanged);
+	GetOnGridSlotsResetDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleOnRemovedItemFromGrid);
+	GetOnGridSlotsUpdatedDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleOnUpdateGridSlots);
+
+}
 
 void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryComponent, const FGameplayTag& ItemCategory)
 {
@@ -17,7 +44,8 @@ void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryCompone
 	{
 		if (const auto Grid = Storage->FindInventoryGridByCategory(ItemCategory))
 		{
-			Initialize(InInventoryComponent, Grid);
+			InventoryComponent = InInventoryComponent;
+			StorageGrid = Grid;
 			return;
 		}
 		else
@@ -31,14 +59,6 @@ void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryCompone
 	UE_LOG(LogInventory, Error, TEXT("GridViewModel initialization failed. The InventoryStorage is null. InventoryComponent [%s]"),
 		*GetNameSafe(InInventoryComponent));
 	checkNoEntry();
-}
-
-void UInventoryGridViewModel::Initialize(UInventoryComponent* InInventoryComponent, UInventoryStorageGrid* InGrid)
-{
-	check(InventoryComponent == nullptr);
-	
-	InventoryComponent = InInventoryComponent;
-	StorageGrid = InGrid;
 }
 
 int32 UInventoryGridViewModel::GetRows() const
