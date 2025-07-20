@@ -42,6 +42,7 @@ FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInvento
 	Result.Item = InItem;
 	Result.TotalRoomToFill = InAmount;
 	Result.Remainder = InAmount;
+	Result.bStackable = InMaxStackSize > 1;
 	for (int32 Index = InStartIndex; Result.Remainder > 0; Index++)
 	{
 		auto& Slot = Result.SlotAvailabilities.AddDefaulted_GetRef();

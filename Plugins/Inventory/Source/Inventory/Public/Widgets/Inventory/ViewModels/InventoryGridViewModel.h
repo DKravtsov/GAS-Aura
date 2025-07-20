@@ -70,10 +70,7 @@ public:
 	// Split <SplitAmount> stack from stackable item in slot to HoverItem
 	void SplitStackToHoverItem(UInventoryItem* InventoryItem, int32 GridIndex, int32 SplitAmount);
 	void SwapStackCountWithHoverItem(UInventoryItem* InventoryItem, int32 GridIndex);
-	
 private:
-	void Initialize(UInventoryComponent* InInventoryComponent, const FGameplayTag& ItemCategory);
-	void Initialize(UInventoryComponent* InInventoryComponent, UInventoryStorageGrid* InGrid);
 
 	bool HasAuthority() const;
 
