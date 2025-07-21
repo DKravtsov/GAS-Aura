@@ -23,6 +23,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInven
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryMenuVisibilityChangedSugnature);
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemDelegate, UInventoryItem* /*Item*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FInventoryItemWithIndexDelegate, UInventoryItem* /*Item*/, int32 /*Index*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FInventoryItemWithIndexAndStackCountDelegate, UInventoryItem* /*Item*/, int32 /*Index*/, int32 /*StackCount*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemAvailabilityResultDelegate, const FInventorySlotAvailabilityResult& /*Result*/);
+DECLARE_MULTICAST_DELEGATE_FourParams(FInventoryHoverItemUpdatedDelegate, UInventoryItem* /*Item*/, bool /*bStackable*/, int32 /*StackCount*/, int32 /*PreviousIndex*/);
+DECLARE_MULTICAST_DELEGATE(FInventoryHoverItemResetDelegate);
+
 USTRUCT(BlueprintType)
 struct FInventoryStartupEquipmentData
 {
@@ -55,6 +62,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
 	FInventoryMenuVisibilityChangedSugnature OnInventoryMenuClosed;
+
+	FInventoryHoverItemUpdatedDelegate OnHoverItemUpdated;
+	FInventoryHoverItemResetDelegate OnHoverItemReset;
 
 private:
 
@@ -107,9 +117,9 @@ private:
 		bool bStackable = false; // a shortcut whether this item is stackable or not
 	};
 
+	// This is kinda "selected" item - item that a player is manipulating at the moment (e.g. is moving to another slot)
 	// This is needed on the server to track what's happened on the client.
-	// Note: it won't be used on the listen server's local PC - it's always IsSet() == false there.
-	TOptional<FHoverItemProxy> HoverItem;
+	TOptional<FHoverItemProxy> HoverItemProxy;
 
 	uint8 bInventoryMenuOpen:1 = false;
 
@@ -128,6 +138,8 @@ public:
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
+
+	bool HasHoverItem() const {return HoverItemProxy.IsSet();}
 
 	TArray<FInventoryEquipmentSlot> GetEquipmentSlotsCopy() const {return EquipmentSlots.GetAllItems();}
 
@@ -157,28 +169,32 @@ public:
 //#endif//UE_WITH_CHEAT_MANAGER
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_UpdateSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_RemoveFromStorage(UInventoryItem* ItemToRemove, const int32 GridIndex);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AssignHoverItem(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex);
+	void Server_FillInStacksOrConsumeHover(UInventoryItem* Item, int32 GridIndex);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ClearHoverItem();
+	void Server_SwapStackCountWithHoverItem(UInventoryItem* Item, int32 GridIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_PutDownHoverItem();
+	void Server_SelectItem(UInventoryItem* Item, int32 GridIndex, int32 PrevIndex);
+
+	// User is trying to Equip/Unequip item. If already has selected item - swap it with the item in the slot 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SelectItemInSlot(EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex);
+	void Server_PutSelectedItemToStorage();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PutSelectedItemToStorageAtIndex(const int32 TargetIndex);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DropSelectedItemOff();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SplitStackToHoverItem(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SwapStackCountWithHoverItem(UInventoryItem* Item, int32 GridIndex);
+	void Server_SwapSelectedWitItem(UInventoryItem* ItemOnGrid, int32 GridIndex);
 
 protected:
 	INVENTORY_API void CreateInventoryStorage();
@@ -240,5 +256,17 @@ private:
 
 
 	EInventoryEquipmentSlot GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest);
+
+	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount);
+	void RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex);
+
+	void NotifyHoverItemUpdated();
+	void ClearSelectedItem();
+
+	UFUNCTION(Client, Reliable)
+	void Client_ReceivedHoverItemUpdated(UInventoryItem* InventoryItem, bool bStackable, int32 StackCount, int32 PreviousIndex);
+
+	UFUNCTION(Client, Reliable)
+	void Client_ReceivedHoverItemReset();
 
 };

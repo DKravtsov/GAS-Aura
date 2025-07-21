@@ -377,8 +377,17 @@ void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> 
 	if (GetOwningActor()->HasAuthority() || ChangedIndices.IsEmpty())
 		return;
 
+	// TODO: an assumption that in 99.9% cases we batch only the removes or only the adds. May be a shot in the leg here.
+	const bool bRemoved = ChangedIndices.Num() > 0 && GetGridSlot(ChangedIndices[0]).IsAvailable();
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Changed: %d;"), ChangedIndices.Num())
-	OnGridSlotsUpdated.Broadcast(ChangedIndices);
+	if (bRemoved)
+	{
+		OnGridSlotsReset.Broadcast(ChangedIndices);
+	}
+	else
+	{
+		OnGridSlotsUpdated.Broadcast(ChangedIndices);
+	}
 }
 
 int32 UInventoryStorageGrid::GetStackCount(int32 GridIndex) const

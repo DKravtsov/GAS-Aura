@@ -3,6 +3,7 @@
 
 #include "InventoryGridTypes.h"
 #include "Items/InventoryItem.h"
+#include "Items/Fragments/InventoryItemFragment.h"
 
 namespace InventoryTags
 {
@@ -30,7 +31,7 @@ FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInvento
 	Result.Item = InItem;
 	Result.TotalRoomToFill = 1;
 	auto& Slot = Result.SlotAvailabilities.AddDefaulted_GetRef();
-	Slot.Amount = 1;
+	Slot.Amount = 0;
 	Slot.Index = InStartIndex;
 	Slot.bItemAtIndex = true;
 	return Result;
@@ -42,7 +43,7 @@ FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInvento
 	Result.Item = InItem;
 	Result.TotalRoomToFill = InAmount;
 	Result.Remainder = InAmount;
-	Result.bStackable = InMaxStackSize > 1;
+	Result.bStackable = true;
 	for (int32 Index = InStartIndex; Result.Remainder > 0; Index++)
 	{
 		auto& Slot = Result.SlotAvailabilities.AddDefaulted_GetRef();
@@ -52,6 +53,15 @@ FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInvento
 		Result.Remainder -= Slot.Amount;
 	}
 	return Result;
+}
+
+FInventorySlotAvailabilityResult FInventorySlotAvailabilityResult::Make(UInventoryItem* InItem, int32 InStartIndex, bool bStackable, int32 StackCount)
+{
+	if (!bStackable)
+		return Make(InItem, InStartIndex);
+
+	const int32 MaxStackSize = InItem->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>()->GetMaxStackSize();
+	return Make(InItem, InStartIndex, MaxStackSize, StackCount);
 }
 
 void FInventoryStorageGridSlot::SetInventoryItem(UInventoryItem* InItem)

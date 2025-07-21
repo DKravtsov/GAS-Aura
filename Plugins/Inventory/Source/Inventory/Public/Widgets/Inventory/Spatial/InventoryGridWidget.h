@@ -107,17 +107,16 @@ public:
 	bool HasHoverItem() const;
 	UInventoryHoverItemWidget* GetHoverItem() const {return HoverItem;}
 	void ClearHoverItem();
-	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 
 	void OnHide();
-
-	void RemoveItemFromGrid(UInventoryItem* Item);
 
 	void HandleAddItemToGrid(const FInventorySlotAvailabilityResult& Result);
 	void HandleOnStackChanged(const FInventorySlotAvailabilityResult& Result);
 	void HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
 	void HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
 
+	void HandleOnHoverItemReset();
+	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
 
 private:
 
@@ -145,8 +144,6 @@ private:
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void PutDownItemInInventoryAtIndex(const int32 GridIndex);
 	void ShowDefaultCursor() const;
-
-	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
 	void OnTileParametersUpdated(const FInventoryTileParameters& Parameters);

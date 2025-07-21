@@ -60,6 +60,7 @@ public:
 
 	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex);
 	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex, int32 InMaxStackSize, int32 InAmount);
+	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex, bool bStackable, int32 StackCount);
 };
 
 UENUM(BlueprintType)

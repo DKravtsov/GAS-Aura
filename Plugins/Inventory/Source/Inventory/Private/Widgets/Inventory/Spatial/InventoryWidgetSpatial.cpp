@@ -337,9 +337,6 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 	// Clear the equipped grid slot of this item (set its inventory item to nullptr)
 	ClearSlotOfItem(EquippedGridSlot);
 
-	// Assign previously equipped item as the hover item
-	InventoryGrid_Equipment->AssignHoverItem(ItemToUnequip);
-	
 	// Remove of the equipped slotted item from the equipped grid slot
 	RemoveEquippedSlottedItem(EquippedSlottedItem);
 	
@@ -460,7 +457,7 @@ void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEq
 {
 	if (const auto InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
 	{
-		InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip, SlotId);
+		InventoryComponent->Server_SelectItemInSlot(SlotId);
 	}
 }
 

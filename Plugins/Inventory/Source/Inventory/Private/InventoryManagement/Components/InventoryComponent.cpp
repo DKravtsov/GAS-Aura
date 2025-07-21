@@ -303,6 +303,7 @@ void UInventoryComponent::Client_RejectEquipItem_Implementation(UInventoryItem* 
 
 void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
+	// TODO: review the comments below, they seem out-of-date
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
 		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
 
@@ -358,7 +359,7 @@ void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemTo
 		const int32 ItemGridIndex = InventoryStorage->GetItemIndex(ItemToEquip);
 		if (ItemGridIndex != INDEX_NONE)
 		{
-			InventoryStorage->RemoveItemFromGrid(ItemToEquip, ItemGridIndex);
+			RemoveItemFromStorage(ItemToEquip, ItemGridIndex);
 		}
 	}
 
@@ -545,35 +546,6 @@ bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEq
 
 	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 	
-	return true;
-}
-
-void UInventoryComponent::Server_ClearHoverItem_Implementation()
-{
-	HoverItem.Reset();
-}
-
-bool UInventoryComponent::Server_ClearHoverItem_Validate()
-{
-	return true;
-}
-
-void UInventoryComponent::Server_PutDownHoverItem_Implementation()
-{
-	if (!HoverItem.IsSet())
-		return;
-	
-	FInventorySlotAvailabilityResult Result;
-	ensure(GetInventoryStorage()->HasRoomForItem(Result, HoverItem->InventoryItem->GetItemManifest(), HoverItem->StackCount));
-	Result.Item = HoverItem->InventoryItem;
-
-	OnStackChanged.Broadcast(Result);
-
-	HoverItem.Reset();
-}
-
-bool UInventoryComponent::Server_PutDownHoverItem_Validate()
-{
 	return true;
 }
 
@@ -821,122 +793,49 @@ void UInventoryComponent::Client_EquipStartupInventory_Implementation(const TArr
 	}
 }
 
-void UInventoryComponent::Server_UpdateSlots_Implementation(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
+void UInventoryComponent::ClearSelectedItem()
 {
-	LOG_NETFUNCTIONCALL
-	
-	check(InventoryStorage);
-	InventoryStorage->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
-}
+	HoverItemProxy.Reset();
 
-bool UInventoryComponent::Server_UpdateSlots_Validate(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
-{
-	return true;
-}
+	OnHoverItemReset.Broadcast();
 
-void UInventoryComponent::Server_RemoveFromStorage_Implementation(UInventoryItem* ItemToRemove, const int32 GridIndex)
-{
-	LOG_NETFUNCTIONCALL
-	
-	if (!IsValid(ItemToRemove))
-		return;
-	
-	check(InventoryStorage);
-
-	if (InventoryStorage->GetItemIndex(ItemToRemove) != GridIndex)
+	if (!OwningPlayerController->IsLocalController() && OwningPlayerController->HasAuthority())
 	{
-		UE_LOG(LogInventory, Error, TEXT("Server: Item [%s] has invalid index. Expected %d, got %d"),
-			*GetInventoryItemId(ItemToRemove), InventoryStorage->GetItemIndex(ItemToRemove), GridIndex);
+		Client_ReceivedHoverItemReset();
 	}
-	
-	InventoryStorage->RemoveItemFromGrid(ItemToRemove, GridIndex);
 }
 
-bool UInventoryComponent::Server_RemoveFromStorage_Validate(UInventoryItem* ItemToRemove, const int32 GridIndex)
+void UInventoryComponent::Client_ReceivedHoverItemReset_Implementation()
 {
-	return true;
+	ClearSelectedItem();
 }
 
-void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex)
+void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInventoryItem* Item, int32 GridIndex)
 {
 	LOG_NETFUNCTIONCALL
 
 	if (!IsValid(Item) || !Item->IsStackable())
 		return;
 
-	if (!HoverItem.IsSet() || HoverItem->InventoryItem != Item)
+	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
-			*GetInventoryItemId(Item), *GetInventoryItemId(HoverItem.IsSet() ? HoverItem->InventoryItem.Get() : nullptr))
+			*GetInventoryItemId(Item), *GetInventoryItemId(HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr))
 		return;
 	}
-	const int32 Remainder = InventoryStorage->FillInStacksOrConsumeHover(Item, TargetIndex, HoverItem->StackCount);
+	const int32 Remainder = InventoryStorage->FillInStacksOrConsumeHover(Item, GridIndex, HoverItemProxy->StackCount);
 	if (Remainder == 0)
 	{
-		HoverItem.Reset();
+		ClearSelectedItem();
 	}
 	else
 	{
-		HoverItem->StackCount = Remainder;
+		HoverItemProxy->StackCount = Remainder;
+		NotifyHoverItemUpdated();
 	}
 }
 
-bool UInventoryComponent::Server_FillInStacksOrConsumeHover_Validate(UInventoryItem* Item, int32 TargetIndex, int32 SourceIndex)
-{
-	return true;
-}
-
-void UInventoryComponent::Server_AssignHoverItem_Implementation(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex)
-{
-	LOG_NETFUNCTIONCALL
-
-	if (!HoverItem.IsSet())
-	{
-		HoverItem = FHoverItemProxy();
-	}
-	HoverItem->InventoryItem = Item;
-	HoverItem->bStackable = Item->IsStackable();
-	
-	HoverItem->StackCount = HoverItem->bStackable ? GetInventoryStorage()->GetItemStackCount(Item, GridIndex) : 0;
-	if (PrevGridIndex != INDEX_NONE)
-	{
-		HoverItem->PreviousIndex = PrevGridIndex;
-	}
-
-}
-
-bool UInventoryComponent::Server_AssignHoverItem_Validate(UInventoryItem* Item, const int32 GridIndex, const int32 PrevGridIndex)
-{
-	return true;
-}
-
-void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
-{
-	LOG_NETFUNCTIONCALL
-
-	if (!IsValid(Item) || !Item->IsStackable())
-		return;
-	
-	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
-	if (StackCount < 2)
-	{
-		UE_LOG(LogInventory, Error, TEXT("Cannot split stack with 1 item: [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
-		HoverItem.Reset(); // just in case, to prevent next usage
-		return;
-	}
-	
-	if (!HoverItem.IsSet())
-	{
-		HoverItem.Emplace(Item, GridIndex, StackCount, Item->IsStackable());
-	}
-
-	SplitAmount = FMath::Min(SplitAmount, StackCount - 1);
-
-	HoverItem->StackCount = SplitAmount;
-	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, StackCount - SplitAmount);
-}
-
-bool UInventoryComponent::Server_SplitStackToHoverItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+bool UInventoryComponent::Server_FillInStacksOrConsumeHover_Validate(UInventoryItem* Item, int32 GridIndex)
 {
 	return true;
 }
@@ -946,21 +845,47 @@ void UInventoryComponent::Server_SwapStackCountWithHoverItem_Implementation(UInv
 	LOG_NETFUNCTIONCALL
 
 	if (!IsValid(Item) || !Item->IsStackable())
+	{
+		UE_LOG(LogInventory, Error, TEXT("Only stackable items can swap stacks. [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
 		return;
+	}
 	
-	if (!HoverItem.IsSet() || HoverItem->InventoryItem != Item)
+	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
-			*GetInventoryItemId(Item), *GetInventoryItemId(HoverItem.IsSet() ? HoverItem->InventoryItem.Get() : nullptr))
+			*GetInventoryItemId(Item), *GetInventoryItemId(HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr))
 		return;
 	}
 
 	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
-	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, HoverItem->StackCount);
-	HoverItem->StackCount = StackCount;
+	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, HoverItemProxy->StackCount);
+	HoverItemProxy->StackCount = StackCount;
+	NotifyHoverItemUpdated();
 }
 
 bool UInventoryComponent::Server_SwapStackCountWithHoverItem_Validate(UInventoryItem* Item, int32 GridIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SwapSelectedWitItem_Implementation(UInventoryItem* ItemOnGrid, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index: %d"), *GetInventoryItemId(ItemOnGrid), GridIndex)
+
+	if (!IsValid(ItemOnGrid) || !HasHoverItem())
+		return;
+
+	FHoverItemProxy OldHoverItem = HoverItemProxy.GetValue();
+	UInventoryItem* HoverItem = OldHoverItem.InventoryItem.Get();
+
+	// keep the same PreviousGridIndex
+	Server_SelectItem(ItemOnGrid, GridIndex, OldHoverItem.PreviousIndex);
+	
+	AddItemAtIndex(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
+	InventoryStorage->UpdateGridSlots(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
+}
+
+bool UInventoryComponent::Server_SwapSelectedWitItem_Validate(UInventoryItem* ItemOnGrid, int32 GridIndex)
 {
 	return true;
 }
@@ -1004,3 +929,206 @@ void UInventoryComponent::DebugPrintStorage() const
 	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
 }
 //#endif//UE_WITH_CHEAT_MANAGER
+
+void UInventoryComponent::RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Removing item [%s] from storage index %d"), *GetInventoryItemId(Item), GridIndex)
+	checkf(GetOwner()->HasAuthority(), TEXT("This method should be run only on server"));
+
+	if (!IsValid(Item))
+		return;
+	
+	check(InventoryStorage);
+	InventoryStorage->RemoveItemFromGrid(Item, GridIndex);
+}
+
+void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 PrevIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] (index %d)"), *GetInventoryItemId(Item), GridIndex)
+
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select NULL item."))
+		return;
+	}
+	
+	if (!HasHoverItem())
+	{
+		HoverItemProxy = FHoverItemProxy();
+	}
+	HoverItemProxy->InventoryItem = Item;
+	HoverItemProxy->bStackable = Item->IsStackable();
+	
+	HoverItemProxy->StackCount = HoverItemProxy->bStackable ? GetInventoryStorage()->GetItemStackCount(Item, GridIndex) : 0;
+	if (PrevIndex != INDEX_NONE)
+	{
+		HoverItemProxy->PreviousIndex = PrevIndex;
+	}
+
+	RemoveItemFromStorage(Item, GridIndex);
+	NotifyHoverItemUpdated();
+}
+
+bool UInventoryComponent::Server_SelectItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 PrevIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SelectItemInSlot_Implementation(EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Selecting item in slot %d"), static_cast<int32>(SlotId))
+
+	const FInventoryEquipmentSlot* EquipSlot = GetEquipmentSlot(SlotId);
+	if (!EquipSlot)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select item in invalid slot %d"), static_cast<int32>(SlotId))
+		return;
+	}
+
+	if ( HasHoverItem() && !HoverItemProxy->bStackable)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Cannot equip stackable item [%s]"), *GetInventoryItemId(HoverItemProxy->InventoryItem.Get()))
+		return;
+	}
+
+	UInventoryItem* ItemToUnequip = EquipSlot->GetInventoryItem().Get();
+	UInventoryItem* ItemToEquip = HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr;
+
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
+
+	if (ItemToUnequip)
+	{
+		if (!HasHoverItem())
+		{
+			HoverItemProxy = FHoverItemProxy();
+		}
+		HoverItemProxy->InventoryItem = ItemToUnequip;
+		NotifyHoverItemUpdated();
+	}
+	else
+	{
+		ClearSelectedItem();
+	}
+}
+
+bool UInventoryComponent::Server_SelectItemInSlot_Validate(EInventoryEquipmentSlot SlotId)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_PutSelectedItemToStorage_Implementation()
+{
+	if (!HasHoverItem())
+		return;
+	
+	FInventorySlotAvailabilityResult Result;
+	ensure(GetInventoryStorage()->HasRoomForItem(Result, HoverItemProxy->InventoryItem->GetItemManifest(), HoverItemProxy->StackCount));
+	Result.Item = HoverItemProxy->InventoryItem;
+
+	OnStackChanged.Broadcast(Result);
+
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_PutSelectedItemToStorage_Validate()
+{
+	return true;
+}
+
+void UInventoryComponent::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount)
+{
+	const FInventorySlotAvailabilityResult Result = FInventorySlotAvailabilityResult::Make(Item, Index, bStackable, StackCount);
+	OnStackChanged.Broadcast(Result);
+}
+
+void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(const int32 TargetIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!HasHoverItem())
+		return;
+
+	UInventoryItem* Item = HoverItemProxy->InventoryItem.Get();
+	if (!IsValid(Item))
+		return;
+	check(InventoryStorage);
+
+	AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	InventoryStorage->UpdateGridSlots(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Validate(const int32 TargetIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_DropSelectedItemOff_Implementation()
+{
+	LOG_NETFUNCTIONCALL
+	
+	if (!HasHoverItem() || !HoverItemProxy->InventoryItem.IsValid())
+		return;
+	
+	Server_DropItem(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->StackCount);
+
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_DropSelectedItemOff_Validate()
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!IsValid(Item) || !Item->IsStackable())
+		return;
+	
+	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	if (StackCount < 2)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot split stack with 1 item: [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
+		ClearSelectedItem(); // just in case, to prevent next usage
+		return;
+	}
+	
+	if (!HasHoverItem())
+	{
+		HoverItemProxy.Emplace(Item, GridIndex, StackCount, Item->IsStackable());
+	}
+
+	SplitAmount = FMath::Min(SplitAmount, StackCount - 1);
+
+	HoverItemProxy->StackCount = SplitAmount;
+	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, StackCount - SplitAmount);
+	NotifyHoverItemUpdated();
+}
+
+bool UInventoryComponent::Server_SplitStackToHoverItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	return true;
+}
+
+void UInventoryComponent::NotifyHoverItemUpdated()
+{
+	if (OwningPlayerController->IsLocalController())
+	{
+		OnHoverItemUpdated.Broadcast(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->bStackable, HoverItemProxy->StackCount, HoverItemProxy->PreviousIndex);
+	}
+	else if (OwningPlayerController->HasAuthority())
+	{
+		Client_ReceivedHoverItemUpdated(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->bStackable, HoverItemProxy->StackCount, HoverItemProxy->PreviousIndex);
+	}
+}
+
+void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInventoryItem* InventoryItem, bool bStackable, int32 StackCount, int32 PreviousIndex)
+{
+	LOG_NETFUNCTIONCALL
+	
+	HoverItemProxy.Emplace(InventoryItem, PreviousIndex, StackCount, bStackable);
+	NotifyHoverItemUpdated();
+}
