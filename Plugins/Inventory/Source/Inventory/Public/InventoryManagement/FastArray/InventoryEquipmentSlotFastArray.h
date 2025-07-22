@@ -49,7 +49,6 @@ public:
 	TArray<FInventoryEquipmentSlot> GetAllItems() const;
 
 	//~ Begin of FFastArraySerializer interface (not virtual ones)
-	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
 	void PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize);
 	//~ End of FFastArraySerializer interface
 	

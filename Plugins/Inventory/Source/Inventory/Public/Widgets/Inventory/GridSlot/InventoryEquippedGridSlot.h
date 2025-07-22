@@ -77,5 +77,4 @@ public:
 
 private:
 	const FInventoryEquipmentSlot* GetBoundEquipmentSlot() const;
-	void SetInventoryItem(UInventoryItem* Item);
 };

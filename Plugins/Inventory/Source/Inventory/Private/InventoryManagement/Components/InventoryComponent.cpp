@@ -118,7 +118,8 @@ void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemMa
 	FInventorySlotAvailabilityResult Result;
 	if (!InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCount))
 	{
-		OnNoRoomInInventory.Broadcast();
+		UE_LOG(LogInventory, Error, TEXT("Adding startup item [%s]: inventory has no room for %d items."),
+			*ItemManifest.GetItemType().ToString(), StackCount);
 		return ;
 	}
 	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
@@ -517,36 +518,35 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	DOREPLIFETIME(UInventoryComponent, EquipmentSlots);
 }
 
-bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
+void UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
 {
 	check(IsValid(ItemToEquip));
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], slot %d"), *GetInventoryItemId(ItemToEquip), static_cast<int32>(SlotId))
 
 	if (SlotId == EInventoryEquipmentSlot::Invalid)
-		return false;
+		return;
 	
 	if (FindEquipmentSlotByEquippedItem(ItemToEquip))
-		return false;// is already equipped
+		return;// is already equipped
 
 	const FGameplayTag EquipmentTypeTag = UInventoryStatics::GetItemEquipmentTag(ItemToEquip);
 	if (!UInventoryStatics::CanEquipItem(ItemToEquip, EquipmentTypeTag))
-		return false;
+		return;
 
 	const FInventoryEquipmentSlot* EquipSlot = GetEquipmentSlot(SlotId);
 	if (!EquipSlot)
-		return false;
+		return;
 
 	UInventoryItem* ItemToUnequip = nullptr;
 	if (!EquipSlot->IsAvailable())
 	{
 		if (!EquipSlot->GetInventoryItem().IsValid())
-			return false;
+			return;
 		ItemToUnequip = EquipSlot->GetInventoryItem().Get();
 	}
 
 	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 	
-	return true;
 }
 
 void UInventoryComponent::CreateInventoryStorage()
@@ -683,7 +683,6 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 		}
 	}
 	bStartupItemsInitialized = true;
-	//Client_ReceivedStartupInventory(StartupEquipment);
 }
 
 bool UInventoryComponent::Server_AddStartupItems_Validate()

@@ -17,11 +17,6 @@ TArray<FInventoryEquipmentSlot> FInventoryEquipmentSlotFastArray::GetAllItems() 
 	return Result;
 }
 
-void FInventoryEquipmentSlotFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
-{
-	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent, EquipmentSlots, TEXT(" (num = %d)"), AddedIndices.Num())
-}
-
 void FInventoryEquipmentSlotFastArray::PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent, EquipmentSlots, TEXT(" (num = %d)"), ChangedIndices.Num())

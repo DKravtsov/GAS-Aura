@@ -138,10 +138,7 @@ void UInventoryEquipmentComponent::InitStartupEquipment()
 	{
 		for (const auto& [ItemToEquip, SlotId] : InventoryComponent->GetEquipStartupItems())
 		{
-			if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), SlotId))
-			{
-				//OnItemEquipped(ItemToEquip.Get());
-			}
+			InventoryComponent->TryEquipItem(ItemToEquip.Get(), SlotId);
 		}
 		InventoryComponent->ReceivedStartupItemsEquipped();
 	}
@@ -149,10 +146,7 @@ void UInventoryEquipmentComponent::InitStartupEquipment()
 	{
 		for (const auto& [ItemToEquip, SlotId] : InventoryComponent->GetEquipStartupItems())
 		{
-			//if (InventoryComponent->TryEquipItem(ItemToEquip.Get(), SlotId))
-			{
-				OnItemEquipped(ItemToEquip.Get());
-			}
+			OnItemEquipped(ItemToEquip.Get());
 		}
 	}
 }

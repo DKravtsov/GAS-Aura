@@ -19,7 +19,7 @@ bool UInventoryEquippedGridSlot::Bind(UInventoryComponent* InInventoryComponent,
 {
 	if (IsValid(InInventoryComponent) && SlotId != EInventoryEquipmentSlot::Invalid)
 	{
-		if (auto* FoundSlot = InInventoryComponent->GetEquipmentSlot(SlotId))
+		if (InInventoryComponent->GetEquipmentSlot(SlotId))
 		{
 			InventoryComponent = InInventoryComponent;
 			EquipmentSlotId = SlotId;
@@ -93,11 +93,6 @@ TWeakObjectPtr<UInventoryItem> UInventoryEquippedGridSlot::GetInventoryItem() co
 	return BoundSlot ? BoundSlot->GetInventoryItem() : TWeakObjectPtr<UInventoryItem>();
 }
 
-void UInventoryEquippedGridSlot::SetInventoryItem(UInventoryItem* Item)
-{
-	//InventoryItem = Item;
-}
-
 UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
 {
 	// Check the Equipment Type TagAdd commentMore actions
@@ -105,8 +100,7 @@ UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(
 		return nullptr;
 	
 	// Get Grid Dimensions
-	const auto GridFragment = UInventoryItem::GetFragment<FInventoryItemGridFragment>(Item, InventoryFragmentTags::FragmentTag_Grid);
-	if (!GridFragment)
+	if (nullptr == UInventoryItem::GetFragment<FInventoryItemGridFragment>(Item, InventoryFragmentTags::FragmentTag_Grid))
 		return nullptr;
 
 	// Create the Equipped Slotted Item widget
@@ -115,9 +109,6 @@ UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(
 	EquippedSlottedItem->SetInventoryItem(Item);
 	EquippedSlottedItem->SetEquipmentTypeTag(Tag);
 	EquippedSlottedItem->UpdateStackCount(0); // Hide the Stack Count widget on the Slotted Item
-
-	// Set Inventory Item on this class (the Equipped Grid Slot)
-	SetInventoryItem(Item);
 
 	// Calculate the Draw Size for the Equipped Slotted Item
 	const FVector2D DrawSize = UInventoryWidgetUtils::GetItemDrawSize(Item, TileSize);

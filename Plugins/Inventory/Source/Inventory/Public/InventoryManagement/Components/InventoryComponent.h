@@ -157,7 +157,7 @@ public:
 	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
 
 	TArray<FInventoryStartupEquipmentData> GetEquipStartupItems() const {return StartupEquipment;}
-	bool TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId);
+	void TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId);
 
 	void ReceivedStartupItems();
 	void ReceivedStartupItemsEquipped() { bStartupItemsEquipped = true; }
