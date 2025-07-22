@@ -385,6 +385,12 @@ void UInventoryGridWidget::AddSlottedItemToGrid(const int32 Index, const FInvent
 	}
 }
 
+UInventorySlottedItemWidget* UInventoryGridWidget::GetSlottedItemWidgetAtIndex(const int32 UpperLeftIndex) const
+{
+	const TObjectPtr<UInventorySlottedItemWidget>* SlottedItemPtr = SlottedItems.Find(UpperLeftIndex);
+	return SlottedItemPtr ? SlottedItemPtr->Get() : nullptr;
+}
+
 void UInventoryGridWidget::HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray)
 {
 	LOG_NETFUNCTIONCALL
@@ -400,14 +406,17 @@ void UInventoryGridWidget::HandleOnUpdateGridSlots(const TArrayView<int32>& Grid
 			if (!bHasAuthority)
 			{
 				int32 UpperLeftIndex = GridSlot->GetStartIndex();
-				TObjectPtr<UInventorySlottedItemWidget>* SlottedItemPtr = SlottedItems.Find(UpperLeftIndex);
-				UInventorySlottedItemWidget* SlottedItem = SlottedItemPtr ? SlottedItemPtr->Get() : nullptr;
+				UInventorySlottedItemWidget* SlottedItem = GetSlottedItemWidgetAtIndex(UpperLeftIndex);
 				if (!SlottedItem)
 				{
 					UInventoryItem* NewItem = GridSlot->GetInventoryItem().Get();
 					const bool bStackable = NewItem->IsStackable();
 					const int32 StackSize = GridSlot->GetStackCount();
 					AddItemAtIndex(NewItem, UpperLeftIndex, bStackable, StackSize);
+				}
+				else if (GridSlot->GetTileIndex() == GridSlot->GetStartIndex())
+				{
+					SlottedItem->UpdateStackCount(GridSlot->GetStackCount());
 				}
 			}
 			GridSlot->SetOccupiedTexture();

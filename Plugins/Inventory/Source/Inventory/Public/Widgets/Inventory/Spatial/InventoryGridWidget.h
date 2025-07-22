@@ -186,4 +186,6 @@ private:
 	static FSlateBrush GetTempBrush();
 
 	void PutHoverItemDown();
+
+	UInventorySlottedItemWidget* GetSlottedItemWidgetAtIndex(const int32 UpperLeftIndex) const;
 };

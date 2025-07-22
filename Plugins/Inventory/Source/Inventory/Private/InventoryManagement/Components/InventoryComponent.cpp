@@ -55,23 +55,16 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	
 	check(ItemComponent != nullptr);
 
-	if (!OwningPlayerController->HasAuthority() && OwningPlayerController->IsLocalPlayerController())
+	if (OwningPlayerController->GetLocalRole() == ROLE_AutonomousProxy /*!OwningPlayerController->HasAuthority() && OwningPlayerController->IsLocalPlayerController()*/)
 	{
-		// Precheck to not call server RPC if it's not needed.
-		// Server will check the same anyway, so it doesn't make sense to call this check if HasAuthority
+		// Precheck to not call server RPC if it's unnecessary.
+		// Server will check the same anyway, so it doesn't make sense to call this check if HasAuthority.
+		// We assume here that the inventory grid is fully synced at this moment 
 		FInventorySlotAvailabilityResult Result;
 		if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
 		{
 			OnNoRoomInInventory.Broadcast();
 			return;
-		}
-		UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemComponent->GetItemManifest().GetItemType());
-		Result.Item = FoundItem;
-
-		if (Result.Item.IsValid() && Result.bStackable)
-		{
-			// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-			OnStackChanged.Broadcast(Result);
 		}
 	}
 
@@ -187,6 +180,10 @@ void UInventoryComponent::AddNewItem(UInventoryItemComponent* ItemComponent, int
 	
 	const auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
+	if (const auto StackableFragment = NewItem->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+	{
+		StackableFragment->SetStackCount(StackCount);
+	}
 
 	OnItemAdded.Broadcast(NewItem);
 
@@ -199,7 +196,6 @@ void UInventoryComponent::AddNewItem(UInventoryItemComponent* ItemComponent, int
 	}
 	else if (const auto StackableFragment = ItemComponent->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
 	{
-		ItemComponent->SetStackCount(Remainder);
 		StackableFragment->SetStackCount(Remainder);
 	}
 }
@@ -213,6 +209,10 @@ void UInventoryComponent::AddNewStartupItem(const FInventoryItemManifest& ItemMa
 	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
 	check(NewItem != nullptr);
 	NewItem->SetTotalStackCount(StackCount);
+	if (const auto StackableFragment = NewItem->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+	{
+		StackableFragment->SetStackCount(StackCount);
+	}
 
 	OnItemAdded.Broadcast(NewItem);
 
@@ -1045,15 +1045,16 @@ void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(
 {
 	LOG_NETFUNCTIONCALL
 
-	if (!HasHoverItem())
-		return;
-
-	UInventoryItem* Item = HoverItemProxy->InventoryItem.Get();
+	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
 	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to put NULL item to storage."))
 		return;
-	check(InventoryStorage);
+	}
 
 	AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	
+	check(InventoryStorage);
 	InventoryStorage->UpdateGridSlots(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
 	
 	ClearSelectedItem();
@@ -1068,8 +1069,12 @@ void UInventoryComponent::Server_DropSelectedItemOff_Implementation()
 {
 	LOG_NETFUNCTIONCALL
 	
-	if (!HasHoverItem() || !HoverItemProxy->InventoryItem.IsValid())
+	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to drop NULL item."))
 		return;
+	}
 	
 	Server_DropItem(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->StackCount);
 

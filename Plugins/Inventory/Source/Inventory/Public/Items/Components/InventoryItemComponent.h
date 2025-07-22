@@ -24,8 +24,9 @@ class UInventoryItemComponent : public UActorComponent
 	UPROPERTY(EditInstanceOnly, Category="Inventory", meta=(EditCondition="bOverrideItemManifest"), Replicated)
 	FInventoryItemManifest ItemManifest;
 
+	// Override stack count, not replicated, will override the value in the manifest
 	UPROPERTY(EditInstanceOnly, Category = "Inventory")
-	int32 StackCount = 0;
+	int32 StackCount = -1;
 
 	UPROPERTY(EditInstanceOnly, Category = "Inventory", meta=(InlineEditConditionToggle))
 	bool bOverrideItemManifest = false;
@@ -49,9 +50,6 @@ public:
 	UFUNCTION(CallInEditor, Category = "Inventory")
 	void CopyManifestFromData();
 #endif
-
-	int32 GetStackCount() const { return StackCount; }
-	void SetStackCount(int32 NewStackCount) { StackCount = NewStackCount; }
 
 protected:
 

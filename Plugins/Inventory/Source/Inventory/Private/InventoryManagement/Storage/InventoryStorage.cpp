@@ -6,7 +6,7 @@
 
 bool UInventoryStorage::HasRoomForItem(FInventorySlotAvailabilityResult& Result, const UInventoryItemComponent* ItemComponent) const
 {
-	Result = HasRoomForItemInternal(ItemComponent->GetItemManifest(), ItemComponent->GetStackCount() > 0 ? ItemComponent->GetStackCount() : -1);
+	Result = HasRoomForItemInternal(ItemComponent->GetItemManifest(), -1);
 	return Result.TotalRoomToFill > 0;
 }
 
