@@ -30,14 +30,6 @@ void UInventoryGridWidget::NativeOnInitialized()
 	InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 
 	CreateGridViewModel();
-	// if (ensure(GridViewModel))
-	// {
-	// 	GridViewModel->GetOnItemAddedToGridDelegate().AddUObject(this, &UInventoryGridWidget::AddItemToGrid);
-	// 	GridViewModel->GetOnStackChangedDelegate().AddUObject(this, &UInventoryGridWidget::OnStackChanged);
-	// 	//GridViewModel->OnItemRemovedFromGrid.AddUObject(this, &ThisClass::OnRemovedItemFromGrid);
-	// 	GridViewModel->GetOnGridSlotsResetDelegate().AddUObject(this, &UInventoryGridWidget::OnRemovedItemFromGrid);
-	// 	GridViewModel->GetOnGridSlotsUpdatedDelegate().AddUObject(this, &UInventoryGridWidget::OnUpdateGridSlots);
-	// }
 
 	ConstructGrid();
 }
@@ -46,9 +38,16 @@ void UInventoryGridWidget::CreateGridViewModel()
 {
 	if (!IsValid(GridViewModel))
 	{
+		LOG_NETFUNCTIONCALL
+		
 		GridViewModel = NewObject<UInventoryGridViewModel>(GetOwningPlayer());
-		GridViewModel->Initialize(this, ItemCategory);
+		GridViewModel->Initialize(GetOwningPlayer(), ItemCategory);
 
+		GridViewModel->GetOnItemAddedToGridDelegate().AddUObject(this, &UInventoryGridWidget::HandleAddItemToGrid);
+		GridViewModel->GetOnStackChangedDelegate().AddUObject(this, &UInventoryGridWidget::HandleOnStackChanged);
+		GridViewModel->GetOnGridSlotsResetDelegate().AddUObject(this, &UInventoryGridWidget::HandleOnRemovedItemFromGrid);
+		GridViewModel->GetOnGridSlotsUpdatedDelegate().AddUObject(this, &UInventoryGridWidget::HandleOnUpdateGridSlots);
+		
 		InventoryComponent->OnHoverItemReset.AddUObject(this, &UInventoryGridWidget::HandleOnHoverItemReset);
 		InventoryComponent->OnHoverItemUpdated.AddUObject(this, &UInventoryGridWidget::HandleOnHoverItemUpdated);
 	}

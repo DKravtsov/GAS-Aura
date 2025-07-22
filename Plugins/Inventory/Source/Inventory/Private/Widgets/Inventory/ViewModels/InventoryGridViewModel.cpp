@@ -9,16 +9,12 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
-#include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 
-void UInventoryGridViewModel::Initialize(UInventoryGridWidget* InGridWidget, const FGameplayTag& ItemCategory)
+void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, const FGameplayTag& ItemCategory)
 {
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Widget [%s] Category [%s]"), *InGridWidget->GetName(), *ItemCategory.ToString())
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Category [%s]"), *ItemCategory.ToString())
 	
-	APlayerController* PC = InGridWidget->GetOwningPlayer();
-	check(PC);
-	
-	InventoryComponent = UInventoryStatics::GetInventoryComponent(PC);
+	InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningPlayer);
 	check(InventoryComponent.IsValid());
 	
 	const UInventorySpatialStorage* Storage = Cast<UInventorySpatialStorage>(InventoryComponent->GetInventoryStorage());
@@ -28,12 +24,7 @@ void UInventoryGridViewModel::Initialize(UInventoryGridWidget* InGridWidget, con
 	StorageGrid = Storage->FindInventoryGridByCategory(ItemCategory);
 	checkf(StorageGrid.IsValid(), TEXT("GridViewModel initialization failed. Couldn't find the inventory grid. InventoryComponent [%s]. Looked for [%s] but there are only: %s"),
 				*GetNameSafe(InventoryComponent.Get()), *ItemCategory.ToString(), *Storage->GetInventoryGridNamesDebugString())
-
-	GetOnItemAddedToGridDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleAddItemToGrid);
-	GetOnStackChangedDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleOnStackChanged);
-	GetOnGridSlotsResetDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleOnRemovedItemFromGrid);
-	GetOnGridSlotsUpdatedDelegate().AddUObject(InGridWidget, &UInventoryGridWidget::HandleOnUpdateGridSlots);
-
+	
 }
 
 int32 UInventoryGridViewModel::GetRows() const

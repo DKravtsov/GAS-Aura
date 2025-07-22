@@ -41,7 +41,7 @@ private:
 
 public:
 
-	void Initialize(UInventoryGridWidget* InGridWidget, const FGameplayTag& ItemCategory);
+	void Initialize(const APlayerController* OwningPlayer, const FGameplayTag& ItemCategory);
 
 	int32 GetRows() const;
 
