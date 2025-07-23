@@ -244,10 +244,11 @@ private:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();
-	
-	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray); 
-	void AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray);
-	void AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+
+	// returns a newly created item or null if the item already in the inventory or failed
+	UInventoryItem* TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	UInventoryItem* AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	void AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
 	void Client_EquipStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
