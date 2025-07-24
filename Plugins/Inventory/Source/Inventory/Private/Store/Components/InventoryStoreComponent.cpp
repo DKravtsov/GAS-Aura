@@ -8,6 +8,8 @@
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
 #include "DebugHelper.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Items/InventoryItem.h"
 
 
 // Sets default values for this component's properties
@@ -78,4 +80,29 @@ void UInventoryStoreComponent::GetLifetimeReplicatedProps(TArray<class FLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UInventoryStoreComponent, InventoryList);
+}
+
+int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const int32 StackCount) const
+{
+	return UInventoryStatics::GetItemSellValue(Item) * StackCount;
+}
+
+bool UInventoryStoreComponent::HasCoins(int32 SellValue)
+{
+	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
+	{
+		return Item->GetTotalStackCount() >= SellValue;
+	}
+	return false;
+}
+
+void UInventoryStoreComponent::RemoveCoins(int32 SellValue)
+{
+	checkf(GetOwner()->HasAuthority(), TEXT("RemoveCoins() called on non-authoritative item"));
+
+	
+}
+
+void UInventoryStoreComponent::TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+{
 }

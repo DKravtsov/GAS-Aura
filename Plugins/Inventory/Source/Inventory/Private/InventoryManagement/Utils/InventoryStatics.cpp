@@ -3,6 +3,7 @@
 
 #include "InventoryManagement/Utils/InventoryStatics.h"
 
+#include "InventoryGlobalSettings.h"
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
@@ -144,5 +145,24 @@ FGameplayTag UInventoryStatics::GetItemEquipmentTag(const UInventoryItem* Item)
 		}
 	}
 	return FGameplayTag::EmptyTag;
+}
+
+const FInventoryItemManifest& UInventoryStatics::GetCoinItemManifest(const UObject* WorldContextObject)
+{
+	const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
+	checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
+	return *CoinsItemManifest;
+}
+
+int32 UInventoryStatics::GetItemSellValue(const UInventoryItem* Item)
+{
+	if (IsValid(Item))
+	{
+		if (const auto* CostFragment = Item->GetItemManifest().GetFragmentOfTypeWithTag<FInventoryItemLabeledValueFragment>(InventoryFragmentTags::FragmentTag_SellValue))
+		{
+			return FMath::FloorToInt32(CostFragment->GetValue());
+		}
+	}
+	return 0;
 }
 

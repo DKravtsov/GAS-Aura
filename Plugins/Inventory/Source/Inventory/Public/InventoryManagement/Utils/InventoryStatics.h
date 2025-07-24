@@ -136,4 +136,8 @@ public:
 	static bool IsItemEquipable(const UInventoryItem* Item);
 
 	static FGameplayTag GetItemEquipmentTag(const UInventoryItem* Item);
+
+	static const FInventoryItemManifest& GetCoinItemManifest(const UObject* WorldContextObject);
+
+	static int32 GetItemSellValue(const UInventoryItem* Item);
 };

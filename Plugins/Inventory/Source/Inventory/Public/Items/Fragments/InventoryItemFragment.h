@@ -170,8 +170,6 @@ private:
 
 protected:
 
-	float GetValue() const {return IsValueValid() ? NumericValue.Get().GetValue() : 0.f;}
-
 	bool IsValueValid() const {return NumericValue.IsValid();}
 
 public:
@@ -180,6 +178,8 @@ public:
 
 	const FText& GetLabelText() const {return LabelText;}
 	void SetFragmentText(const FText& NewText) {LabelText = NewText;}
+
+	float GetValue() const {return IsValueValid() ? NumericValue.Get().GetValue() : 0.f;}
 
 	//~ Begin of FInventoryItemDescriptionFragment interface
 	INVENTORY_API virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
@@ -344,4 +344,5 @@ namespace InventoryFragmentTags
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Consumable);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_ItemName);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_ItemDescription);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_SellValue);
 }

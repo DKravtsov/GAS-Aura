@@ -3,6 +3,7 @@
 
 #include "InventoryGlobalSettings.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
+#include "Items/InventoryItemData.h"
 
 UInventoryGlobalSettings::UInventoryGlobalSettings(const FObjectInitializer& ObjectInitializer)
 {
@@ -18,4 +19,13 @@ const UInventoryGlobalSettings& UInventoryGlobalSettings::Get()
 TSubclassOf<UInventoryStorageGrid> UInventoryGlobalSettings::GetSpatialStorageGridClass()
 {
 	return Get().SpatialStorageGridClass.LoadSynchronous();
+}
+
+const FInventoryItemManifest* UInventoryGlobalSettings::GetCoinsItemManifest()
+{
+	if (const auto* Item = Get().CoinsItemData.LoadSynchronous())
+	{
+		return &Item->GetItemManifest();
+	}
+	return nullptr;
 }

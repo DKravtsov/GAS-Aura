@@ -21,6 +21,10 @@ namespace InventoryTags
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots_Armour);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots_Weapon);
 	
+	/**  Collectables **/
+	
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameItems_Collectables);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameItems_Collectables_Coins);
 }
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemGridChangedDelegate, const struct FInventorySlotAvailabilityResult& /*Result*/);

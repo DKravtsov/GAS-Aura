@@ -10,6 +10,7 @@
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "InventoryComponent.generated.h"
 
+class UInventoryStoreComponent;
 struct FInventoryStorageSetupData;
 class UInventoryItemData;
 class UInventoryItemComponent;
@@ -121,6 +122,8 @@ private:
 	// This is needed on the server to track what's happened on the client.
 	TOptional<FHoverItemProxy> HoverItemProxy;
 
+	mutable TWeakObjectPtr<UInventoryItem> CoinsItem;
+
 	uint8 bInventoryMenuOpen:1 = false;
 
 	uint8 bStartupItemsInitialized:1 = false;
@@ -196,6 +199,15 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SwapSelectedWitItem(UInventoryItem* ItemOnGrid, int32 GridIndex);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SellSelectedItem(UInventoryStoreComponent* Store);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SellItem(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 StackCount);
+
+	// returns the number of coins
+	int32 GetWealth() const;
+
 protected:
 	INVENTORY_API void CreateInventoryStorage();
 
@@ -229,8 +241,14 @@ protected:
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 	virtual void GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 
+	bool RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount);
+
 	UFUNCTION(Server, Reliable)
 	void Server_RequestStartupEquipment();
+
+	void ExchangeItemsWithOtherInventory(UInventoryComponent* OtherInventory,
+		const FInventoryItemManifest& ItemManifestA, int32 StackCountA,
+		const FInventoryItemManifest& ItemManifestB, int32 StackCountB);
 
 private:
 	void SetOwnerInternal();

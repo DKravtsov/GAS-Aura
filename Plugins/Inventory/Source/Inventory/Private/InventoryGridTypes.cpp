@@ -19,6 +19,11 @@ namespace InventoryTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_EquipmentSlots, "Inventory.EquipmentSlots", "Slot names for equipment");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_EquipmentSlots_Armour, "Inventory.EquipmentSlots.Armour", "Slot for any armor");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_EquipmentSlots_Weapon, "Inventory.EquipmentSlots.Weapon", "Slot for any weapon");
+
+	/**  Collectables **/
+	
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameItems_Collectables, "GameItems.Collectables", "Collectables category");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameItems_Collectables_Coins, "GameItems.Collectables.Coins", "Coins");
 }
 
 FInventorySlotAvailabilityResult::FInventorySlotAvailabilityResult()

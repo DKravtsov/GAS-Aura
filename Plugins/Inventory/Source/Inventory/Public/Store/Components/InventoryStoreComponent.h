@@ -35,6 +35,8 @@ class UInventoryStoreComponent : public UActorComponent
 public:
 
 	UInventoryStoreComponent();
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
 	const FText& GetInteractMessage() const { return InteractMessage; }
@@ -43,8 +45,11 @@ public:
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
-
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	int32 GetSellValue(const UInventoryItem* Item, int32 StackCount) const;
+	bool HasCoins(int32 SellValue);
+	void RemoveCoins(int32 SellValue);
+	void TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 protected:
 

@@ -16,6 +16,8 @@
 #include "InventoryManagement/Data/InventorySetupData.h"
 
 #include "DebugHelper.h"
+#include "InventoryGlobalSettings.h"
+#include "Store/Components/InventoryStoreComponent.h"
 
 const FInventoryStorageSetupData* FStorageSetupDataProxy::GetData() const
 {
@@ -481,11 +483,16 @@ void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(
 	SpawnRotation = FRotator::ZeroRotator;
 }
 
-void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
+bool UInventoryComponent::RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount)
 {
-	check(IsValid(Item));
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+	checkf(GetOwner()->HasAuthority(), TEXT("This method must be run only on server."))
+	
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(Item), StackCount)
 
+	if (IsValid(Item) || StackCount <= 0)
+		return true;
+
+	StackCount = FMath::Clamp(StackCount, 1, Item->GetTotalStackCount());
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
 	if (NewStackCount <= 0)
@@ -496,6 +503,12 @@ void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, i
 	{
 		Item->SetTotalStackCount(NewStackCount);
 	}
+	return false;
+}
+
+void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
+{
+	if (RemoveItemFromInventory(Item, StackCount)) return;
 
 	SpawnDroppedItem(Item, StackCount);
 }
@@ -1142,4 +1155,80 @@ void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInvent
 	
 	HoverItemProxy.Emplace(InventoryItem, PreviousIndex, StackCount, bStackable);
 	NotifyHoverItemUpdated();
+}
+
+void UInventoryComponent::Server_SellSelectedItem_Implementation(UInventoryStoreComponent* Store)
+{
+	LOG_NETFUNCTIONCALL
+	
+	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell NULL item."))
+		return;
+	}
+	
+	Server_SellItem(Store, HoverItemProxy->InventoryItem.Get(), HoverItemProxy->StackCount);
+
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_SellSelectedItem_Validate(UInventoryStoreComponent* Store)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 StackCount)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(ItemToSell), StackCount)
+
+	int32 SellValue = Store->GetSellValue(ItemToSell, StackCount);
+	if (!Store->HasCoins(SellValue))
+	{
+		return;
+	}
+	RemoveItemFromInventory(ItemToSell, StackCount);
+	const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
+	checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
+	AddStacksToItem(*CoinsItemManifest, SellValue);
+
+	Store->RemoveCoins(SellValue);
+	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
+}
+
+bool UInventoryComponent::Server_SellItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 StackCount)
+{
+	return true;
+}
+
+void UInventoryComponent::ExchangeItemsWithOtherInventory(UInventoryComponent* OtherInventory,
+	const FInventoryItemManifest& ItemManifestA, int32 StackCountA, const FInventoryItemManifest& ItemManifestB, int32 StackCountB)
+{
+	// Remove ItemA from this inventory?
+	
+	// Remove ItemB from OtherInventory
+	UInventoryItem* ItemB = OtherInventory->InventoryList.FindFirstItemByType(ItemManifestB.GetItemType());
+	if (ItemB == nullptr)
+	{
+		const AActor* OtherInventoryOwner = nullptr;
+		UE_LOG(LogInventory, Error, TEXT("Item [%s] not found in inventory %s"), *ItemManifestB.GetItemType().ToString(),
+			*DebugHelper::GetCallerPathAndOwner(OtherInventory, OtherInventoryOwner, nullptr))
+		return;
+	}
+	OtherInventory->RemoveItemFromInventory(ItemB, StackCountB);
+	
+	// Add ItemB to this inventory
+	TryAddItem(ItemManifestB, StackCountB);
+	
+	// Add ItemA to OtherInventory
+	OtherInventory->TryAddItem(ItemManifestA, StackCountA);
+}
+
+int32 UInventoryComponent::GetWealth() const
+{
+	if (!CoinsItem.IsValid())
+	{
+		CoinsItem = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins);
+	}
+	return CoinsItem.IsValid() ? CoinsItem->GetTotalStackCount() : 0;
 }
