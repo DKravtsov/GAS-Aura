@@ -11,6 +11,8 @@ class UButton;
 DECLARE_DELEGATE_TwoParams(FInventoryItemPopupMenuSplitDelegate, const int32 /*SplitAmount*/, const int32 /*GridIndex*/);
 DECLARE_DELEGATE_OneParam(FInventoryItemPopupMenuDropDelegate, const int32 /*GridIndex*/);
 DECLARE_DELEGATE_OneParam(FInventoryItemPopupMenuConsumeDelegate, const int32 /*GridIndex*/);
+DECLARE_DELEGATE_OneParam(FInventoryItemPopupMenuSellDelegate, const int32 /*GridIndex*/);
+DECLARE_DELEGATE_OneParam(FInventoryItemPopupMenuBuyDelegate, const int32 /*GridIndex*/);
 
 /**
  * The item popup widget when a user clicks RMB on the item
@@ -25,6 +27,8 @@ public:
 	FInventoryItemPopupMenuSplitDelegate OnSplitDelegate;
 	FInventoryItemPopupMenuDropDelegate OnDropDelegate;
 	FInventoryItemPopupMenuConsumeDelegate OnConsumeDelegate;
+	FInventoryItemPopupMenuSellDelegate OnSellItemDelegate;
+	FInventoryItemPopupMenuBuyDelegate OnBuyItemDelegate;
 
 private:
 
@@ -36,6 +40,12 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Consume;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Button_Sell;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Button_Buy;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class USlider> Slider_Split;
@@ -65,6 +75,8 @@ public:
 
 	void CollapseSplitButton();
 	void CollapseConsumeButton();
+	void CollapseSellButton();
+	void CollapseBuyButton();
 
 	FVector2D GetBoxSize() const;
 
@@ -81,4 +93,10 @@ private:
 
 	UFUNCTION()
 	void ConsumeButtonClicked();
+
+	UFUNCTION()
+	void SellButtonClicked();
+
+	UFUNCTION()
+	void BuyButtonClicked();
 };

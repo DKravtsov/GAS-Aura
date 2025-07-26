@@ -829,6 +829,24 @@ void UInventoryGridWidget::CreateItemPopupMenu(const int32 GridIndex)
 		{
 			ItemPopupMenu->CollapseConsumeButton();
 		}
+		if (InventoryComponent->IsStoreMenuOpen())
+		{
+			if (IsStoreGrid())
+			{
+				ItemPopupMenu->CollapseSellButton();
+				ItemPopupMenu->OnBuyItemDelegate.BindUObject(this, &ThisClass::OnPopupMenuBuy);
+			}
+			else
+			{
+				ItemPopupMenu->CollapseBuyButton();
+				ItemPopupMenu->OnSellItemDelegate.BindUObject(this, &ThisClass::OnPopupMenuSell);
+			}
+		}
+		else
+		{
+			ItemPopupMenu->CollapseSellButton();
+			ItemPopupMenu->CollapseBuyButton();
+		}
 	}
 }
 
@@ -913,6 +931,26 @@ void UInventoryGridWidget::OnPopupMenuDrop(const int32 GridIndex)
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
 	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	DropHoverItemOnGround();
+}
+
+void UInventoryGridWidget::OnPopupMenuBuy(const int32 GridIndex)
+{
+	DebugPrint(TEXT("Buy Item Clicked"));
+}
+
+void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
+{
+	check(GridSlots.IsValidIndex(GridIndex));
+	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+	if( !IsValid(RightClickedItem))
+		return;
+	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
+
+	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
+	InventoryComponent->Server_SellSelectedItem();
+
+	ClearHoverItem();
+	ShowDefaultCursor();
 }
 
 void UInventoryGridWidget::DropHoverItemOnGround()

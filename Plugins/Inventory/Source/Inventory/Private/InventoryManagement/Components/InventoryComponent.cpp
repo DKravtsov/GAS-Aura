@@ -1192,7 +1192,7 @@ void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInvent
 	NotifyHoverItemUpdated();
 }
 
-void UInventoryComponent::Server_SellSelectedItem_Implementation(UInventoryStoreComponent* Store)
+void UInventoryComponent::Server_SellSelectedItem_Implementation()
 {
 	LOG_NETFUNCTIONCALL
 	
@@ -1200,15 +1200,28 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation(UInventoryStore
 	if (!IsValid(Item))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell NULL item."))
+		ClearSelectedItem();
 		return;
 	}
 	
-	Server_SellItem(Store, HoverItemProxy->InventoryItem.Get(), HoverItemProxy->StackCount);
+	if (UInventoryStoreComponent* Store = GetOpenedStore())
+	{
+		const int32 StackCount = HoverItemProxy->StackCount;
+		int32 SellValue = Store->GetSellValue(Item, StackCount);
+		if (!Store->HasCoins(SellValue))
+		{
+			UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell item [%s]%s with value %d, but there is not enough coins in the store."),
+				*GetInventoryItemId(Item), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")),  SellValue)
+			ClearSelectedItem();
+			return;
+		}
+		Server_SellItem(Store, Item, StackCount);
+	}
 
 	ClearSelectedItem();
 }
 
-bool UInventoryComponent::Server_SellSelectedItem_Validate(UInventoryStoreComponent* Store)
+bool UInventoryComponent::Server_SellSelectedItem_Validate()
 {
 	return true;
 }
@@ -1286,7 +1299,7 @@ void UInventoryComponent::OpenStoreMenu(UInventoryStoreComponent* Store)
 		return;
 	}
 
-	if (!IsValid(StoreMenu))
+	//if (!IsValid(StoreMenu))
 	{
 		checkf(!StoreMenuClass.IsNull(), TEXT("Forgot to set StoreMenuClass in [%s|%s]"),
 		   *GetNameSafe(OwningPlayerController->GetClass()),
@@ -1333,10 +1346,11 @@ void UInventoryComponent::CloseStoreMenu()
 	StoreMenu->SetVisibility(ESlateVisibility::Collapsed);
 	StoreMenu->OnCloseMenu();
 	bStoreMenuOpen = false;
-	if (UInventoryStoreWidgetSpatial* SpatialStoreMenu = Cast<UInventoryStoreWidgetSpatial>(StoreMenu))
+	if (auto* Store = GetOpenedStore())
 	{
-		SpatialStoreMenu->GetStoreComponent()->SetMenuOpen(false);
+		Store->SetMenuOpen(false);
 	}
+	StoreMenu = nullptr;
 
 	// TODO Consider to choose input mode by parent project
 	
@@ -1356,4 +1370,13 @@ void UInventoryComponent::CloseStoreMenu()
 		OwningPlayerController->SetInputMode(InputMode);
 	}
 	OnStoreMenuClosed.Broadcast();
+}
+
+UInventoryStoreComponent* UInventoryComponent::GetOpenedStore() const
+{
+	if (UInventoryStoreWidgetSpatial* SpatialStoreMenu = Cast<UInventoryStoreWidgetSpatial>(StoreMenu))
+	{
+		return SpatialStoreMenu->GetStoreComponent();
+	}
+	return nullptr;
 }

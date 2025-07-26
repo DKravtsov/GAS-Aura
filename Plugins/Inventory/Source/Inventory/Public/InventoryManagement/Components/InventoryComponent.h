@@ -139,6 +139,7 @@ public:
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
+	bool IsStoreMenuOpen() const { return bStoreMenuOpen; }
 
 	INVENTORY_API void OpenStoreMenu(UInventoryStoreComponent* Store);
 	INVENTORY_API void CloseStoreMenu();
@@ -204,7 +205,7 @@ public:
 	void Server_SwapSelectedWitItem(UInventoryItem* ItemOnGrid, int32 GridIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SellSelectedItem(UInventoryStoreComponent* Store);
+	void Server_SellSelectedItem();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SellItem(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 StackCount);
@@ -294,5 +295,7 @@ private:
 
 	UFUNCTION(Client, Reliable)
 	void Client_OpenStoreMenu(UInventoryStoreComponent* Store);
+
+	UInventoryStoreComponent* GetOpenedStore() const;
 
 };

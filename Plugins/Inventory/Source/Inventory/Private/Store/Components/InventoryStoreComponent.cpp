@@ -43,6 +43,9 @@ int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const i
 
 bool UInventoryStoreComponent::HasCoins(int32 SellValue)
 {
+	if (SellValue <= 0)
+		return true;
+	
 	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
 	{
 		return Item->GetTotalStackCount() >= SellValue;
