@@ -11,6 +11,8 @@ class UButton;
 class UWidgetSwitcher;
 class UInventoryGridWidget;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryGridWidgetSwitchedSignature, UInventoryGridWidget*);
+
 UCLASS(MinimalAPI, Abstract)
 class UInventoryWidgetSpatial : public UInventoryWidgetBase
 {
@@ -45,6 +47,8 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> GridSwitcher;
+
+	FInventoryGridWidgetSwitchedSignature OnActiveGridSwitched;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UButton> Button_Equipment;
@@ -89,6 +93,18 @@ public:
 #endif
 	//~ End UWidget Interface
 
+	FInventoryGridWidgetSwitchedSignature& GetOnGridWidgetSwitchedDelegate() {return OnActiveGridSwitched;}
+
+protected:
+	UCanvasPanel* GetCanvasPanel() const {return CanvasPanel;}
+	
+	UFUNCTION()
+	void UpdateEquippedItemStatus(UInventoryItem* Item);
+
+	void UpdateAllEquippedItemsStatus();
+
+	void UpdateInventoryGrids();
+
 private:
 
 	UFUNCTION()
@@ -105,9 +121,6 @@ private:
 
 	UFUNCTION()
 	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
-
-	UFUNCTION()
-	void UpdateEquippedItemStatus(UInventoryItem* Item);
 
 	void ShowEquippedItemDescription(UInventoryItem* Item);
 

@@ -9,6 +9,7 @@
 #include "InventoryGridWidget.generated.h"
 
 
+class UInventoryStoreComponent;
 struct FInventoryItemManifest;
 class UInventoryGridSlotWidget;
 class UUniformGridPanel;
@@ -79,15 +80,23 @@ class UInventoryGridWidget : public UUserWidget
 
 	uint8 bMouseWithinCanvas:1 = false;
 	uint8 bMouseWasWithinCanvas:1 = false;
+
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(AllowPrivateAccess=true))
+	uint8 bIsStoreGrid:1 = false;
 	
 public:
 
 	FGameplayTag GetItemCategory() const { return ItemCategory; }
 
+	void SetIsStoreGrid(bool bStoreGrid) { bIsStoreGrid = bStoreGrid; }
+	bool IsStoreGrid() const { return bIsStoreGrid; }
+
 	//~ Begin of UUserWidget interface
 	INVENTORY_API virtual void NativeOnInitialized() override;
 	INVENTORY_API virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 	//~ End of UUserWidget interface
+
+	void ConstructForStore(UInventoryStoreComponent* Store);
 
 	float GetTileSize() const { return TileSize; }
 
@@ -118,10 +127,14 @@ public:
 	void HandleOnHoverItemReset();
 	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
 
+	int32 GetNumGridSlots() const {return GridSlots.Num();}
+
+	void UpdateInventoryGridSlots();
+
 private:
 
 	void ConstructGrid();
-	void CreateGridViewModel();
+	void CreateGridViewModel(class UInventoryStorage* InventoryStorage);
 	
 	bool MatchesCategory(const UInventoryItem* Item) const;
 

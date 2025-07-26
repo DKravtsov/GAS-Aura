@@ -119,8 +119,8 @@ void UInventoryPlayerControllerComponent::PrimaryInteract()
 	}
 	else if (auto StoreComponent = UInventoryStatics::GetStoreComponent(CurrentInteractableActor.Get()))
 	{
-		InventoryComponent->ToggleInventoryMenu();
-		StoreComponent->ToggleInventoryMenu();
+		//StoreComponent->ToggleInventoryMenu();
+		InventoryComponent->OpenStoreMenu(StoreComponent);
 		if (IsValid(HUDWidget))
 		{
 			HUDWidget->HidePickupMessage();

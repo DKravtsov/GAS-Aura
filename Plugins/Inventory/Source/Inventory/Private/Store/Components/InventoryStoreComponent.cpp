@@ -8,6 +8,8 @@
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
 #include "DebugHelper.h"
+#include "InventoryManagement/Data/InventorySetupData.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 
@@ -17,69 +19,21 @@ UInventoryStoreComponent::UInventoryStoreComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
+	bReplicateUsingRegisteredSubObjectList = true;
 
-}
-
-void UInventoryStoreComponent::ToggleInventoryMenu()
-{
-	if (bInventoryMenuOpen)
-	{
-		CloseInventoryMenu();
-	}
-	else
-	{
-		OpenInventoryMenu();
-	}
 }
 
 void UInventoryStoreComponent::BeginPlay()
 {
-	LOG_NETFUNCTIONCALL
-	
 	Super::BeginPlay();
 
-}
-
-void UInventoryStoreComponent::ConstructInventory()
-{
-	LOG_NETFUNCTIONCALL
-	
-	checkf(!InventoryMenuClass.IsNull(), TEXT("Forgot to set InventoryMenuClass in [%s]"), *GetNameSafe(GetClass()));
-	
-	const TSubclassOf<UInventoryWidgetBase> LoadedInventoryMenuClass = InventoryMenuClass.LoadSynchronous();
-	check(LoadedInventoryMenuClass);
-
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	check(PC);
-	InventoryMenu = CreateWidget<UInventoryWidgetBase>(PC, LoadedInventoryMenuClass);
-	InventoryMenu->SetContextObject(this);
-	InventoryMenu->AddToViewport();
-}
-
-void UInventoryStoreComponent::OpenInventoryMenu()
-{
-	if (!IsValid(InventoryMenu))
-	{
-		ConstructInventory();
-	}
-	InventoryMenu->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	InventoryMenu->OnOpenedMenu();
-	bInventoryMenuOpen = true;
-}
-
-void UInventoryStoreComponent::CloseInventoryMenu()
-{
-	if (!IsValid(InventoryMenu))
-		return;
-	InventoryMenu->SetVisibility(ESlateVisibility::Collapsed);
-	InventoryMenu->OnCloseMenu();
-	bInventoryMenuOpen = false;
 }
 
 void UInventoryStoreComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UInventoryStoreComponent, InventoryList);
+	DOREPLIFETIME(UInventoryStoreComponent, InventoryStorage);
 }
 
 int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const int32 StackCount) const
@@ -106,3 +60,4 @@ void UInventoryStoreComponent::RemoveCoins(int32 SellValue)
 void UInventoryStoreComponent::TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 }
+

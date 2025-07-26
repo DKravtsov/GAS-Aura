@@ -65,7 +65,12 @@ public:
 
 	FInventoryHoverItemUpdatedDelegate OnHoverItemUpdated;
 	FInventoryHoverItemResetDelegate OnHoverItemReset;
+	
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FInventoryMenuVisibilityChangedSugnature OnStoreMenuOpened;
 
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FInventoryMenuVisibilityChangedSugnature OnStoreMenuClosed;
 
 private:
 
@@ -75,6 +80,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryWidgetBase> InventoryMenu;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSoftClassPtr<UInventoryWidgetBase> StoreMenuClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryWidgetBase> StoreMenu;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DropSpawnAngleMin = -85.f;
@@ -114,6 +125,7 @@ private:
 	mutable TWeakObjectPtr<UInventoryItem> CoinsItem;
 
 	uint8 bInventoryMenuOpen:1 = false;
+	uint8 bStoreMenuOpen:1 = false;
 
 	uint8 bStartupItemsInitialized:1 = false;
 	uint8 bStartupItemsEquipped:1 = false;
@@ -127,6 +139,9 @@ public:
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
+
+	INVENTORY_API void OpenStoreMenu(UInventoryStoreComponent* Store);
+	INVENTORY_API void CloseStoreMenu();
 
 	bool HasHoverItem() const {return HoverItemProxy.IsSet();}
 
@@ -276,5 +291,8 @@ private:
 
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedHoverItemReset();
+
+	UFUNCTION(Client, Reliable)
+	void Client_OpenStoreMenu(UInventoryStoreComponent* Store);
 
 };

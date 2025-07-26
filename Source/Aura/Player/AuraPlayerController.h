@@ -105,6 +105,9 @@ public:
     UFUNCTION(BlueprintCallable, Category="inventory")
     void ToggleInventory();
 
+    UFUNCTION(BlueprintCallable, Category="inventory")
+    void CloseStoreMenu();
+
 //#if UE_WITH_CHEAT_MANAGER
     UFUNCTION(Exec)
     void DebugPrintStorage() const;

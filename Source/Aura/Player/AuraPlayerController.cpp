@@ -388,6 +388,14 @@ void AAuraPlayerController::ToggleInventory()
     }
 }
 
+void AAuraPlayerController::CloseStoreMenu()
+{
+    if (InventoryComponent.IsValid())
+    {
+        InventoryComponent->CloseStoreMenu();
+    }
+}
+
 void AAuraPlayerController::ClientShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial)
 {
     if (!IsValid(MagicCircle))

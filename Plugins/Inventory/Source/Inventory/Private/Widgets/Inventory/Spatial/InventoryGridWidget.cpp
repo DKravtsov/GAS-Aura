@@ -12,6 +12,7 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Store/Components/InventoryStoreComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Items/Fragments/InventoryItemFragment.h"
@@ -25,23 +26,37 @@
 
 void UInventoryGridWidget::NativeOnInitialized()
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Initializing Grid Widget"));
+	
 	Super::NativeOnInitialized();
 
 	InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 
-	CreateGridViewModel();
+	if (bIsStoreGrid)
+		return;
+	
+	CreateGridViewModel(InventoryComponent->GetInventoryStorage());
 
 	ConstructGrid();
 }
 
-void UInventoryGridWidget::CreateGridViewModel()
+void UInventoryGridWidget::ConstructForStore(UInventoryStoreComponent* Store)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Initializing Grid Widget for Store"));
+	
+	CreateGridViewModel(Store->GetInventoryStorage());
+
+	ConstructGrid();
+}
+
+void UInventoryGridWidget::CreateGridViewModel(UInventoryStorage* InventoryStorage)
 {
 	if (!IsValid(GridViewModel))
 	{
 		LOG_NETFUNCTIONCALL
 		
 		GridViewModel = NewObject<UInventoryGridViewModel>(GetOwningPlayer());
-		GridViewModel->Initialize(GetOwningPlayer(), ItemCategory);
+		GridViewModel->Initialize(GetOwningPlayer(), InventoryStorage, ItemCategory);
 
 		GridViewModel->GetOnItemAddedToGridDelegate().AddUObject(this, &UInventoryGridWidget::HandleAddItemToGrid);
 		GridViewModel->GetOnStackChangedDelegate().AddUObject(this, &UInventoryGridWidget::HandleOnStackChanged);
@@ -314,6 +329,18 @@ void UInventoryGridWidget::AddItemAtIndex(UInventoryItem* Item, const int32 Inde
 	UInventorySlottedItemWidget* SlottedItem = CreateSlottedItemWidget(Item, Index, *GridFragment, *ImageFragment, bStackable, StackAmount);
 	AddSlottedItemToGrid(Index, *GridFragment, SlottedItem);
 	SlottedItems.Add(Index, SlottedItem);
+}
+
+void UInventoryGridWidget::UpdateInventoryGridSlots()
+{
+	for (const auto& GridSlot : GridSlots)
+	{
+		if (GridSlot->IsAvailable())
+			continue;
+		if (SlottedItems.Contains(GridSlot->GetStartIndex()))
+			continue;
+		AddItemAtIndex(GridSlot->GetInventoryItem().Get(), GridSlot->GetStartIndex(), GridSlot->GetInventoryItem()->IsStackable(), GridSlot->GetStackCount());
+	}
 }
 
 UInventorySlottedItemWidget* UInventoryGridWidget::CreateSlottedItemWidget(UInventoryItem* Item, const int32 Index,

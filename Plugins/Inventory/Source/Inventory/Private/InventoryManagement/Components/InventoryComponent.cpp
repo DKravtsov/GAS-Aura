@@ -18,6 +18,7 @@
 #include "DebugHelper.h"
 #include "InventoryGlobalSettings.h"
 #include "Store/Components/InventoryStoreComponent.h"
+#include "Widgets/Store/InventoryStoreWidgetSpatial.h"
 
 const FInventoryStorageSetupData* FStorageSetupDataProxy::GetData() const
 {
@@ -1265,4 +1266,94 @@ int32 UInventoryComponent::GetWealth() const
 		CoinsItem = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins);
 	}
 	return CoinsItem.IsValid() ? CoinsItem->GetTotalStackCount() : 0;
+}
+
+void UInventoryComponent::Client_OpenStoreMenu_Implementation(UInventoryStoreComponent* Store)
+{
+	OpenStoreMenu(Store);
+}
+
+void UInventoryComponent::OpenStoreMenu(UInventoryStoreComponent* Store)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!OwningPlayerController->IsLocalController())
+	{
+		if (OwningPlayerController->HasAuthority())
+		{
+			Client_OpenStoreMenu(Store);
+		}
+		return;
+	}
+
+	if (!IsValid(StoreMenu))
+	{
+		checkf(!StoreMenuClass.IsNull(), TEXT("Forgot to set StoreMenuClass in [%s|%s]"),
+		   *GetNameSafe(OwningPlayerController->GetClass()),
+		   *GetNameSafe(GetClass())
+		   );
+		const TSubclassOf<UInventoryWidgetBase> LoadedStoreMenuClass = StoreMenuClass.LoadSynchronous();
+		check(LoadedStoreMenuClass);
+	
+		StoreMenu = CreateWidget<UInventoryWidgetBase>(OwningPlayerController.Get(), LoadedStoreMenuClass);
+		StoreMenu->AddToViewport();
+	}
+	if (UInventoryStoreWidgetSpatial* SpatialStoreMenu = Cast<UInventoryStoreWidgetSpatial>(StoreMenu))
+	{
+		SpatialStoreMenu->PopulateStore(Store);
+	}
+	StoreMenu->SetVisibility(ESlateVisibility::Visible);
+	StoreMenu->OnOpenedMenu();
+	bStoreMenuOpen = true;
+	Store->SetMenuOpen(true);
+
+	// TODO Consider to choose input mode by parent project
+
+	// For 3dr person template
+	// if (OwningPlayerController.IsValid())
+	// {
+	// 	FInputModeGameAndUI InputMode;
+	// 	OwningPlayerController->SetInputMode(InputMode);
+	// 	OwningPlayerController->SetShowMouseCursor(true);
+	// }
+
+	// specific to Aura project
+	if (OwningPlayerController.IsValid())
+	{
+		FInputModeUIOnly InputMode;
+		OwningPlayerController->SetInputMode(InputMode);
+	}
+	OnStoreMenuOpened.Broadcast();
+}
+
+void UInventoryComponent::CloseStoreMenu()
+{
+	if (!IsValid(StoreMenu))
+		return;
+	StoreMenu->SetVisibility(ESlateVisibility::Collapsed);
+	StoreMenu->OnCloseMenu();
+	bStoreMenuOpen = false;
+	if (UInventoryStoreWidgetSpatial* SpatialStoreMenu = Cast<UInventoryStoreWidgetSpatial>(StoreMenu))
+	{
+		SpatialStoreMenu->GetStoreComponent()->SetMenuOpen(false);
+	}
+
+	// TODO Consider to choose input mode by parent project
+	
+	// For 3dr person template
+	// if (OwningPlayerController.IsValid())
+	// {
+	// 	FInputModeGameOnly InputMode;
+	// 	OwningPlayerController->SetInputMode(InputMode);
+	// 	OwningPlayerController->SetShowMouseCursor(false);
+	// }
+
+	// specific to Aura project
+	if (OwningPlayerController.IsValid())
+	{
+		FInputModeGameAndUI InputMode;
+		InputMode.SetHideCursorDuringCapture(false);
+		OwningPlayerController->SetInputMode(InputMode);
+	}
+	OnStoreMenuClosed.Broadcast();
 }

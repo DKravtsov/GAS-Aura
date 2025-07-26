@@ -10,20 +10,20 @@
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 
-void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, const FGameplayTag& ItemCategory)
+void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, UInventoryStorage* Storage, const FGameplayTag& ItemCategory)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Category [%s]"), *ItemCategory.ToString())
 	
-	InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningPlayer);
-	check(InventoryComponent.IsValid());
+	auto InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningPlayer);
+	check(IsValid(InventoryComponent));
 	
-	const UInventorySpatialStorage* Storage = Cast<UInventorySpatialStorage>(InventoryComponent->GetInventoryStorage());
-	checkf(Storage, TEXT("GridViewModel initialization failed. The InventoryStorage is null. InventoryComponent [%s]"),
-		*GetNameSafe(InventoryComponent.Get()));
+	const UInventorySpatialStorage* SpatialStorage = Cast<UInventorySpatialStorage>(Storage);
+	checkf(SpatialStorage, TEXT("GridViewModel initialization failed. The InventoryStorage is null. InventoryComponent [%s]"),
+		*GetNameSafe(InventoryComponent));
 
-	StorageGrid = Storage->FindInventoryGridByCategory(ItemCategory);
+	StorageGrid = SpatialStorage->FindInventoryGridByCategory(ItemCategory);
 	checkf(StorageGrid.IsValid(), TEXT("GridViewModel initialization failed. Couldn't find the inventory grid. InventoryComponent [%s]. Looked for [%s] but there are only: %s"),
-				*GetNameSafe(InventoryComponent.Get()), *ItemCategory.ToString(), *Storage->GetInventoryGridNamesDebugString())
+				*GetNameSafe(InventoryComponent), *ItemCategory.ToString(), *SpatialStorage->GetInventoryGridNamesDebugString())
 	
 }
 
@@ -40,11 +40,6 @@ int32 UInventoryGridViewModel::GetColumns() const
 const FGameplayTag& UInventoryGridViewModel::GetInventoryCategory() const
 {
 	return StorageGrid->GetItemCategory();
-}
-
-UInventoryComponent* UInventoryGridViewModel::GetInventoryComponent() const
-{
-	return InventoryComponent.Get();
 }
 
 const FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlot(int32 Index) const

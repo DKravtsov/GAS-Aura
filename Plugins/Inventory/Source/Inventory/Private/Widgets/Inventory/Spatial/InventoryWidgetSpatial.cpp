@@ -192,6 +192,36 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 	SetActiveGrid(InventoryGrid_Crafting, Button_Crafting);
 }
 
+void UInventoryWidgetSpatial::UpdateInventoryGrids()
+{
+	TArray<int32> AllTiles;
+	AllTiles.AddUninitialized(InventoryGrid_Equipment->GetNumGridSlots());
+	for (int32 Index = 0; Index < AllTiles.Num(); ++Index)
+	{
+		AllTiles[Index] = Index;
+	}
+
+	const TArrayView<int32> AllTilesView(AllTiles);
+	InventoryGrid_Equipment->HandleOnUpdateGridSlots(AllTilesView);
+	InventoryGrid_Consumable->HandleOnUpdateGridSlots(AllTilesView);
+	InventoryGrid_Crafting->HandleOnUpdateGridSlots(AllTilesView);
+
+	InventoryGrid_Equipment->UpdateInventoryGridSlots();
+	InventoryGrid_Consumable->UpdateInventoryGridSlots();
+	InventoryGrid_Crafting->UpdateInventoryGridSlots();
+}
+
+void UInventoryWidgetSpatial::UpdateAllEquippedItemsStatus()
+{
+	for (auto& EquippedGridSlot : EquippedGridSlots)
+	{
+		if (EquippedGridSlot->GetInventoryItem().IsValid())
+		{
+			UpdateEquippedItemStatus(EquippedGridSlot->GetInventoryItem().Get());
+		}
+	}
+}
+
 void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
 {
 	if (Item == nullptr)
@@ -321,6 +351,7 @@ void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGridWidget* Grid, UButton*
 	DisableButton(Button);
 	GridSwitcher->SetActiveWidget(Grid);
 	ActiveGrid = Grid;
+	OnActiveGridSwitched.Broadcast(Grid);
 }
 
 UInventoryGridWidget* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const
