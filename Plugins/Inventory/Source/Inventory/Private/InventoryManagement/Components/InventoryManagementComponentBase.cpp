@@ -30,6 +30,7 @@ void UInventoryManagementComponentBase::GetLifetimeReplicatedProps(TArray<FLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryManagementComponentBase, InventoryList);
+	DOREPLIFETIME(UInventoryManagementComponentBase, InventoryStorage);
 }
 
 void UInventoryManagementComponentBase::BeginPlay()
@@ -47,6 +48,8 @@ void UInventoryManagementComponentBase::BeginPlay()
 void UInventoryManagementComponentBase::CreateInventoryStorage()
 {
 	LOG_NETFUNCTIONCALL
+
+	check(GetOwner()->HasAuthority());
 	
 	if (!ensure(!IsValid(InventoryStorage)))
 		return;
@@ -60,8 +63,5 @@ void UInventoryManagementComponentBase::CreateInventoryStorage()
 	check(InventoryStorage);
 	AddRepSubObj(InventoryStorage);
 
-	if (GetOwner()->HasAuthority())
-	{
-		InventoryStorage->SetupStorage(SetupData);
-	}
+	InventoryStorage->SetupStorage(SetupData);
 }
