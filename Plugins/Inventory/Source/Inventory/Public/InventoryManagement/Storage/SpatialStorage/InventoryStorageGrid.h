@@ -39,7 +39,6 @@ private:
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"), Replicated)
 	FGameplayTag ItemCategory;
 
-	mutable TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	mutable TWeakObjectPtr<AActor> OwningActor;
 
 public:
@@ -98,7 +97,7 @@ public:
 
 private:
 	void ConstructGrid();
-	void InitOwner() const;
+	void InitOwner();
 
 	bool IsInGridBounds(int32 StartIndex, const FIntPoint& Dimensions) const;
 

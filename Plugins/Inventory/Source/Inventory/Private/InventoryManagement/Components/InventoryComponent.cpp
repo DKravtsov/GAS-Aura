@@ -31,8 +31,7 @@ TSubclassOf<UInventoryStorage> FStorageSetupDataProxy::GetStorageClass() const
 }
 
 UInventoryComponent::UInventoryComponent()
-	: InventoryList(this)
-	, EquipmentSlots(this) 
+	: EquipmentSlots(this) 
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
@@ -258,16 +257,6 @@ void UInventoryComponent::AddStacksToItem(const FInventoryItemManifest& ItemMani
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
-	}
-}
-
-
-
-void UInventoryComponent::AddRepSubObj(UObject* SubObj)
-{
-	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && IsValid(SubObj))
-	{
-		AddReplicatedSubObject(SubObj);
 	}
 }
 
@@ -608,11 +597,6 @@ void UInventoryComponent::BeginPlay()
 		InventorySetupData.LoadSynchronous();
 	}
 
-	if (GetOwner()->HasAuthority())
-	{
-		CreateInventoryStorage();
-	}
-	
 	Super::BeginPlay();
 
 	SetOwnerInternal();

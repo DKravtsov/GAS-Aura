@@ -4,7 +4,6 @@
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 
 #include "InventoryGlobalSettings.h"
-#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "Items/InventoryItem.h"
 #include "Items/Manifest/InventoryItemManifest.h"
@@ -42,9 +41,6 @@ void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* Se
 
 	const FInventorySpatialStorageSetupData& SpatialSetupData = *static_cast<const FInventorySpatialStorageSetupData*>(SetupData);
 
-	UInventoryComponent* InventoryComponent = GetOwningInventoryComponent();
-	check(InventoryComponent);
-
 	const UClass* GridClass = GetStorageGridClass();
 	check(GridClass != nullptr);
 
@@ -52,6 +48,13 @@ void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* Se
 	{
 		UE_LOG(LogInventory, Error, TEXT("Forgot to create grid categories."))
 		return;
+	}
+
+	UActorComponent* OwningComponent = Cast<UActorComponent>(GetOuter());
+	if (!IsValid(OwningComponent) || !OwningComponent->IsUsingRegisteredSubObjectList() ||
+		!OwningComponent->IsReadyForReplication())
+	{
+		OwningComponent = nullptr;
 	}
 	
 	for (const auto& ItemCategory : SpatialSetupData.GridCategories)
@@ -63,7 +66,10 @@ void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* Se
         
 		InventoryGrids.Emplace(NewGrid);
 
-		InventoryComponent->AddRepSubObj(NewGrid);
+		if (OwningComponent)
+		{
+			OwningComponent->AddReplicatedSubObject(NewGrid);
+		}
 	}
 }
 
@@ -163,10 +169,10 @@ void UInventorySpatialStorage::GetLifetimeReplicatedProps(TArray<class FLifetime
 
 FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
-	if (auto* Grid = FindInventoryGridByCategory(ItemManifest.GetItemCategory()))
+	if (const auto* Grid = FindInventoryGridByCategory(ItemManifest.GetItemCategory()))
 		return Grid->HasRoomForItem(ItemManifest, StackCountOverride);
 	
-	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
+	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found."));
 	return FInventorySlotAvailabilityResult{};
 }
 

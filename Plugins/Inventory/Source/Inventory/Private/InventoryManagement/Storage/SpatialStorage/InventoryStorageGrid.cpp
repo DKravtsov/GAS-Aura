@@ -3,7 +3,7 @@
 
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 
-#include "InventoryManagement/Components/InventoryComponent.h"
+#include "InventoryManagement/Components/InventoryManagementComponentBase.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Items/Fragments/InventoryItemFragment.h"
@@ -43,7 +43,7 @@ void UInventoryStorageGrid::ConstructGrid()
 {
 	check(Rows > 0 && Columns > 0);
 
-	if (!OwningActor.IsValid() || !InventoryComponent.IsValid())
+	if (!OwningActor.IsValid())
 	{
 		InitOwner();
 	}
@@ -51,20 +51,21 @@ void UInventoryStorageGrid::ConstructGrid()
 	GridSlots.AddNumberSlots(Rows * Columns);
 }
 
-void UInventoryStorageGrid::InitOwner() const
+void UInventoryStorageGrid::InitOwner()
 {
 	OwningActor = GetOutermostActor(this);
-	InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningActor.Get());
-
-	InventoryComponent->OnItemAdded.AddDynamic(this, &UInventoryStorageGrid::HandleItemAdded);
-	InventoryComponent->OnStackChanged.AddDynamic(this, &UInventoryStorageGrid::HandleStackChanged);
+	if (auto InventoryComponent = OwningActor->FindComponentByClass<UInventoryManagementComponentBase>())
+	{
+		InventoryComponent->OnItemAdded.AddUObject(this, &UInventoryStorageGrid::HandleItemAdded);
+		InventoryComponent->OnStackChanged.AddUObject(this, &UInventoryStorageGrid::HandleStackChanged);
+	}
 }
 
 AActor* UInventoryStorageGrid::GetOwningActor() const
 {
 	if (!OwningActor.IsValid())
 	{
-		InitOwner();
+		const_cast<UInventoryStorageGrid*>(this)->InitOwner();
 		
 	}
 	return OwningActor.Get();

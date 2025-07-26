@@ -3,31 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "InventoryGridTypes.h"
+#include "InventoryManagement/Components/InventoryManagementComponentBase.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "InventoryStoreComponent.generated.h"
 
 
-
+class UInventoryStorage;
 class UInventoryWidgetBase;
 
 UCLASS(MinimalAPI, ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent), Blueprintable)
-class UInventoryStoreComponent : public UActorComponent
+class UInventoryStoreComponent : public UInventoryManagementComponentBase
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TSoftClassPtr<UInventoryWidgetBase> InventoryMenuClass;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UInventoryWidgetBase> InventoryMenu;
-
-	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FText InteractMessage;
 
-	UPROPERTY(Replicated)
-	FInventoryFastArray InventoryList;
-
+	// we need this to track whether the menu is open on one of the clients to prevent open it on another one.
 	uint8 bInventoryMenuOpen:1 = false;
 
 	uint8 bStartupItemsInitialized:1 = false;
@@ -38,13 +31,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
 	const FText& GetInteractMessage() const { return InteractMessage; }
 
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	INVENTORY_API void ToggleInventoryMenu();
-
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
+	void SetMenuOpen(bool bOpen) { bInventoryMenuOpen = bOpen; }
 	
 	int32 GetSellValue(const UInventoryItem* Item, int32 StackCount) const;
 	bool HasCoins(int32 SellValue);
@@ -57,8 +47,5 @@ protected:
 
 private:
 
-	void ConstructInventory();
-	void OpenInventoryMenu();
-	void CloseInventoryMenu();
 
 };

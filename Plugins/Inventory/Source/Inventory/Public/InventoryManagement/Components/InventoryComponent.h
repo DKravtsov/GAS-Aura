@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "InventoryGridTypes.h"
+#include "InventoryManagementComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryEquipmentSlotFastArray.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
@@ -18,9 +19,7 @@ struct FInventorySlotAvailabilityResult;
 class UInventoryWidgetBase;
 class UInventoryStorage;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInventorySlotAvailabilityResult&, Result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryMenuVisibilityChangedSugnature);
 
@@ -44,16 +43,16 @@ struct FInventoryStartupEquipmentData
 };
 
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, Within=PlayerController, meta=(BlueprintSpawnableComponent))
-class UInventoryComponent : public UActorComponent
+class UInventoryComponent : public UInventoryManagementComponentBase
 {
 	GENERATED_BODY()
 
 public:
 
-	FInventoryItemChangeSignature OnItemAdded;
-	FInventoryItemChangeSignature OnItemRemoved;
+	//FInventoryItemChangedDelegate OnItemAdded;
+	//FInventoryItemChangedDelegate OnItemRemoved;
 	FInventoryHasNoRoomSignature OnNoRoomInInventory;
-	FStackChangedSignature OnStackChanged;
+	//FInventoryItemGridChangedDelegate OnStackChanged;
 	FItemEquipStatusChangedSignature OnItemEquipped;
 	FItemEquipStatusChangedSignature OnItemUnequipped;
 	FItemEquipStatusChangedSignature OnItemEquipStatusChanged;
@@ -67,15 +66,9 @@ public:
 	FInventoryHoverItemUpdatedDelegate OnHoverItemUpdated;
 	FInventoryHoverItemResetDelegate OnHoverItemReset;
 
+
 private:
 
-	// Inventory Setup Data
-	UPROPERTY(EditDefaultsOnly, Category="Inventory")
-	TSoftObjectPtr<class UInventorySetupData> InventorySetupData;
-
-	// Responsible for HOW the inventory is stored
-	UPROPERTY(Replicated)
-	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSoftClassPtr<UInventoryWidgetBase> InventoryMenuClass;
@@ -101,10 +94,6 @@ private:
 
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
-
-	// List of WHAT is stored in the inventory
-	UPROPERTY(Replicated)
-	FInventoryFastArray InventoryList;
 
 	// List of equipment slots
 	UPROPERTY(Replicated)
@@ -132,10 +121,7 @@ private:
 public:
 	INVENTORY_API UInventoryComponent();
 
-	void AddRepSubObj(UObject* SubObj);
-
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
-	UInventoryStorage* GetInventoryStorage() const { return InventoryStorage; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
@@ -168,7 +154,7 @@ public:
 	bool AreStartupItemsEquipped() const { return bStartupItemsEquipped; }
 
 //#if UE_WITH_CHEAT_MANAGER
-	INVENTORY_API void DebugPrintStorage() const;
+	INVENTORY_API virtual void DebugPrintStorage() const override;
 //#endif//UE_WITH_CHEAT_MANAGER
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -212,7 +198,7 @@ public:
 	int32 GetWealth() const;
 
 protected:
-	INVENTORY_API void CreateInventoryStorage();
+	virtual void CreateInventoryStorage() override;
 
 	virtual void BeginPlay() override;
 

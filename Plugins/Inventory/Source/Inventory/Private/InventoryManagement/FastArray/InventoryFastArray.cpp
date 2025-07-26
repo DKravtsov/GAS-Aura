@@ -33,7 +33,7 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), RemovedIndices.Num())
 
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
+	auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent);
 	if (IsValid(InventoryComponent))
 	{
 		for (const int32 Index : RemovedIndices)
@@ -47,8 +47,8 @@ void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndice
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), AddedIndices.Num())
 
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
-	if (IsValid(InventoryComponent))
+	
+	if (const auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent);IsValid(InventoryComponent))
 	{
 		for (const int32 Index : AddedIndices)
 		{
@@ -56,7 +56,10 @@ void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndice
 		}
 	}
 
-	InventoryComponent->ReceivedStartupItems();
+	if (auto* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	{
+		InventoryComponent->ReceivedStartupItems();
+	}
 }
 
 UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemComponent)
@@ -65,7 +68,7 @@ UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemCompon
 	AActor* OwningActor = OwnerComponent->GetOwner();
 	check(OwningActor->HasAuthority());
 
-	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	if (auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
 		NewEntry.Item = ItemComponent->GetItemManifestMutable().Manifest(OwningActor);
@@ -94,7 +97,7 @@ UInventoryItem* FInventoryFastArray::AddItem(const FInventoryItemManifest& ItemM
 	AActor* OwningActor = OwnerComponent->GetOwner();
 	check(OwningActor->HasAuthority());
 
-	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	if (auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
 		NewEntry.Item = ItemManifest.ManifestCopy(OwningActor);
