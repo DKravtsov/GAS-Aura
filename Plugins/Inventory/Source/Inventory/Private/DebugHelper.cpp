@@ -4,6 +4,8 @@
 
 #include "DebugHelper.h"
 
+#include "Blueprint/WidgetBlueprintGeneratedClass.h"
+#include "Components/PanelWidget.h"
 #include "Items/InventoryItem.h"
 
 FString GetInventoryItemId(const class UInventoryItem* Item)
@@ -12,6 +14,36 @@ FString GetInventoryItemId(const class UInventoryItem* Item)
 }
 namespace DebugHelper
 {
+	FString GetTopMostWidgetClassName(const UUserWidget* Widget)
+	{
+		if (!Widget)
+		{
+			return TEXT("Invalid widget");
+		}
+
+		const UWidget* CurrentWidget = Widget;
+		const UUserWidget* TopMostUserWidget = Widget;
+
+		while (CurrentWidget)
+		{
+			UPanelWidget* ParentPanel = CurrentWidget->GetParent();
+			if (!ParentPanel)
+			{
+				break;
+			}
+
+			UUserWidget* OwningUserWidget = ParentPanel->GetTypedOuter<UUserWidget>();
+			if (OwningUserWidget)
+			{
+				TopMostUserWidget = OwningUserWidget;
+			}
+
+			CurrentWidget = OwningUserWidget;
+		}
+
+		return TopMostUserWidget ? TopMostUserWidget->GetClass()->GetName() : TEXT("Unknown");
+	}
+	
 	FString GetCallerPathAndOwner(const UObject* Object, const AActor* &OwnerActor, const TCHAR* Extra)
 	{
 		FStringBuilderBase Output;
@@ -35,7 +67,7 @@ namespace DebugHelper
 	FString GetCallerPathAndOwner(const UUserWidget* Object, const AActor*& OwnerActor, const TCHAR* Extra)
 	{
 		OwnerActor = Object->GetOwningPlayer();
-		return FString::Printf(TEXT("%s Widget: %s"), *OwnerActor->GetName(), *Object->GetName());
+		return FString::Printf(TEXT("%s Widget: %s.%s"), *OwnerActor->GetName(), *GetTopMostWidgetClassName(Object), *Object->GetName());
 	}
 
 	FString GetObjectNetInfo(const UObject* Object)
