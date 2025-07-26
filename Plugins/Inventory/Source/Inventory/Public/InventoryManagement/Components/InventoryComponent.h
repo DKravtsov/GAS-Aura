@@ -185,6 +185,9 @@ public:
 	void Server_SelectItemInSlot(EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_EquipSelectedItem(EInventoryEquipmentSlot SlotId);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_PutSelectedItemToStorage();
 
 	UFUNCTION(Server, Reliable, WithValidation)

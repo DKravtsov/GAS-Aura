@@ -44,6 +44,8 @@ public:
 	bool HasRoomForItem(FInventorySlotAvailabilityResult& Result, const UInventoryItemComponent* ItemComponent) const;
 	bool HasRoomForItem(FInventorySlotAvailabilityResult& Result, const struct FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 
+	virtual bool HasRoomForItemAtIndex(FInventorySlotAvailabilityResult& Result, const struct FInventoryItemManifest& ItemManifest, const int32 Index, const int32 StackCountOverride = -1) const;
+
 	virtual void SetupStorage(const FInventoryStorageSetupData* SetupData) {}
 
 	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;};

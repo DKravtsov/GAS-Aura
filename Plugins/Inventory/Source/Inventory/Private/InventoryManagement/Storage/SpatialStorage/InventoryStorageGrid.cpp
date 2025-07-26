@@ -161,6 +161,76 @@ FInventorySlotAvailabilityResult UInventoryStorageGrid::HasRoomForItem(const FIn
 	
 }
 
+FInventorySlotAvailabilityResult UInventoryStorageGrid::HasRoomForItemAtIndex(const FInventoryItemManifest& ItemManifest, int32 Index, const int32 StackCountOverride) const
+{
+	FInventorySlotAvailabilityResult Result;
+
+	// Determine if the item is stackable.Add commentMore actions
+	const auto StackableFragment = ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>();
+	Result.bStackable = StackableFragment != nullptr;
+
+	const auto GridFragment = ItemManifest.GetFragmentOfType<FInventoryItemGridFragment>();
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
+	
+	// Determine how many stacks to add.
+
+	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
+	int32 AmountToFill = StackableFragment ? (StackCountOverride >= 0 ? StackCountOverride : StackableFragment->GetStackCount()) : 1;
+
+	TSet<int32> CheckedIndexes;
+
+	// For each Grid Slot:
+	for (const auto& GridSlot = GridSlots.GetSlot(Index);;)
+	{
+		// If we don't have anymore to fill, break out of the loop early.
+		if (AmountToFill <= 0)
+			break;
+		
+		// Is this index claimed yet?
+		if (CheckedIndexes.Contains(GridSlot.GetTileIndex()))
+			break;
+		
+		// Can the item fit here? (i.e. is it out of grid bounds?)
+		if (!IsInGridBounds(GridSlot.GetTileIndex(), Dimensions))
+			break;
+
+		// Is there room at this index? (i.e. are there other items in the way?)
+		TSet<int32> TentativelyClaimed;
+		if (!HasRoomAtIndex(GridSlot, Dimensions, CheckedIndexes, TentativelyClaimed, MaxStackSize, ItemManifest.GetItemType()))
+			break;
+		
+		// How much to fill?
+		const int32 AmountToFillInSlot =
+			Result.bStackable ? CalculateStackableFillAmountForSlot(MaxStackSize, AmountToFill, GridSlot) : 1;
+		
+		if (AmountToFillInSlot <= 0)
+			break;
+		
+		CheckedIndexes.Append(TentativelyClaimed);
+		
+		// Update the amount left to fillAdd commentMore actions
+		Result.TotalRoomToFill += AmountToFillInSlot;
+		Result.SlotAvailabilities.Emplace(
+			GridSlot.GetInventoryItem().IsValid() ? GridSlot.GetStartIndex() : GridSlot.GetTileIndex(),
+			Result.bStackable ? AmountToFillInSlot : 0,
+			GridSlot.GetInventoryItem().IsValid()
+			);
+
+		AmountToFill -= AmountToFillInSlot;
+		// How much is the Remainder?
+		Result.Remainder = AmountToFill;
+		break;
+	}
+
+	if (Result.Remainder > 0)
+	{
+		const auto MoreResult = HasRoomForItem(ItemManifest, Result.Remainder);
+		Result.Union(MoreResult);
+	}
+	
+	return Result;
+}
+
 void UInventoryStorageGrid::ConstructGrid(int32 InNumRows, int32 InNumColumns)
 {
 	Rows = InNumRows;

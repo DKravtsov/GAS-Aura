@@ -16,6 +16,12 @@ bool UInventoryStorage::HasRoomForItem(FInventorySlotAvailabilityResult& Result,
 	return Result.TotalRoomToFill > 0;
 }
 
+bool UInventoryStorage::HasRoomForItemAtIndex(FInventorySlotAvailabilityResult& Result, const struct FInventoryItemManifest& ItemManifest, const int32 Index, const int32 StackCountOverride) const
+{
+	unimplemented();
+	return false;
+}
+
 FInventorySlotAvailabilityResult UInventoryStorage::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
 	return FInventorySlotAvailabilityResult{};

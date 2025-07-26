@@ -73,6 +73,7 @@ public:
 	bool IsValidIndex(int32 Index) const {return GridSlots.IsValidIndex(Index);}
 
 	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
+	FInventorySlotAvailabilityResult HasRoomForItemAtIndex(const FInventoryItemManifest& ItemManifest, int32 Index, const int32 StackCountOverride = -1) const;
 	
 	void ConstructGrid(int32 InNumRows, int32 InNumColumns);
 

@@ -262,7 +262,8 @@ void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot
 		UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 		check(IsValid(InventoryComponent));
 
-		InventoryComponent->EquipItem(ItemToEquip, nullptr, GridSlot->GetSlotId());
+		//InventoryComponent->EquipItem(ItemToEquip, nullptr, GridSlot->GetSlotId());
+		InventoryComponent->Server_EquipSelectedItem(GridSlot->GetSlotId());
 	}
 }
 

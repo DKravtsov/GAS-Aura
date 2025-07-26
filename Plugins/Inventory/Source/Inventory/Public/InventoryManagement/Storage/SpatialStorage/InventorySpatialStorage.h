@@ -57,6 +57,7 @@ public:
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) override;
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) override;
 	virtual int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount) override;
+	virtual bool HasRoomForItemAtIndex(FInventorySlotAvailabilityResult& Result, const struct FInventoryItemManifest& ItemManifest, const int32 Index, const int32 StackCountOverride = -1) const override;
 	//~ End of UInventoryStorage interface
 
 	//~ Begin of UObject interface

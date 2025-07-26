@@ -1004,7 +1004,7 @@ void UInventoryComponent::Server_SelectItemInSlot_Implementation(EInventoryEquip
 		return;
 	}
 
-	if ( HasHoverItem() && !HoverItemProxy->bStackable)
+	if ( HasHoverItem() && HoverItemProxy->bStackable)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Cannot equip stackable item [%s]"), *GetInventoryItemId(HoverItemProxy->InventoryItem.Get()))
 		return;
@@ -1035,6 +1035,54 @@ bool UInventoryComponent::Server_SelectItemInSlot_Validate(EInventoryEquipmentSl
 	return true;
 }
 
+void UInventoryComponent::Server_EquipSelectedItem_Implementation(EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Equipping item in slot %d"), static_cast<int32>(SlotId))
+
+	const FInventoryEquipmentSlot* EquipSlot = GetEquipmentSlot(SlotId);
+	if (!EquipSlot)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to equip item to invalid slot %d"), static_cast<int32>(SlotId))
+		return;
+	}
+
+	if (!HasHoverItem())
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to equip item in slot %d, but there is no item selected"), static_cast<int32>(SlotId))
+		return;
+	}
+
+	if (HoverItemProxy->bStackable)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Cannot equip stackable item [%s]"), *GetInventoryItemId(HoverItemProxy->InventoryItem.Get()))
+		return;
+	}
+
+	UInventoryItem* ItemToUnequip = EquipSlot->GetInventoryItem().Get();
+	UInventoryItem* ItemToEquip = HoverItemProxy->InventoryItem.Get();
+
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
+
+	if (ItemToUnequip)
+	{
+		if (!HasHoverItem())
+		{
+			HoverItemProxy = FHoverItemProxy();
+		}
+		HoverItemProxy->InventoryItem = ItemToUnequip;
+		NotifyHoverItemUpdated();
+	}
+	else
+	{
+		ClearSelectedItem();
+	}
+}
+
+bool UInventoryComponent::Server_EquipSelectedItem_Validate(EInventoryEquipmentSlot SlotId)
+{
+	return true;
+}
+
 void UInventoryComponent::Server_PutSelectedItemToStorage_Implementation()
 {
 	if (!HasHoverItem())
@@ -1056,7 +1104,9 @@ bool UInventoryComponent::Server_PutSelectedItemToStorage_Validate()
 
 void UInventoryComponent::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount)
 {
-	const FInventorySlotAvailabilityResult Result = FInventorySlotAvailabilityResult::Make(Item, Index, bStackable, StackCount);
+	//const FInventorySlotAvailabilityResult Result = FInventorySlotAvailabilityResult::Make(Item, Index, bStackable, StackCount);
+	FInventorySlotAvailabilityResult Result;
+	InventoryStorage->HasRoomForItemAtIndex(Result, Item->GetItemManifest(), Index, StackCount);
 	OnStackChanged.Broadcast(Result);
 }
 
