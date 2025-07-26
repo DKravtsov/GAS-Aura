@@ -141,6 +141,19 @@ int32 UInventorySpatialStorage::FillInStacksOrConsumeHover(UInventoryItem* Item,
 	return Grid->FillInStacksOrConsumeHover(Item, TargetIndex, AddStackCount);
 }
 
+bool UInventorySpatialStorage::HasRoomForItemAtIndex(FInventorySlotAvailabilityResult& Result, const FInventoryItemManifest& ItemManifest, const int32 Index, const int32 StackCountOverride) const
+{
+	if (const auto* Grid = FindInventoryGridByCategory(ItemManifest.GetItemCategory()))
+	{
+		Result = Grid->HasRoomForItemAtIndex(ItemManifest, Index, StackCountOverride);
+		return Result.TotalRoomToFill > 0;
+	}
+	
+	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found."));
+	return false;
+	
+}
+
 void UInventorySpatialStorage::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
