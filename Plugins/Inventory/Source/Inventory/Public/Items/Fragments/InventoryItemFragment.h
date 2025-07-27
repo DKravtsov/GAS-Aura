@@ -138,6 +138,7 @@ struct FInventoryNumericValue : public FInventoryNumericValueBase
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FVector2D MinMaxValue{0.f, 1.f};
 
+	UPROPERTY()
 	uint8 bInitialized:1 = false;
 
 	INVENTORY_API virtual void Initialize() override;

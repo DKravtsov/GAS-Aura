@@ -1233,7 +1233,7 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation()
 			ClearSelectedItem();
 			return;
 		}
-		Server_SellItem(Store, Item, StackCount);
+		Server_SellItem(Store, Item, HoverItemProxy->PreviousIndex, StackCount);
 	}
 
 	ClearSelectedItem();
@@ -1244,7 +1244,7 @@ bool UInventoryComponent::Server_SellSelectedItem_Validate()
 	return true;
 }
 
-void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 StackCount)
+void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(ItemToSell), StackCount)
 
@@ -1254,6 +1254,8 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 		return;
 	}
 	RemoveItemFromInventory(ItemToSell, StackCount);
+	InventoryStorage->RemoveItemFromGrid(ItemToSell, GridIndex);
+
 	const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
 	checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
 	AddStacksToItem(*CoinsItemManifest, SellValue);
@@ -1262,7 +1264,7 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
 }
 
-bool UInventoryComponent::Server_SellItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 StackCount)
+bool UInventoryComponent::Server_SellItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
 {
 	return true;
 }
