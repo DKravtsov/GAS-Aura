@@ -261,10 +261,10 @@ void UInventoryComponent::AddStacksToItem(const FInventoryItemManifest& ItemMani
 	}
 }
 
-void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
-{
-	Server_DropItem(Item, StackCount);
-}
+// void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
+// {
+// 	Server_DropItem(Item, StackCount);
+// }
 
 void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
@@ -480,7 +480,7 @@ bool UInventoryComponent::RemoveItemFromInventory(UInventoryItem* Item, int32 St
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(Item), StackCount)
 
 	if (IsValid(Item) || StackCount <= 0)
-		return true;
+		return false;
 
 	StackCount = FMath::Clamp(StackCount, 1, Item->GetTotalStackCount());
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
@@ -493,20 +493,37 @@ bool UInventoryComponent::RemoveItemFromInventory(UInventoryItem* Item, int32 St
 	{
 		Item->SetTotalStackCount(NewStackCount);
 	}
-	return false;
+	return true;
 }
 
-void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
+void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
-	if (RemoveItemFromInventory(Item, StackCount)) return;
+	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(Item), StackCount)
 
-	SpawnDroppedItem(Item, StackCount);
+	if (RemoveItemFromInventory(Item, StackCount))
+	{
+		SpawnDroppedItem(Item, StackCount);
+		//???
+	}
 }
 
-bool UInventoryComponent::Server_DropItem_Validate(UInventoryItem* Item, int32 StackCount)
+bool UInventoryComponent::Server_DropItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
 	return true;
 }
+
+// void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
+// {
+// 	if (!RemoveItemFromInventory(Item, StackCount)) return;
+//
+// 	SpawnDroppedItem(Item, StackCount);
+// }
+//
+// bool UInventoryComponent::Server_DropItem_Validate(UInventoryItem* Item, int32 StackCount)
+// {
+// 	return true;
+// }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -837,6 +854,7 @@ void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInve
 		HoverItemProxy->StackCount = Remainder;
 		NotifyHoverItemUpdated();
 	}
+	//InventoryStorage->UpdateGridSlots(Item, GridIndex, true, StackCount);
 }
 
 bool UInventoryComponent::Server_FillInStacksOrConsumeHover_Validate(UInventoryItem* Item, int32 GridIndex)
@@ -1130,7 +1148,7 @@ void UInventoryComponent::Server_DropSelectedItemOff_Implementation()
 		return;
 	}
 	
-	Server_DropItem(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->StackCount);
+	Server_DropItem(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->PreviousIndex, HoverItemProxy->StackCount);
 
 	ClearSelectedItem();
 }

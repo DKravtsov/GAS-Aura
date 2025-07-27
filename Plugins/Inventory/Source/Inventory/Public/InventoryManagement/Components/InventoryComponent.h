@@ -156,7 +156,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
 
-	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
+	//INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount = 1);
 
 	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
@@ -196,6 +196,9 @@ public:
 	void Server_PutSelectedItemToStorageAtIndex(const int32 TargetIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DropItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount);
+	
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DropSelectedItemOff();
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -224,8 +227,8 @@ protected:
 	void AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 	void AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_DropItem(UInventoryItem* Item, int32 StackCount);
+	// UFUNCTION(Server, Reliable, WithValidation)
+	// void Server_DropItem(UInventoryItem* Item, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount);

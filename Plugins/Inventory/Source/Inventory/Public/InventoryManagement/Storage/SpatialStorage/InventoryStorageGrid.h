@@ -122,7 +122,6 @@ private:
 	bool MatchesCategory(const UInventoryItem* Item) const;
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
-	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackAmount);
 
 	UFUNCTION()
 	void OnRep_GridSlots();

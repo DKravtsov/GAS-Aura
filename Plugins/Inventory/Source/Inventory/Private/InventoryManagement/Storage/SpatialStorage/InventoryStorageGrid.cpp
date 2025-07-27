@@ -339,9 +339,9 @@ void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Adding item: [%s]"), *GetInventoryItemId(Item))
 
 	auto Result = HasRoomForItem(Item->GetItemManifest());
-	AddItemToIndexes(Result, Item);
 	Result.Item = Item;
-	OnItemAddedToGrid.Broadcast(Result);
+	AddItemToIndexes(Result, Item);
+	//OnItemAddedToGrid.Broadcast(Result);
 }
 
 void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityResult& Result)
@@ -359,7 +359,6 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 		}
 		else
 		{
-			AddItemAtIndex(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.Amount);
 			UpdateGridSlots(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.Amount);
 		}
 	}
@@ -378,10 +377,6 @@ void UInventoryStorageGrid::AddItemToIndexes(const FInventorySlotAvailabilityRes
 	{
 		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availability.Amount);
 	}
-}
-
-void UInventoryStorageGrid::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackAmount)
-{
 }
 
 void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount)
@@ -468,6 +463,8 @@ int32 UInventoryStorageGrid::GetStackCount(int32 GridIndex) const
 void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)
 {
 	GridSlots.SetStackCount(GridIndex, NewStackCount);
+	//UpdateGridSlots(Item, GridIndex, true, NewStackCount);
+	OnGridSlotsUpdated.Broadcast(TArray<int32>{GridIndex});
 }
 
 int32 UInventoryStorageGrid::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount)
@@ -493,7 +490,11 @@ int32 UInventoryStorageGrid::FillInStacksOrConsumeHover(UInventoryItem* Item, in
 	const int32 NewStackCount = CurrentStackCount + FillAmount;
 	Remainder = AddStackCount - FillAmount;
 
-	GridSlots.SetStackCount(TargetIndex, NewStackCount);
+	//GridSlots.SetStackCount(TargetIndex, NewStackCount);
+	
+	//UpdateGridSlots(Item, TargetIndex, true, NewStackCount);
 
+	SetStackCount(TargetIndex, NewStackCount);
+	
 	return Remainder;
 }

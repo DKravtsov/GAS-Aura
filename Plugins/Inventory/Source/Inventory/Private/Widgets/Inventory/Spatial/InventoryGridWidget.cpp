@@ -8,13 +8,10 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
-#include "Editor/WidgetCompilerLog.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
-#include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Store/Components/InventoryStoreComponent.h"
 #include "Items/InventoryItem.h"
-#include "Items/Components/InventoryItemComponent.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Widgets/Inventory/GridSlot/InventoryGridSlotWidget.h"
 #include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
@@ -22,6 +19,9 @@
 #include "Widgets/Inventory/SlottedItems/InventorySlottedItemWidget.h"
 #include "Widgets/Inventory/ViewModels//InventoryGridViewModel.h"
 
+#if WITH_EDITOR
+#include "Editor/WidgetCompilerLog.h"
+#endif
 #include "DebugHelper.h"
 
 void UInventoryGridWidget::NativeOnInitialized()
@@ -429,7 +429,7 @@ void UInventoryGridWidget::HandleOnUpdateGridSlots(const TArrayView<int32>& Grid
 		UInventoryGridSlotWidget* GridSlot = GridSlots[GridIndex];
 		if (!GridSlot->IsAvailable())
 		{
-			if (!bHasAuthority)
+			//if (!bHasAuthority)
 			{
 				int32 UpperLeftIndex = GridSlot->GetStartIndex();
 				UInventorySlottedItemWidget* SlottedItem = GetSlottedItemWidgetAtIndex(UpperLeftIndex);
@@ -537,12 +537,17 @@ void UInventoryGridWidget::PutDownItemInInventoryAtIndex(const int32 GridIndex)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Index: %d"), GridIndex)
 	
-	check(IsValid(HoverItem));
-	AddItemAtIndex(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
+	if(!IsValid(HoverItem))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Hover item is not valid"));
+		return;
+	}
+	
+//	AddItemAtIndex(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
 
 	InventoryComponent->Server_PutSelectedItemToStorageAtIndex(GridIndex);
 
-	ClearHoverItem();
+//	ClearHoverItem();
 }
 
 void UInventoryGridWidget::ShowDefaultCursor() const
@@ -552,34 +557,39 @@ void UInventoryGridWidget::ShowDefaultCursor() const
 
 void UInventoryGridWidget::ClearHoverItem()
 {
-	if (!IsValid(HoverItem))
-		return;
-
-	HoverItem->Reset();
-	HoverItem->RemoveFromParent();
-	HoverItem = nullptr;
+	if (IsValid(HoverItem))
+	{
+		HoverItem->Reset();
+		HoverItem->RemoveFromParent();
+		HoverItem = nullptr;
+	}
 
 	ShowDefaultCursor();
 }
 
 void UInventoryGridWidget::SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex)
 {
-	if (!IsValid(HoverItem))
-		return;
-
 	LOG_NETFUNCTIONCALL
 	
-	UInventoryItem* TempItem = HoverItem->GetInventoryItem();
-	const int32 TempStackCount = HoverItem->GetStackCount();
-	const bool bTempStackable = HoverItem->IsStackable();
+	if (!IsValid(HoverItem))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Hover item is not valid"));
+		return;
+	}
 
-	AddItemAtIndex(TempItem, ItemDropIndex, bTempStackable, TempStackCount);
+	// UInventoryItem* TempItem = HoverItem->GetInventoryItem();
+	// const int32 TempStackCount = HoverItem->GetStackCount();
+	// const bool bTempStackable = HoverItem->IsStackable();
+	//
+	// AddItemAtIndex(TempItem, ItemDropIndex, bTempStackable, TempStackCount);
 	
 	InventoryComponent->Server_SwapSelectedWitItem(ClickedInventoryItem, GridIndex);
 }
 
 void UInventoryGridWidget::HandleOnHoverItemReset()
 {
+	LOG_NETFUNCTIONCALL
+	
 	ClearHoverItem();
 }
 
@@ -676,7 +686,7 @@ void UInventoryGridWidget::OnGridSlotClicked(int32 GridSlotIndex, const FPointer
 	if (!IsInGridBounds(ItemDropIndex, HoverItem->GetGridDimensions()))
 		return;
 
-	auto GridSlot = GridSlots[ItemDropIndex];
+	const auto& GridSlot = GridSlots[ItemDropIndex];
 	if (!GridSlot->GetInventoryItem().IsValid())
 	{
 		PutDownItemInInventoryAtIndex(ItemDropIndex);
@@ -714,7 +724,7 @@ bool UInventoryGridWidget::IsHoverItemSameStackableAs(const UInventoryItem* Clic
 {
 	const bool bSameItem = ClickedInventoryItem == HoverItem->GetInventoryItem();
 	const bool bIsStackable = ClickedInventoryItem->IsStackable();
-	return bSameItem && bIsStackable && HoverItem->GetItemType().MatchesTagExact(ClickedInventoryItem->GetItemType());
+	return bSameItem && bIsStackable; //&& HoverItem->GetItemType().MatchesTagExact(ClickedInventoryItem->GetItemType());
 }
 
 int32 UInventoryGridWidget::GetMaxStackSize(const UInventoryItem* Item)
@@ -736,7 +746,7 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 		*GetInventoryItemId(ClickedInventoryItem),
 		GetHoverItem() ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
 
-	// remove item description widget
+	// remove the item description widget
 	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
 
 	if (!IsValid(HoverItem))
@@ -763,12 +773,12 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 		if (ClickedStackCount == MaxStackSize && HoveredStackCount < MaxStackSize)
 		{
 			InventoryComponent->Server_SwapStackCountWithHoverItem(ClickedInventoryItem, GridIndex);
-			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
+//			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
 			return;
 		}
 
 		InventoryComponent->Server_FillInStacksOrConsumeHover(ClickedInventoryItem, GridIndex);
-		FillInStacksOrConsumeHover(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
+//		FillInStacksOrConsumeHover(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
 		return;
 	}
 
@@ -901,7 +911,7 @@ void UInventoryGridWidget::OnPopupMenuSplit(const int32 SplitAmount, const int32
 	const int32 UpperLeftIndex =  GridSlots[GridIndex]->GetStartIndex();
 	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - SplitAmount;
 
-	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
+//	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
 
 	InventoryComponent->Server_SplitStackToHoverItem(RightClickedItem, UpperLeftIndex, SplitAmount);
 }
@@ -917,7 +927,7 @@ void UInventoryGridWidget::OnPopupMenuConsume(const int32 GridIndex)
 
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
 	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - 1;
-	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
+//	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
 	
 	InventoryComponent->ConsumeItem(RightClickedItem, GridIndex, 1);
 }
@@ -929,8 +939,10 @@ void UInventoryGridWidget::OnPopupMenuDrop(const int32 GridIndex)
 	if( !IsValid(RightClickedItem))
 		return;
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
-	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
-	DropHoverItemOnGround();
+	const int32 StackCount = GridSlots[UpperLeftIndex]->GetStackCount();
+//	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
+//	DropHoverItemOnGround();
+	InventoryComponent->Server_DropItem(RightClickedItem, UpperLeftIndex, StackCount);
 }
 
 void UInventoryGridWidget::OnPopupMenuBuy(const int32 GridIndex)
@@ -949,16 +961,16 @@ void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	InventoryComponent->Server_SellSelectedItem();
 
-	ClearHoverItem();
-	ShowDefaultCursor();
+//	ClearHoverItem();
+//	ShowDefaultCursor();
 }
 
 void UInventoryGridWidget::DropHoverItemOnGround()
 {
 	InventoryComponent->Server_DropSelectedItemOff();
 
-	ClearHoverItem();
-	ShowDefaultCursor();
+//	ClearHoverItem();
+//	ShowDefaultCursor();
 }
 
 bool UInventoryGridWidget::HasHoverItem() const
