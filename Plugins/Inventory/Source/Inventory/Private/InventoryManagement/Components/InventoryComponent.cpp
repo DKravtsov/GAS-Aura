@@ -65,7 +65,7 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 		FInventorySlotAvailabilityResult Result;
 		if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
 		{
-			OnNoRoomInInventory.Broadcast();
+			BROADCAST_WITH_LOG(OnNoRoomInInventory);
 			return;
 		}
 	}
@@ -85,7 +85,7 @@ void UInventoryComponent::Server_TryAddItem_Implementation(UInventoryItemCompone
 		if (OwningPlayerController->IsLocalPlayerController())
 		{
 			// The client broadcasts this in TryAddItem()
-			OnNoRoomInInventory.Broadcast();
+			BROADCAST_WITH_LOG(OnNoRoomInInventory);
 		}
 		return;
 	}
@@ -95,7 +95,7 @@ void UInventoryComponent::Server_TryAddItem_Implementation(UInventoryItemCompone
 
 	if (Result.Item.IsValid() && Result.bStackable)
 	{
-		OnStackChanged.Broadcast(Result);
+		BROADCAST_WITH_LOG(OnStackChanged, Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
 		AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}
@@ -135,7 +135,7 @@ UInventoryItem* UInventoryComponent::TryAddItem(const FInventoryItemManifest& It
 
 	if (Result.Item.IsValid() && Result.bStackable)
 	{
-		OnStackChanged.Broadcast(Result);
+		BROADCAST_WITH_LOG(OnStackChanged, Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
 		AddStacksToItem(ItemManifest, Result.TotalRoomToFill);
 	}
@@ -188,7 +188,7 @@ void UInventoryComponent::AddNewItem(UInventoryItemComponent* ItemComponent, int
 		StackableFragment->SetStackCount(StackCount);
 	}
 
-	OnItemAdded.Broadcast(NewItem);
+	BROADCAST_WITH_LOG(OnItemAdded, NewItem);
 
 	// tell the item component to destroy its owning actor if Remainder == 0
 	//  otherwise, update the stack count for the pickup
@@ -217,7 +217,7 @@ UInventoryItem* UInventoryComponent::AddNewItem(const FInventoryItemManifest& It
 		StackableFragment->SetStackCount(StackCount);
 	}
 
-	OnItemAdded.Broadcast(NewItem);
+	BROADCAST_WITH_LOG(OnItemAdded, NewItem);
 
 	return NewItem;
 }
@@ -392,8 +392,8 @@ void UInventoryComponent::BroadcastEquipItem(UInventoryItem* ItemToEquip, UInven
 		// so we can revert if needed
 	}
 
-	OnItemUnequipped.Broadcast(ItemToUnequip);
-	OnItemEquipped.Broadcast(ItemToEquip);
+	BROADCAST_WITH_LOG(OnItemUnequipped, ItemToUnequip);
+	BROADCAST_WITH_LOG(OnItemEquipped, ItemToEquip);
 }
 
 void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
@@ -488,6 +488,8 @@ bool UInventoryComponent::RemoveItemFromInventory(UInventoryItem* Item, int32 St
 	if (NewStackCount <= 0)
 	{
 		InventoryList.RemoveItem(Item);
+
+		BROADCAST_WITH_LOG(OnItemRemoved, Item);
 	}
 	else
 	{
@@ -818,7 +820,7 @@ void UInventoryComponent::ClearSelectedItem()
 {
 	HoverItemProxy.Reset();
 
-	OnHoverItemReset.Broadcast();
+	BROADCAST_WITH_LOG(OnHoverItemReset);
 
 	if (!OwningPlayerController->IsLocalController() && OwningPlayerController->HasAuthority())
 	{
@@ -1095,7 +1097,7 @@ void UInventoryComponent::Server_PutSelectedItemToStorage_Implementation()
 	ensure(GetInventoryStorage()->HasRoomForItem(Result, HoverItemProxy->InventoryItem->GetItemManifest(), HoverItemProxy->StackCount));
 	Result.Item = HoverItemProxy->InventoryItem;
 
-	OnStackChanged.Broadcast(Result);
+	BROADCAST_WITH_LOG(OnStackChanged, Result);
 
 	ClearSelectedItem();
 }
@@ -1110,7 +1112,8 @@ void UInventoryComponent::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool
 	//const FInventorySlotAvailabilityResult Result = FInventorySlotAvailabilityResult::Make(Item, Index, bStackable, StackCount);
 	FInventorySlotAvailabilityResult Result;
 	InventoryStorage->HasRoomForItemAtIndex(Result, Item->GetItemManifest(), Index, StackCount);
-	OnStackChanged.Broadcast(Result);
+	Result.Item = Item;
+	BROADCAST_WITH_LOG(OnStackChanged, Result);
 }
 
 void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(const int32 TargetIndex)
@@ -1194,7 +1197,7 @@ void UInventoryComponent::NotifyHoverItemUpdated()
 {
 	if (OwningPlayerController->IsLocalController())
 	{
-		OnHoverItemUpdated.Broadcast(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->bStackable, HoverItemProxy->StackCount, HoverItemProxy->PreviousIndex);
+		BROADCAST_WITH_LOG(OnHoverItemUpdated, HoverItemProxy->InventoryItem.Get(), HoverItemProxy->bStackable, HoverItemProxy->StackCount, HoverItemProxy->PreviousIndex);
 	}
 	else if (OwningPlayerController->HasAuthority())
 	{
@@ -1204,7 +1207,7 @@ void UInventoryComponent::NotifyHoverItemUpdated()
 
 void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInventoryItem* InventoryItem, bool bStackable, int32 StackCount, int32 PreviousIndex)
 {
-	LOG_NETFUNCTIONCALL
+	LOG_NETFUNCTIONCALL_MSG(TEXT("HoverItem [%s]"), *GetInventoryItemId(InventoryItem))
 	
 	HoverItemProxy.Emplace(InventoryItem, PreviousIndex, StackCount, bStackable);
 	NotifyHoverItemUpdated();
@@ -1212,9 +1215,10 @@ void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInvent
 
 void UInventoryComponent::Server_SellSelectedItem_Implementation()
 {
-	LOG_NETFUNCTIONCALL
-	
 	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Selling item [%s]"), *GetInventoryItemId(Item))
+	
 	if (!IsValid(Item))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell NULL item."))

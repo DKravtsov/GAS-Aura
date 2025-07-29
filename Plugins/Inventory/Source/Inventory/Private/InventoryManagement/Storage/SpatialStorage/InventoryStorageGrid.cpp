@@ -341,7 +341,7 @@ void UInventoryStorageGrid::HandleItemAdded(UInventoryItem* Item)
 	auto Result = HasRoomForItem(Item->GetItemManifest());
 	Result.Item = Item;
 	AddItemToIndexes(Result, Item);
-	//OnItemAddedToGrid.Broadcast(Result);
+	//BROADCAST_WITH_LOG(OnItemAddedToGrid, Result);
 }
 
 void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityResult& Result)
@@ -405,7 +405,7 @@ void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32
 			UpdatedSlots.Add(GridIndex);
 		});
 	
-	OnGridSlotsUpdated.Broadcast(UpdatedSlots);
+	BROADCAST_WITH_LOG(OnGridSlotsUpdated, UpdatedSlots);
 }
 
 void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex)
@@ -423,7 +423,7 @@ void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, con
 		GridSlots.ClearSlot(TileIndex);
 	});
 
-	OnGridSlotsReset.Broadcast(UpdatedSlots);
+	BROADCAST_WITH_LOG(OnGridSlotsReset, UpdatedSlots);
 }
 
 void UInventoryStorageGrid::OnRep_GridSlots()
@@ -447,11 +447,11 @@ void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Changed: %d;"), ChangedIndices.Num())
 	if (bRemoved)
 	{
-		OnGridSlotsReset.Broadcast(ChangedIndices);
+		BROADCAST_WITH_LOG(OnGridSlotsReset, ChangedIndices);
 	}
 	else
 	{
-		OnGridSlotsUpdated.Broadcast(ChangedIndices);
+		BROADCAST_WITH_LOG(OnGridSlotsUpdated, ChangedIndices);
 	}
 }
 
@@ -464,7 +464,7 @@ void UInventoryStorageGrid::SetStackCount(int32 GridIndex, int32 NewStackCount)
 {
 	GridSlots.SetStackCount(GridIndex, NewStackCount);
 	//UpdateGridSlots(Item, GridIndex, true, NewStackCount);
-	OnGridSlotsUpdated.Broadcast(TArray<int32>{GridIndex});
+	BROADCAST_WITH_LOG(OnGridSlotsUpdated, TArray<int32>{GridIndex});
 }
 
 int32 UInventoryStorageGrid::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount)

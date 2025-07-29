@@ -3,9 +3,11 @@
 
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 
+#include "DebugHelper.h"
+
 FReply UInventoryEquippedSlottedItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnEquippedSlottedItemClicked.Broadcast(this);
+	BROADCAST_WITH_LOG(OnEquippedSlottedItemClicked, this);
 	return FReply::Handled();
 }
 

@@ -5,7 +5,9 @@
 #include "Inventory.h"
 #include "Blueprint/UserWidget.h"
 
-#define FUNC_NAME    *FString(__FUNCTION__)
+#define INVENTORY_USE_VLOG 0
+
+#define FUNC_NAME    ANSI_TO_TCHAR(__FUNCTION__)
 
 
 #define LOG_NETFUNCTIONCALL  INTERNAL_NETFUNCTIONCALL_1(this)
@@ -25,8 +27,13 @@ inline void DebugPrint(const FString& Message, const FColor& Color = FColor::Mak
 
 FString GetInventoryItemId(const class UInventoryItem* Item);
 
+#define BROADCAST_WITH_LOG(Event, ...) \
+    LOG_NETFUNCTIONCALL_MSG(TEXT("Broadcasting %s"), TEXT(#Event)); \
+    Event.Broadcast(__VA_ARGS__);
 
-
+#define BROADCAST_WITH_LOG_STRUCT(OwningObject, StructName, Event, ...) \
+    LOG_NETFUNCTIONCALL_STRUCT_MSG(OwningObject, StructName, TEXT("Broadcasting %s"), TEXT(#Event)); \
+    Event.Broadcast(__VA_ARGS__);
 
 /*
  *  Internal stuff
@@ -35,11 +42,19 @@ FString GetInventoryItemId(const class UInventoryItem* Item);
 #define INTERNAL_NETFUNCTIONCALL_1(Obj) INTERNAL_NETFUNCTIONCALL_IMPL(Obj, nullptr, )  
 #define INTERNAL_NETFUNCTIONCALL_2(Obj, StructName) INTERNAL_NETFUNCTIONCALL_IMPL(Obj, StructName, )  
 #define INTERNAL_NETFUNCTIONCALL_1V(Obj, format, ...) INTERNAL_NETFUNCTIONCALL_IMPL(Obj, nullptr, format, ##__VA_ARGS__)
+
+#if INVENTORY_USE_VLOG
+#define INTERNAL_NETFUNCTIONCALL_IMPL(Obj, NameSuffix, format, ...) \
+    UE_VLOG(Obj, LogInventory, Log, INTERNAL_CONCAT(TEXT("%s: "), format), FUNC_NAME, ##__VA_ARGS__);
+#else
 #define INTERNAL_NETFUNCTIONCALL_IMPL(Obj, NameSuffix, format, ...) \
     { const AActor* Outer_Actor = nullptr; const FString Path_Name = DebugHelper::GetCallerPathAndOwner(Obj, Outer_Actor, NameSuffix);\
     UE_LOG(LogInventory, Log, INTERNAL_CONCAT(TEXT("[%s] [%s] [%s] [%s] "), format), \
     DebugHelper::GetNetModeText(Outer_Actor->GetWorld()), DebugHelper::GetNetRoleText(DebugHelper::GetNetRole(Outer_Actor)), *Path_Name, FUNC_NAME, ##__VA_ARGS__); }
+#endif
+
 #define INTERNAL_CONCAT(A, B) A B
+#define TEXTIZE(x) TEXT(#x)
 
 namespace DebugHelper
 {

@@ -38,7 +38,7 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 	{
 		for (const int32 Index : RemovedIndices)
 		{
-			InventoryComponent->OnItemRemoved.Broadcast(Entries[Index].Item);
+			BROADCAST_WITH_LOG_STRUCT(OwnerComponent.Get(), InventoryList, InventoryComponent->OnItemRemoved, Entries[Index].Item);
 		}
 	}
 }
@@ -52,7 +52,7 @@ void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndice
 	{
 		for (const int32 Index : AddedIndices)
 		{
-			InventoryComponent->OnItemAdded.Broadcast(Entries[Index].Item);
+			BROADCAST_WITH_LOG_STRUCT(OwnerComponent.Get(), InventoryList, InventoryComponent->OnItemAdded, Entries[Index].Item);
 		}
 	}
 

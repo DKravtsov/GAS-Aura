@@ -3,6 +3,7 @@
 
 #include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
 
+#include "DebugHelper.h"
 #include "Inventory.h"
 #include "InventoryGridTypes.h"
 #include "Components/Image.h"
@@ -63,7 +64,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouse
 
 FReply UInventoryEquippedGridSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	EquippedGridSlotClicked.Broadcast(this, GetEquipmentTypeTag());
+	BROADCAST_WITH_LOG(EquippedGridSlotClicked, this, GetEquipmentTypeTag());
 	return FReply::Handled();
 }
 

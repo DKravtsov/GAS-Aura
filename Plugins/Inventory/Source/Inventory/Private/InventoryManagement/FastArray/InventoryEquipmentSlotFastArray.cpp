@@ -24,7 +24,7 @@ void FInventoryEquipmentSlotFastArray::PostReplicatedChange(const TArrayView<int
 	{
 		for (const int32 Index : ChangedIndices)
 		{
-			InventoryComponent->OnItemEquipStatusChanged.Broadcast(Entries[Index].Data.GetInventoryItem().Get());
+			BROADCAST_WITH_LOG_STRUCT(OwnerComponent, EquipmentSlots, InventoryComponent->OnItemEquipStatusChanged, Entries[Index].Data.GetInventoryItem().Get());
 		}
 	}
 }
