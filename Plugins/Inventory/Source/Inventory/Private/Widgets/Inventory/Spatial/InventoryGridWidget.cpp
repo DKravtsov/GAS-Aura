@@ -433,8 +433,17 @@ void UInventoryGridWidget::HandleOnUpdateGridSlots(const TArrayView<int32>& Grid
 			{
 				int32 UpperLeftIndex = GridSlot->GetStartIndex();
 				UInventorySlottedItemWidget* SlottedItem = GetSlottedItemWidgetAtIndex(UpperLeftIndex);
-				if (!SlottedItem)
+				if (!SlottedItem || (!bHasAuthority && SlottedItem->GetInventoryItem() != GridSlot->GetInventoryItem().Get()))
 				{
+					if (SlottedItem)
+					{
+						TObjectPtr<UInventorySlottedItemWidget> FoundSlottedItem;
+						if (SlottedItems.RemoveAndCopyValue(GridIndex, FoundSlottedItem))
+						{
+							FoundSlottedItem->RemoveFromParent();
+						}
+					}
+
 					UInventoryItem* NewItem = GridSlot->GetInventoryItem().Get();
 					const bool bStackable = NewItem->IsStackable();
 					const int32 StackSize = GridSlot->GetStackCount();
@@ -911,8 +920,6 @@ void UInventoryGridWidget::OnPopupMenuSplit(const int32 SplitAmount, const int32
 	const int32 UpperLeftIndex =  GridSlots[GridIndex]->GetStartIndex();
 	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - SplitAmount;
 
-//	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
-
 	InventoryComponent->Server_SplitStackToHoverItem(RightClickedItem, UpperLeftIndex, SplitAmount);
 }
 
@@ -927,7 +934,6 @@ void UInventoryGridWidget::OnPopupMenuConsume(const int32 GridIndex)
 
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
 	const int32 NewStackCount = GridSlots[UpperLeftIndex]->GetStackCount() - 1;
-//	UpdateStackCountInSlot(UpperLeftIndex, NewStackCount);
 	
 	InventoryComponent->ConsumeItem(RightClickedItem, GridIndex, 1);
 }
@@ -940,8 +946,7 @@ void UInventoryGridWidget::OnPopupMenuDrop(const int32 GridIndex)
 		return;
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
 	const int32 StackCount = GridSlots[UpperLeftIndex]->GetStackCount();
-//	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
-//	DropHoverItemOnGround();
+
 	InventoryComponent->Server_DropItem(RightClickedItem, UpperLeftIndex, StackCount);
 }
 
@@ -960,17 +965,12 @@ void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 
 	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	InventoryComponent->Server_SellSelectedItem();
-
-//	ClearHoverItem();
-//	ShowDefaultCursor();
 }
 
 void UInventoryGridWidget::DropHoverItemOnGround()
 {
-	InventoryComponent->Server_DropSelectedItemOff();
-
-//	ClearHoverItem();
-//	ShowDefaultCursor();
+	if (IsValid(HoverItem))
+		InventoryComponent->Server_DropSelectedItemOff();
 }
 
 bool UInventoryGridWidget::HasHoverItem() const

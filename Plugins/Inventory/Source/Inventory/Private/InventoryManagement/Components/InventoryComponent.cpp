@@ -479,7 +479,7 @@ bool UInventoryComponent::RemoveItemFromInventory(UInventoryItem* Item, int32 St
 	
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(Item), StackCount)
 
-	if (IsValid(Item) || StackCount <= 0)
+	if (!IsValid(Item) || (Item->IsStackable() && StackCount <= 0))
 		return false;
 
 	StackCount = FMath::Clamp(StackCount, 1, Item->GetTotalStackCount());
@@ -505,8 +505,8 @@ void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, i
 
 	if (RemoveItemFromInventory(Item, StackCount))
 	{
+		InventoryStorage->RemoveItemFromGrid(Item, GridIndex);
 		SpawnDroppedItem(Item, StackCount);
-		//???
 	}
 }
 
@@ -906,7 +906,6 @@ void UInventoryComponent::Server_SwapSelectedWitItem_Implementation(UInventoryIt
 	Server_SelectItem(ItemOnGrid, GridIndex, OldHoverItem.PreviousIndex);
 	
 	AddItemAtIndex(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
-	InventoryStorage->UpdateGridSlots(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
 }
 
 bool UInventoryComponent::Server_SwapSelectedWitItem_Validate(UInventoryItem* ItemOnGrid, int32 GridIndex)
@@ -1129,8 +1128,6 @@ void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(
 
 	AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
 	
-	check(InventoryStorage);
-	InventoryStorage->UpdateGridSlots(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
 	
 	ClearSelectedItem();
 }

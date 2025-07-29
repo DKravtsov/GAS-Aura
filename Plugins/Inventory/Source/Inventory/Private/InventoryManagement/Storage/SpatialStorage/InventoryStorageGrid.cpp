@@ -363,7 +363,7 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 		}
 	}
 
-	OnStackChanged.Broadcast(Result);
+	//BROADCAST_WITH_LOG(OnStackChanged, Result);
 }
 
 bool UInventoryStorageGrid::MatchesCategory(const UInventoryItem* Item) const
