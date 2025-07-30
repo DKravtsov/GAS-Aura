@@ -7,6 +7,9 @@
 #include "Net/UnrealNetwork.h"
 
 #include "DebugHelper.h"
+#include "Items/InventoryItem.h"
+#include "Items/Fragments/InventoryItemFragment.h"
+#include "Items/Manifest/InventoryItemManifest.h"
 
 
 UInventoryManagementComponentBase::UInventoryManagementComponentBase()
@@ -64,4 +67,72 @@ void UInventoryManagementComponentBase::CreateInventoryStorage()
 	AddRepSubObj(InventoryStorage);
 
 	InventoryStorage->SetupStorage(SetupData);
+}
+
+UInventoryItem* UInventoryManagementComponentBase::TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+{
+	LOG_NETFUNCTIONCALL
+	
+	checkf(HasAuthority(), TEXT("This method should run only on server"));
+
+	FInventorySlotAvailabilityResult Result;
+	if (!InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCount))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Adding startup item [%s]: inventory has no room for %d items."),
+			*ItemManifest.GetItemType().ToString(), StackCount);
+		return nullptr;
+	}
+	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
+	Result.Item = FoundItem;
+
+	if (Result.Remainder > 0)
+	{
+		UE_LOG(LogInventory, Warning, TEXT("Adding startup item [%s]: inventory has not enough room for %d more item(s) and they will be destroyed."),
+		   *ItemManifest.GetItemType().ToString(), Result.Remainder);
+	}
+
+	if (Result.Item.IsValid() && Result.bStackable)
+	{
+		BROADCAST_WITH_LOG(OnStackChanged, Result);
+		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
+		AddStacksToItem(ItemManifest, Result.TotalRoomToFill);
+	}
+	else
+	{
+		// This item doesn't exist in the inventory. Need to create one and update all related stuff
+		return AddNewItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1);
+	}
+	return nullptr;
+}
+
+UInventoryItem* UInventoryManagementComponentBase::AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+{
+	LOG_NETFUNCTIONCALL
+	
+	check(GetOwner()->HasAuthority());
+
+	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
+	check(NewItem != nullptr);
+	NewItem->SetTotalStackCount(StackCount);
+	if (const auto StackableFragment = NewItem->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+	{
+		StackableFragment->SetStackCount(StackCount);
+	}
+
+	BROADCAST_WITH_LOG(OnItemAdded, NewItem);
+
+	return NewItem;
+}
+
+void UInventoryManagementComponentBase::AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+{
+	LOG_NETFUNCTIONCALL
+	
+	checkf(GetOwner()->HasAuthority(), TEXT("UInventoryComponent::AddStacksToItem called on non-authoritative object."));
+	
+	const FGameplayTag& ItemType = ItemManifest.GetItemType();
+	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
+	{
+		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
+	}
 }

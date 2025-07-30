@@ -23,6 +23,7 @@ class UInventoryStoreComponent : public UInventoryManagementComponentBase
 	// we need this to track whether the menu is open on one of the clients to prevent open it on another one.
 	uint8 bInventoryMenuOpen:1 = false;
 
+	UPROPERTY(ReplicatedUsing=OnRep_StartupItemsInitialized)
 	uint8 bStartupItemsInitialized:1 = false;
 
 public:
@@ -35,15 +36,28 @@ public:
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
 	void SetMenuOpen(bool bOpen) { bInventoryMenuOpen = bOpen; }
-	
+
+	bool AreStartupItemsInitialized() const { return bStartupItemsInitialized; }
+
 	int32 GetSellValue(const UInventoryItem* Item, int32 StackCount) const;
 	bool HasCoins(int32 SellValue);
 	void RemoveCoins(int32 SellValue);
-	void TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+
+	//#if UE_WITH_CHEAT_MANAGER
+	INVENTORY_API virtual void DebugPrintStorage() const override;
+	//#endif//UE_WITH_CHEAT_MANAGER
 
 protected:
 
 	virtual void BeginPlay() override;
+
+	void AddStartupItems();
+	
+	UFUNCTION()
+	virtual void StartupItemsAssetsLoaded();
+
+	UFUNCTION()
+	void OnRep_StartupItemsInitialized();
 
 private:
 

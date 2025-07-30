@@ -48,10 +48,19 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// returns a newly created item or null if the item already in the inventory or failed
+	UInventoryItem* TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	
 protected:
 
 	virtual void BeginPlay() override;
 
 	virtual void CreateInventoryStorage();
+
+	FORCEINLINE bool HasAuthority() const {return GetOwner()->HasAuthority();}
+
+	UInventoryItem* AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	void AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+
 
 };

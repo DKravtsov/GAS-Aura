@@ -159,6 +159,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
+	using Super::TryAddItem;
 
 	//INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount = 1);
@@ -274,11 +275,6 @@ private:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();
-
-	// returns a newly created item or null if the item already in the inventory or failed
-	UInventoryItem* TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
-	UInventoryItem* AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
-	void AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
 	void Client_EquipStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);

@@ -43,6 +43,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	UInventoryStoreComponent* GetStoreComponent() const {return StoreComponent.Get();}
 
+protected:
+
+	virtual void UpdateInventoryGrids() override;
+
 private:
 	void HandleOnActiveGridSwitched(UInventoryGridWidget* InventoryGridWidget);
 

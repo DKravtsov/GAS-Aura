@@ -59,6 +59,27 @@ void UInventoryStoreWidgetSpatial::PopulateStore(UInventoryStoreComponent* Store
 	StoreComponent = Store;
 }
 
+void UInventoryStoreWidgetSpatial::UpdateInventoryGrids()
+{
+	Super::UpdateInventoryGrids();
+
+	TArray<int32> AllTiles;
+	AllTiles.AddUninitialized(StoreGrid_Equipment->GetNumGridSlots());
+	for (int32 Index = 0; Index < AllTiles.Num(); ++Index)
+	{
+		AllTiles[Index] = Index;
+	}
+
+	const TArrayView<int32> AllTilesView(AllTiles);
+	StoreGrid_Equipment->HandleOnUpdateGridSlots(AllTilesView);
+	StoreGrid_Consumable->HandleOnUpdateGridSlots(AllTilesView);
+	StoreGrid_Crafting->HandleOnUpdateGridSlots(AllTilesView);
+
+	StoreGrid_Equipment->UpdateInventoryGridSlots();
+	StoreGrid_Consumable->UpdateInventoryGridSlots();
+	StoreGrid_Crafting->UpdateInventoryGridSlots();
+}
+
 void UInventoryStoreWidgetSpatial::HandleOnActiveGridSwitched(UInventoryGridWidget* InventoryGridWidget)
 {
 	check(InventoryGridWidget && StoreGridSwitcher);
@@ -83,6 +104,6 @@ void UInventoryStoreWidgetSpatial::PopulateItemsFromStore()
 
 	if (auto Store = GetStoreComponent())
 	{
-		///?
+		UpdateInventoryGrids();
 	}
 }

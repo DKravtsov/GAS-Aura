@@ -103,7 +103,7 @@ protected:
 
 	void UpdateAllEquippedItemsStatus();
 
-	void UpdateInventoryGrids();
+	virtual void UpdateInventoryGrids();
 
 private:
 
