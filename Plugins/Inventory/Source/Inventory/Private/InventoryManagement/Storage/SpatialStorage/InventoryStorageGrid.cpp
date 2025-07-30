@@ -349,21 +349,20 @@ void UInventoryStorageGrid::HandleStackChanged(const FInventorySlotAvailabilityR
 	if (!MatchesCategory(Result.Item.Get()))
 		return;
 
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Item: [%s]"), *GetInventoryItemId(Result.Item.Get()))
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] New total stack amount: %d"), *GetInventoryItemId(Result.Item.Get()), Result.TotalRoomToFill)
 
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
 		if (Availability.bItemAtIndex)
 		{
 			GridSlots.AddStackCount(Availability.Index, Availability.Amount);
+			BROADCAST_WITH_LOG(OnStackChanged, Result);
 		}
 		else
 		{
 			UpdateGridSlots(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.Amount);
 		}
 	}
-
-	//BROADCAST_WITH_LOG(OnStackChanged, Result);
 }
 
 bool UInventoryStorageGrid::MatchesCategory(const UInventoryItem* Item) const

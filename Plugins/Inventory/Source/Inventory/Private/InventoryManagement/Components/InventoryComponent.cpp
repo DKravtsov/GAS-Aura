@@ -224,7 +224,7 @@ UInventoryItem* UInventoryComponent::AddNewItem(const FInventoryItemManifest& It
 
 void UInventoryComponent::AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
-	LOG_NETFUNCTIONCALL
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] stack: %d"), *GetNameSafe(ItemComponent), StackCount)
 
 	check(GetOwner()->HasAuthority());
 	
