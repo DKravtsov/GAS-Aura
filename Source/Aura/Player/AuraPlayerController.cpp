@@ -12,6 +12,7 @@
 #include "Components/SplineComponent.h"
 #include "AuraGameplayTags.h"
 #include "CameraOcclusionComponent.h"
+#include "EngineUtils.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
@@ -23,10 +24,12 @@
 #include "GameFramework/GameStateBase.h"
 #include "UI/Components/DamageTextComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Interfaces/InventoryStoreInterface.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
-#include "Player/InventoryPlayerControllerComponent.h"
+#include "Store/Components/InventoryStoreComponent.h"
+
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -458,4 +461,29 @@ void AAuraPlayerController::Server_DebugPrintStorage_Implementation() const
         InventoryComponent->DebugPrintStorage();
     }
     
+}
+
+void AAuraPlayerController::DebugPrintStores() const
+{
+    const UWorld* World = GetWorld();
+    for (TActorIterator<AActor> Iterator(World); Iterator; ++Iterator)
+    {
+        const AActor* Actor = *Iterator;
+
+        if (const UInventoryStoreComponent* StoreComp = UInventoryStatics::GetStoreComponent(Actor))
+        {
+            StoreComp->DebugPrintStorage();
+        }
+    }
+    
+    if (!HasAuthority())
+    {
+        Server_DebugPrintStores();
+    }
+}
+
+void AAuraPlayerController::Server_DebugPrintStores_Implementation() const
+{
+    UE_LOG(LogTemp, Warning, TEXT("\nSERVER:"));
+    DebugPrintStores();
 }

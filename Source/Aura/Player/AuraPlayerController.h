@@ -114,6 +114,12 @@ public:
 
     UFUNCTION(Server, Unreliable)
     void Server_DebugPrintStorage() const;
+
+    UFUNCTION(Exec)
+    void DebugPrintStores() const;
+
+    UFUNCTION(Server, Unreliable)
+    void Server_DebugPrintStores() const;
 //#endif
     
 protected:
