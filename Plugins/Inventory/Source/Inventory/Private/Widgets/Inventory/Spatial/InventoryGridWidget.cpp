@@ -965,6 +965,10 @@ void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 
 	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	InventoryComponent->Server_SellSelectedItem();
+	if (!GetOwningPlayer()->HasAuthority())
+	{
+		ClearHoverItem();//just in case ???
+	}
 }
 
 void UInventoryGridWidget::DropHoverItemOnGround()

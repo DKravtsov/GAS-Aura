@@ -1219,7 +1219,7 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation()
 	if (!IsValid(Item))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell NULL item."))
-		ClearSelectedItem();
+		Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
 		return;
 	}
 	
@@ -1231,13 +1231,11 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation()
 		{
 			UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell item [%s]%s with value %d, but there is not enough coins in the store."),
 				*GetInventoryItemId(Item), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")),  SellValue)
-			ClearSelectedItem();
+			Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
 			return;
 		}
 		Server_SellItem(Store, Item, HoverItemProxy->PreviousIndex, StackCount);
 	}
-
-	ClearSelectedItem();
 }
 
 bool UInventoryComponent::Server_SellSelectedItem_Validate()
@@ -1252,17 +1250,29 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 	int32 SellValue = Store->GetSellValue(ItemToSell, StackCount);
 	if (!Store->HasCoins(SellValue))
 	{
+		Client_SellItemResult(false, TEXT("Not enough coins"));
 		return;
 	}
 	RemoveItemFromInventory(ItemToSell, StackCount);
-	InventoryStorage->RemoveItemFromGrid(ItemToSell, GridIndex);
+//?	InventoryStorage->RemoveItemFromGrid(ItemToSell, GridIndex);
 
-	const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
-	checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
-	AddStacksToItem(*CoinsItemManifest, SellValue);
+	if (HasHoverItem())
+	{
+		ClearSelectedItem();
+	}
 
-	Store->RemoveCoins(SellValue);
+	if (SellValue > 0)
+	{
+		const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
+		checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
+		TryAddItem(*CoinsItemManifest, SellValue);
+
+		Store->RemoveCoins(SellValue);
+	}
+	
 	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
+
+	Client_SellItemResult(true, TEXT("Success"));
 }
 
 bool UInventoryComponent::Server_SellItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
@@ -1302,22 +1312,26 @@ int32 UInventoryComponent::GetWealth() const
 	return CoinsItem.IsValid() ? CoinsItem->GetTotalStackCount() : 0;
 }
 
-void UInventoryComponent::Client_OpenStoreMenu_Implementation(UInventoryStoreComponent* Store)
+void UInventoryComponent::Server_NotifyStoreMenuOpened_Implementation(UInventoryStoreComponent* Store)
 {
-	OpenStoreMenu(Store);
+	StoreComponent = Store;
+}
+
+bool UInventoryComponent::Server_NotifyStoreMenuOpened_Validate(UInventoryStoreComponent* Store)
+{
+	return true;
 }
 
 void UInventoryComponent::OpenStoreMenu(UInventoryStoreComponent* Store)
 {
 	LOG_NETFUNCTIONCALL
 
-	if (!OwningPlayerController->IsLocalController())
+	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should be run only on local player"));
+
+	StoreComponent = Store;
+	if (!OwningPlayerController->HasAuthority())
 	{
-		if (OwningPlayerController->HasAuthority())
-		{
-			Client_OpenStoreMenu(Store);
-		}
-		return;
+		Server_NotifyStoreMenuOpened(Store);
 	}
 
 	//if (!IsValid(StoreMenu))
@@ -1338,7 +1352,6 @@ void UInventoryComponent::OpenStoreMenu(UInventoryStoreComponent* Store)
 	}
 	StoreMenu->SetVisibility(ESlateVisibility::Visible);
 	StoreMenu->OnOpenedMenu();
-	bStoreMenuOpen = true;
 	Store->SetMenuOpen(true);
 
 	// TODO Consider to choose input mode by parent project
@@ -1362,14 +1375,20 @@ void UInventoryComponent::OpenStoreMenu(UInventoryStoreComponent* Store)
 
 void UInventoryComponent::CloseStoreMenu()
 {
+	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should be run only on local player"));
+	
 	if (!IsValid(StoreMenu))
 		return;
 	StoreMenu->SetVisibility(ESlateVisibility::Collapsed);
 	StoreMenu->OnCloseMenu();
-	bStoreMenuOpen = false;
-	if (auto* Store = GetOpenedStore())
+	if (StoreComponent.IsValid())
 	{
-		Store->SetMenuOpen(false);
+		StoreComponent->SetMenuOpen(false);
+	}
+	StoreComponent.Reset();
+	if (!OwningPlayerController->HasAuthority())
+	{
+		Server_NotifyStoreMenuClosed();
 	}
 	StoreMenu = nullptr;
 
@@ -1393,11 +1412,22 @@ void UInventoryComponent::CloseStoreMenu()
 	OnStoreMenuClosed.Broadcast();
 }
 
+void UInventoryComponent::Server_NotifyStoreMenuClosed_Implementation()
+{
+	StoreComponent.Reset();
+}
+
+bool UInventoryComponent::Server_NotifyStoreMenuClosed_Validate()
+{
+	return true;
+}
+
 UInventoryStoreComponent* UInventoryComponent::GetOpenedStore() const
 {
-	if (UInventoryStoreWidgetSpatial* SpatialStoreMenu = Cast<UInventoryStoreWidgetSpatial>(StoreMenu))
-	{
-		return SpatialStoreMenu->GetStoreComponent();
-	}
-	return nullptr;
+	return StoreComponent.Get();
+}
+
+void UInventoryComponent::Client_SellItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
+{
+	BROADCAST_WITH_LOG(OnSellItemResult, bSuccess, ErrorMessage);
 }

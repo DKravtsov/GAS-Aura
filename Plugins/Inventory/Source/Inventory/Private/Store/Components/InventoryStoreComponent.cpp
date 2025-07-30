@@ -38,7 +38,7 @@ void UInventoryStoreComponent::GetLifetimeReplicatedProps(TArray<class FLifetime
 
 int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const int32 StackCount) const
 {
-	return UInventoryStatics::GetItemSellValue(Item) * StackCount;
+	return UInventoryStatics::GetItemSellValue(Item) * (Item->IsStackable() ? StackCount : 1);
 }
 
 bool UInventoryStoreComponent::HasCoins(int32 SellValue)

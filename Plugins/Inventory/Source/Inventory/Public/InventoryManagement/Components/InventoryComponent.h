@@ -29,6 +29,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FInventoryItemWithIndexAndStackCountDeleg
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemAvailabilityResultDelegate, const FInventorySlotAvailabilityResult& /*Result*/);
 DECLARE_MULTICAST_DELEGATE_FourParams(FInventoryHoverItemUpdatedDelegate, UInventoryItem* /*Item*/, bool /*bStackable*/, int32 /*StackCount*/, int32 /*PreviousIndex*/);
 DECLARE_MULTICAST_DELEGATE(FInventoryHoverItemResetDelegate);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FInventoryOperationResultDelegate, bool /*bSuccess*/, const FString& /*ErrorMessage*/);
 
 USTRUCT(BlueprintType)
 struct FInventoryStartupEquipmentData
@@ -71,6 +72,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="Inventory")
 	FInventoryMenuVisibilityChangedSugnature OnStoreMenuClosed;
+
+	FInventoryOperationResultDelegate OnSellItemResult;
 
 private:
 
@@ -124,8 +127,9 @@ private:
 
 	mutable TWeakObjectPtr<UInventoryItem> CoinsItem;
 
+	TWeakObjectPtr<UInventoryStoreComponent> StoreComponent;
+
 	uint8 bInventoryMenuOpen:1 = false;
-	uint8 bStoreMenuOpen:1 = false;
 
 	uint8 bStartupItemsInitialized:1 = false;
 	uint8 bStartupItemsEquipped:1 = false;
@@ -139,8 +143,8 @@ public:
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
-	bool IsStoreMenuOpen() const { return bStoreMenuOpen; }
-
+	bool IsStoreMenuOpen() const { return StoreComponent.IsValid(); }
+	
 	INVENTORY_API void OpenStoreMenu(UInventoryStoreComponent* Store);
 	INVENTORY_API void CloseStoreMenu();
 
@@ -296,9 +300,14 @@ private:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedHoverItemReset();
 
-	UFUNCTION(Client, Reliable)
-	void Client_OpenStoreMenu(UInventoryStoreComponent* Store);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_NotifyStoreMenuOpened(UInventoryStoreComponent* Store);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_NotifyStoreMenuClosed();
+	
 	UInventoryStoreComponent* GetOpenedStore() const;
 
+	UFUNCTION(Client, Reliable)
+	void Client_SellItemResult(bool bSuccess, const FString& ErrorMessage);
 };
