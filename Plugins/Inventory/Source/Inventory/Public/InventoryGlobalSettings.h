@@ -12,15 +12,15 @@ class UInventoryStorageGrid;
 /**
  * 
  */
-UCLASS()
+UCLASS(config = Game, defaultconfig)
 class INVENTORY_API UInventoryGlobalSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", Config)
 	TSoftClassPtr<UInventoryStorageGrid> SpatialStorageGridClass;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", Config)
 	TSoftObjectPtr<UInventoryItemData> CoinsItemData;
 
 public:
