@@ -130,13 +130,13 @@ void UInventorySpatialStorage::UpdateGridSlots(UInventoryItem* NewItem, int32 In
 	}
 }
 
-void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex)
+void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count)
 {
 	if (IsValid(ItemToRemove))
 	{
 		const auto Grid = FindInventoryGridByCategory(ItemToRemove->GetItemManifest().GetItemCategory());
 		check(Grid);
-		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex);
+		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex, Count);
 	}
 }
 
@@ -229,4 +229,16 @@ FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const
 	FStringBuilderBase Output;
 	Output.Join(GridNames, TEXT(","));
 	return Output.ToString();
+}
+
+bool UInventorySpatialStorage::FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount) const
+{
+	check(IsValid(Item));
+	
+	if (const auto* Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory()))
+	{
+		return Grid->FindItemStacks(Result, Item, TotalCount);
+	}
+	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found: %s"), *Item->GetItemManifest().GetItemCategory().ToString());
+	return false;
 }

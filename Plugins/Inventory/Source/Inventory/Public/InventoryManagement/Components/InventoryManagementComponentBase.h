@@ -51,6 +51,8 @@ public:
 	// returns a newly created item or null if the item already in the inventory or failed
 	UInventoryItem* TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 	
+	bool RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount);
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -62,5 +64,7 @@ protected:
 	UInventoryItem* AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 	void AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
+	bool FindItemStacks(UInventoryItem* Item, int32 TotalCount, FInventorySlotAvailabilityResult& Result) const;
 
+	void RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex);
 };

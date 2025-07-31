@@ -405,31 +405,6 @@ void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(
 	SpawnRotation = FRotator::ZeroRotator;
 }
 
-bool UInventoryComponent::RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount)
-{
-	checkf(GetOwner()->HasAuthority(), TEXT("This method must be run only on server."))
-	
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(Item), StackCount)
-
-	if (!IsValid(Item) || (Item->IsStackable() && StackCount <= 0))
-		return false;
-
-	StackCount = FMath::Clamp(StackCount, 1, Item->GetTotalStackCount());
-	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
-
-	if (NewStackCount <= 0)
-	{
-		InventoryList.RemoveItem(Item);
-
-		BROADCAST_WITH_LOG(OnItemRemoved, Item);
-	}
-	else
-	{
-		Item->SetTotalStackCount(NewStackCount);
-	}
-	return true;
-}
-
 void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
 	check(IsValid(Item));
@@ -884,18 +859,6 @@ void UInventoryComponent::DebugPrintStorage() const
 	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
 }
 //#endif//UE_WITH_CHEAT_MANAGER
-
-void UInventoryComponent::RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex)
-{
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Removing item [%s] from storage index %d"), *GetInventoryItemId(Item), GridIndex)
-	checkf(GetOwner()->HasAuthority(), TEXT("This method should be run only on server"));
-
-	if (!IsValid(Item))
-		return;
-	
-	check(InventoryStorage);
-	InventoryStorage->RemoveItemFromGrid(Item, GridIndex);
-}
 
 void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 PrevIndex)
 {

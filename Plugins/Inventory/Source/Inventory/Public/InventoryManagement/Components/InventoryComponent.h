@@ -254,8 +254,6 @@ protected:
 	void GetDroppedItemSpawnLocationAndRotation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 	virtual void GetDroppedItemSpawnLocationAndRotation_Implementation(const FGameplayTag& ItemType, FVector& SpawnLocation, FRotator& SpawnRotation);
 
-	bool RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount);
-
 	UFUNCTION(Server, Reliable)
 	void Server_RequestStartupEquipment();
 
@@ -285,7 +283,6 @@ private:
 	EInventoryEquipmentSlot GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest);
 
 	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount);
-	void RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex);
 
 	void NotifyHoverItemUpdated();
 	void ClearSelectedItem();

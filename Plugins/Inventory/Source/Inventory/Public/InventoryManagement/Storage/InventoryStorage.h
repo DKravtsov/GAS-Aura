@@ -52,13 +52,15 @@ public:
 	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) {return 0;};
 	virtual void SetItemStackCount(UInventoryItem* Item, int32 GridIndex, int32 NewStackCount) {}
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}
-	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) {}
+	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count = -1) {}
 	// returns remainder
 	virtual int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount) { return 0;}
 
 	//#if UE_WITH_CHEAT_MANAGER
 	virtual void DebugPrintStorage(FStringBuilderBase& Output, TFunctionRef<TCHAR (const UInventoryItem*)> ItemIndexFunc) const {}
 	//#endif//UE_WITH_CHEAT_MANAGER
+
+	virtual bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const { unimplemented(); return false;}
 
 protected:
 

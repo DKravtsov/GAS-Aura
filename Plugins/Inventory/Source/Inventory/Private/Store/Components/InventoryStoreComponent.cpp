@@ -62,6 +62,23 @@ void UInventoryStoreComponent::RemoveCoins(int32 SellValue)
 {
 	checkf(GetOwner()->HasAuthority(), TEXT("RemoveCoins() called on non-authoritative item"));
 
+	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
+	{
+		if (SellValue > Item->GetTotalStackCount())
+		{
+			UE_LOG(LogInventory, Error, TEXT("Trying to remove more coins than has: %d, when has only %d"), SellValue, Item->GetTotalStackCount());
+			return;
+		}
+		FInventorySlotAvailabilityResult Result;
+		if (ensure(InventoryStorage->FindItemStacks(Result, Item, SellValue)))
+		{
+			for (const auto& AvailabilitySlot : Result.SlotAvailabilities)
+			{
+				RemoveItemFromInventory(Item, AvailabilitySlot.Amount);
+				InventoryStorage->RemoveItemFromGrid(Item, AvailabilitySlot.Index, AvailabilitySlot.Amount);
+			}
+		}
+	}
 	
 }
 

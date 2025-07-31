@@ -85,7 +85,7 @@ public:
 	void HandleStackChanged(const FInventorySlotAvailabilityResult& Result);
 	
 	void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount);
-	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
+	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count = -1/*entire stack*/);
 
 	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices);
 
@@ -94,6 +94,8 @@ public:
 
 	// returns remainder
 	int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount);
+
+	bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const;
 
 private:
 	void ConstructGrid();

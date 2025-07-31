@@ -105,6 +105,31 @@ UInventoryItem* UInventoryManagementComponentBase::TryAddItem(const FInventoryIt
 	return nullptr;
 }
 
+bool UInventoryManagementComponentBase::RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount)
+{
+	checkf(GetOwner()->HasAuthority(), TEXT("This method must be run only on server."))
+	
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(Item), StackCount)
+
+	if (!IsValid(Item) || (Item->IsStackable() && StackCount <= 0))
+		return false;
+
+	StackCount = FMath::Clamp(StackCount, 1, Item->GetTotalStackCount());
+	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+
+	if (NewStackCount <= 0)
+	{
+		InventoryList.RemoveItem(Item);
+
+		BROADCAST_WITH_LOG(OnItemRemoved, Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+	return true;
+}
+
 UInventoryItem* UInventoryManagementComponentBase::AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL
@@ -135,4 +160,21 @@ void UInventoryManagementComponentBase::AddStacksToItem(const FInventoryItemMani
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
 	}
+}
+
+bool UInventoryManagementComponentBase::FindItemStacks(UInventoryItem* Item, int32 TotalCount, FInventorySlotAvailabilityResult& Result) const
+{
+	return InventoryStorage->FindItemStacks(Result, Item, TotalCount);
+}
+
+void UInventoryManagementComponentBase::RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Removing item [%s] from storage index %d"), *GetInventoryItemId(Item), GridIndex)
+	checkf(GetOwner()->HasAuthority(), TEXT("This method should be run only on server"));
+
+	if (!IsValid(Item))
+		return;
+	
+	check(InventoryStorage);
+	InventoryStorage->RemoveItemFromGrid(Item, GridIndex);
 }

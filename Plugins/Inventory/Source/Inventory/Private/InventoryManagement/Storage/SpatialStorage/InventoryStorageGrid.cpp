@@ -407,13 +407,20 @@ void UInventoryStorageGrid::UpdateGridSlots(UInventoryItem* NewItem, const int32
 	BROADCAST_WITH_LOG(OnGridSlotsUpdated, UpdatedSlots);
 }
 
-void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex)
+void UInventoryStorageGrid::RemoveItemFromGrid(UInventoryItem* ItemToRemove, const int32 GridIndex, int32 Count)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], Index: %d"), *GetInventoryItemId(ItemToRemove), GridIndex)
 
 	const FIntPoint Dimensions = UInventoryWidgetUtils::GetGridDimensionsOfItem(ItemToRemove);
 	TArray<int32> UpdatedSlots;
 	UpdatedSlots.Reserve(Dimensions.X * Dimensions.Y);
+
+	if (Count > 0 && GridSlots.GetStackCount(GridIndex) > Count)
+	{
+		// Update stack size instead of removing the stack completely
+		UpdateGridSlots(ItemToRemove, GridIndex, ItemToRemove->IsStackable(), GridSlots.GetStackCount(GridIndex) - Count);
+		return;
+	}
 
 	UInventoryStatics::ForEach2D(GridSlots.Entries, GridIndex, Dimensions, GetColumns(), [&](const FInventoryStorageGridSlotEntry& GridSlotEntry)
 	{
@@ -496,4 +503,26 @@ int32 UInventoryStorageGrid::FillInStacksOrConsumeHover(UInventoryItem* Item, in
 	SetStackCount(TargetIndex, NewStackCount);
 	
 	return Remainder;
+}
+
+bool UInventoryStorageGrid::FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount) const
+{
+	Result.Item = Item;
+	Result.bStackable = Item->IsStackable();
+	Result.Remainder = TotalCount;
+	Result.TotalRoomToFill = 0;
+
+	for (const auto& GridSlot : GridSlots.GetAllSlots())
+	{
+		if (GridSlot.GetInventoryItem() == Item)
+		{
+			int32 StackSize = FMath::Min(Result.Remainder, GridSlot.GetStackCount());
+			Result.SlotAvailabilities.Emplace(GridSlot.GetStartIndex(), StackSize, true);
+			Result.Remainder -= StackSize;
+			Result.TotalRoomToFill += StackSize;
+			if (Result.Remainder <= 0)
+				break;
+		}
+	}
+	return Result.Remainder <= 0;
 }
