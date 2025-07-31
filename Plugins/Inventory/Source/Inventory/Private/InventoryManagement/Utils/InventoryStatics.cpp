@@ -59,48 +59,44 @@ FGameplayTag UInventoryStatics::GetItemCategory(UInventoryItemComponent* ItemCom
 
 UInventoryWidgetBase* UInventoryStatics::GetInventoryWidget(const APlayerController* PlayerController)
 {
-	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	UInventoryWidgetBase* InventoryMenu = nullptr;
+	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
 	{
-		return InventoryComponent->GetInventoryMenu();
+		if (InventoryComponent->IsMenuOpen())
+		{
+			InventoryMenu = InventoryComponent->GetInventoryMenu();
+		}
+		else if (InventoryComponent->IsStoreMenuOpen())
+		{
+			InventoryMenu = InventoryComponent->GetStoreMenu();
+		}
 	}
-	return nullptr;
+	return InventoryMenu;
 }
 
 void UInventoryStatics::ItemHovered(APlayerController* PlayerController, UInventoryItem* Item)
 {
-	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	if (UInventoryWidgetBase* InventoryMenu =GetInventoryWidget(PlayerController))
 	{
-		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
+		if (!InventoryMenu->HasHoverItem())
 		{
-			if (!InventoryMenu->HasHoverItem())
-			{
-				InventoryMenu->OnInventoryHovered(Item);
-			}
+			InventoryMenu->OnInventoryHovered(Item);
 		}
 	}
 }
 
 void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 {
-	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	if (UInventoryWidgetBase* InventoryMenu = GetInventoryWidget(PlayerController))
 	{
-		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
-		{
-			InventoryMenu->OnInventoryUnhovered();
-		}
+		InventoryMenu->OnInventoryUnhovered();
 	}
 }
 
 class UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
 {
-	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
-	{
-		if (const UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
-		{
-			return InventoryMenu->GetHoverItem();
-		}
-	}
-	return nullptr;
+	const UInventoryWidgetBase* InventoryMenu = GetInventoryWidget(PlayerController);
+	return InventoryMenu ? InventoryMenu->GetHoverItem() : nullptr;
 }
 
 bool UInventoryStatics::CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag)
