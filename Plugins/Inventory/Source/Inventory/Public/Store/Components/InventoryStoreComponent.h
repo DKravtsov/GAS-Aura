@@ -42,7 +42,7 @@ public:
 	// The Sell Value is the price what the store is agree to pay for the item, not its actual value
 	int32 GetSellValue(const UInventoryItem* Item, int32 StackCount) const;
 	// The Buy Value is the price what the store wants for the item, not its actual value
-	int32 GetBuyValue(const UInventoryItem* Item, int32 StackCount) const;
+	int32 GetPurchaseValue(const UInventoryItem* Item, int32 StackCount) const;
 
 	//#if UE_WITH_CHEAT_MANAGER
 	INVENTORY_API virtual void DebugPrintStorage() const override;

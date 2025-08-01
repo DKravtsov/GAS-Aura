@@ -46,7 +46,7 @@ int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const i
 	return UInventoryStatics::GetItemSellValue(Item) * (Item->IsStackable() ? StackCount : 1);
 }
 
-int32 UInventoryStoreComponent::GetBuyValue(const UInventoryItem* Item, int32 StackCount) const
+int32 UInventoryStoreComponent::GetPurchaseValue(const UInventoryItem* Item, int32 StackCount) const
 {
 	return UInventoryStatics::GetItemSellValue(Item) * (Item->IsStackable() ? StackCount : 1);
 }

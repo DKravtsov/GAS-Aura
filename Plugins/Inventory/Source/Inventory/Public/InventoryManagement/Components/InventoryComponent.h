@@ -309,8 +309,8 @@ private:
 	UInventoryStoreComponent* GetOpenedStore() const;
 
 	UFUNCTION(Client, Reliable)
-	void Client_SellItemResult(bool bSuccess, const FString& ErrorMessage);
+	void Client_ReceiveSellItemResult(bool bSuccess, const FString& ErrorMessage);
 
 	UFUNCTION(Client, Reliable)
-	void Client_BuyItemResult(bool bSuccess, const FString& ErrorMessage);
+	void Client_ReceivePurchaseItemResult(bool bSuccess, const FString& ErrorMessage);
 };

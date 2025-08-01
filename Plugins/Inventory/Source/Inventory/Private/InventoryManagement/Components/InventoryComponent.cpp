@@ -1142,10 +1142,28 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(ItemToSell), StackCount)
 
+	if (!IsValid(Store))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot sell item [%s]%s, because store is not opened"),
+			*GetInventoryItemId(ItemToSell), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
+		
+		Client_ReceiveSellItemResult(false, TEXT("Store is not opened"));
+		return;
+	}
+
+	if (!IsValidItem(ItemToSell, GridIndex, StackCount))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot sell item [%s]%s, because it is not valid"),
+			*GetInventoryItemId(ItemToSell), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
+		
+		Client_ReceiveSellItemResult(false, TEXT("Item is not valid"));
+		return;
+	}
+
 	int32 SellValue = Store->GetSellValue(ItemToSell, StackCount);
 	if (!Store->HasEnoughCoins(SellValue))
 	{
-		Client_SellItemResult(false, TEXT("Not enough coins"));
+		Client_ReceiveSellItemResult(false, TEXT("Not enough coins"));
 		return;
 	}
 	RemoveItemFromInventory(ItemToSell, StackCount);
@@ -1166,7 +1184,7 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 	
 	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
 
-	Client_SellItemResult(true, TEXT("Success"));
+	Client_ReceiveSellItemResult(true, TEXT("Success"));
 }
 
 bool UInventoryComponent::Server_SellItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
@@ -1322,12 +1340,12 @@ UInventoryStoreComponent* UInventoryComponent::GetOpenedStore() const
 	return StoreComponent.Get();
 }
 
-void UInventoryComponent::Client_SellItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
+void UInventoryComponent::Client_ReceiveSellItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
 {
 	BROADCAST_WITH_LOG(OnSellItemResult, bSuccess, ErrorMessage);
 }
 
-void UInventoryComponent::Client_BuyItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
+void UInventoryComponent::Client_ReceivePurchaseItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
 {
 	BROADCAST_WITH_LOG(OnBuyItemResult, bSuccess, ErrorMessage);
 }
@@ -1354,7 +1372,7 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent
 		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because store is not opened"),
 			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
 		
-		Client_BuyItemResult(false, TEXT("Store is not opened"));
+		Client_ReceivePurchaseItemResult(false, TEXT("Store is not opened"));
 		return;
 	}
 
@@ -1363,17 +1381,17 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent
 		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because it is not valid"),
 			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
 		
-		Client_BuyItemResult(false, TEXT("Item is not valid"));
+		Client_ReceivePurchaseItemResult(false, TEXT("Item is not valid"));
 		return;
 	}
 
-	const int32 Price = Store->GetBuyValue(ItemToBuy, StackCount);
+	const int32 Price = Store->GetPurchaseValue(ItemToBuy, StackCount);
 	if (!HasEnoughCoins(Price))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because has not enough coins"),
 			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
 		
-		Client_BuyItemResult(false, TEXT("Not enough coins"));
+		Client_ReceivePurchaseItemResult(false, TEXT("Not enough coins"));
 		return;
 	}
 
@@ -1390,7 +1408,7 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent
 	
 	TryAddItem(ItemToBuy->GetItemManifest(), StackCount);
 
-	Client_BuyItemResult(true, TEXT("Success"));
+	Client_ReceivePurchaseItemResult(true, TEXT("Success"));
 }
 
 bool UInventoryComponent::Server_BuyItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
