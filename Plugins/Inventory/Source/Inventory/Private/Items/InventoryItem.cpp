@@ -4,6 +4,8 @@
 #include "Items/InventoryItem.h"
 
 #include "InventoryGridTypes.h"
+#include "InventoryManagement/Components/InventoryManagementComponentBase.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
 #include "Items/Fragments/InventoryItemFragment.h"
 #include "Net/UnrealNetwork.h"
 
@@ -38,6 +40,16 @@ bool UInventoryItem::IsEquipable() const
 const FGameplayTag& UInventoryItem::GetItemType() const
 {
 	return GetItemManifest().GetItemType();
+}
+
+UInventoryStorage* UInventoryItem::GetOwningStorage() const
+{
+	if (!CachedOwningStorage.IsValid())
+	{
+		const auto* OwningComponent = Cast<UInventoryManagementComponentBase>(GetOuter());
+		CachedOwningStorage = OwningComponent->GetInventoryStorage();
+	}
+	return CachedOwningStorage.Get();
 }
 
 void UInventoryItem::SetItemManifest(const FInventoryItemManifest& InItemManifest)

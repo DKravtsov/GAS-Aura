@@ -747,6 +747,12 @@ void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInve
 	if (!IsValid(Item) || !Item->IsStackable())
 		return;
 
+	if (Item->GetOwningStorage() != InventoryStorage)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Item [%s] is not in this inventory"), *GetInventoryItemId(Item))
+		return;
+	}
+
 	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
@@ -780,6 +786,12 @@ void UInventoryComponent::Server_SwapStackCountWithHoverItem_Implementation(UInv
 		UE_LOG(LogInventory, Error, TEXT("Only stackable items can swap stacks. [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
 		return;
 	}
+
+	if (Item->GetOwningStorage() != InventoryStorage)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Item [%s] is not in this inventory"), *GetInventoryItemId(Item))
+		return;
+	}
 	
 	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
 	{
@@ -806,13 +818,19 @@ void UInventoryComponent::Server_SwapSelectedWitItem_Implementation(UInventoryIt
 	if (!IsValid(ItemOnGrid) || !HasHoverItem())
 		return;
 
-	FHoverItemProxy OldHoverItem = HoverItemProxy.GetValue();
-	UInventoryItem* HoverItem = OldHoverItem.InventoryItem.Get();
+	FHoverItemProxy PrevHoverItemProxy = HoverItemProxy.GetValue();
+	UInventoryItem* PrevHoverItem = PrevHoverItemProxy.InventoryItem.Get();
+
+	if (PrevHoverItem->GetOwningStorage() != ItemOnGrid->GetOwningStorage())
+	{
+		UE_LOG(LogInventory, Error, TEXT("Can only swap items from the same storage"))
+		return;
+	}
 
 	// keep the same PreviousGridIndex
-	Server_SelectItem(ItemOnGrid, GridIndex, OldHoverItem.PreviousIndex);
+	Server_SelectItem(ItemOnGrid, GridIndex, PrevHoverItemProxy.PreviousIndex);
 	
-	AddItemAtIndex(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
+	AddItemAtIndex(PrevHoverItem, GridIndex, PrevHoverItemProxy.bStackable, PrevHoverItemProxy.StackCount);
 }
 
 bool UInventoryComponent::Server_SwapSelectedWitItem_Validate(UInventoryItem* ItemOnGrid, int32 GridIndex)
@@ -883,7 +901,11 @@ void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item,
 		HoverItemProxy->PreviousIndex = PrevIndex;
 	}
 
-	RemoveItemFromStorage(Item, GridIndex);
+	if (auto* Storage = Item->GetOwningStorage())
+	{
+		UE_LOG(LogInventory, Log, TEXT("Server: Removing item [%s] from storage [%s]"), *GetInventoryItemId(Item), *Storage->GetName())
+		Storage->RemoveItemFromGrid(Item, GridIndex);
+	}
 	NotifyHoverItemUpdated();
 }
 
@@ -1012,9 +1034,19 @@ void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(
 		return;
 	}
 
-	AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
-	
-	
+	if (Item->GetOwningStorage() == InventoryStorage)
+	{
+		AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	}
+	else if (IsStoreMenuOpen())
+	{
+		StoreComponent->AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	}
+	else
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to put item [%s] to another storage"), *GetInventoryItemId(Item))
+		return;
+	}
 	ClearSelectedItem();
 }
 
@@ -1050,8 +1082,11 @@ void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventory
 
 	if (!IsValid(Item) || !Item->IsStackable())
 		return;
+
+	auto* Storage = Item->GetOwningStorage();
+	check(IsValid(Storage));
 	
-	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	int32 StackCount =  Storage->GetItemStackCount(Item, GridIndex);
 	if (StackCount < 2)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Cannot split stack with 1 item: [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
@@ -1067,7 +1102,7 @@ void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventory
 	SplitAmount = FMath::Min(SplitAmount, StackCount - 1);
 
 	HoverItemProxy->StackCount = SplitAmount;
-	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, StackCount - SplitAmount);
+	Storage->SetItemStackCount(Item, GridIndex, StackCount - SplitAmount);
 	NotifyHoverItemUpdated();
 }
 

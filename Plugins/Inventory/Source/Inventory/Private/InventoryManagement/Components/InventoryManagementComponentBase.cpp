@@ -114,6 +114,8 @@ bool UInventoryManagementComponentBase::RemoveItemFromInventory(UInventoryItem* 
 	if (!IsValid(Item) || (Item->IsStackable() && StackCount <= 0))
 		return false;
 
+	checkf(Item->GetOwningStorage() == InventoryStorage, TEXT("This should process items only from its own storage"))
+
 	StackCount = FMath::Clamp(StackCount, 1, Item->GetTotalStackCount());
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
@@ -222,6 +224,7 @@ void UInventoryManagementComponentBase::AddStacksToItem(const FInventoryItemMani
 
 bool UInventoryManagementComponentBase::FindItemStacks(UInventoryItem* Item, int32 TotalCount, FInventorySlotAvailabilityResult& Result) const
 {
+	checkf(IsValid(Item) && Item->GetOwningStorage() == InventoryStorage, TEXT("This should process items only from its own storage"))
 	return InventoryStorage->FindItemStacks(Result, Item, TotalCount);
 }
 
@@ -232,6 +235,8 @@ void UInventoryManagementComponentBase::RemoveItemFromStorage(UInventoryItem* It
 
 	if (!IsValid(Item))
 		return;
+
+	checkf(Item->GetOwningStorage() == InventoryStorage, TEXT("This should process items only from its own storage"))
 	
 	check(InventoryStorage);
 	InventoryStorage->RemoveItemFromGrid(Item, GridIndex);

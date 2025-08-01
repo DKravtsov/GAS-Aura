@@ -103,6 +103,7 @@ int32 UInventorySpatialStorage::GetItemStackCount(UInventoryItem* Item, int32 Gr
 {
 	if (IsValid(Item))
 	{
+		check(Item->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 		check(Grid);
 		return Grid->GetStackCount(GridIndex);
@@ -114,6 +115,7 @@ void UInventorySpatialStorage::SetItemStackCount(UInventoryItem* Item, int32 Gri
 {
 	if (IsValid(Item))
 	{
+		check(Item->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->SetStackCount(GridIndex, NewStackCount);
@@ -124,6 +126,7 @@ void UInventorySpatialStorage::UpdateGridSlots(UInventoryItem* NewItem, int32 In
 {
 	if (IsValid(NewItem))
 	{
+		check(NewItem->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(NewItem->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
@@ -134,6 +137,7 @@ void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, 
 {
 	if (IsValid(ItemToRemove))
 	{
+		check(ItemToRemove->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(ItemToRemove->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex, Count);
@@ -142,6 +146,7 @@ void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, 
 
 int32 UInventorySpatialStorage::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount)
 {
+	check(IsValid(Item) && Item->GetOwningStorage() == this)
 	const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 	check(Grid);
 	return Grid->FillInStacksOrConsumeHover(Item, TargetIndex, AddStackCount);
@@ -234,7 +239,8 @@ FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const
 bool UInventorySpatialStorage::FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount) const
 {
 	check(IsValid(Item));
-	
+	check(Item->GetOwningStorage() == this)
+
 	if (const auto* Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory()))
 	{
 		return Grid->FindItemStacks(Result, Item, TotalCount);

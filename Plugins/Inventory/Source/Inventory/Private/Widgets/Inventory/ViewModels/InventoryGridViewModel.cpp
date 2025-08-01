@@ -14,17 +14,12 @@ void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, 
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Category [%s]"), *ItemCategory.ToString())
 	
-	auto InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningPlayer);
-	check(IsValid(InventoryComponent));
-	
 	const UInventorySpatialStorage* SpatialStorage = Cast<UInventorySpatialStorage>(Storage);
-	checkf(SpatialStorage, TEXT("GridViewModel initialization failed. The InventoryStorage is null. InventoryComponent [%s]"),
-		*GetNameSafe(InventoryComponent));
+	checkf(SpatialStorage, TEXT("Note: Only InventorySpatialStorage class is supported."));
 
 	StorageGrid = SpatialStorage->FindInventoryGridByCategory(ItemCategory);
-	checkf(StorageGrid.IsValid(), TEXT("GridViewModel initialization failed. Couldn't find the inventory grid. InventoryComponent [%s]. Looked for [%s] but there are only: %s"),
-				*GetNameSafe(InventoryComponent), *ItemCategory.ToString(), *SpatialStorage->GetInventoryGridNamesDebugString())
-	
+	checkf(StorageGrid.IsValid(), TEXT("Couldn't find the inventory grid: [%s]. The grids exist: %s"),
+				*ItemCategory.ToString(), *SpatialStorage->GetInventoryGridNamesDebugString())
 }
 
 int32 UInventoryGridViewModel::GetRows() const

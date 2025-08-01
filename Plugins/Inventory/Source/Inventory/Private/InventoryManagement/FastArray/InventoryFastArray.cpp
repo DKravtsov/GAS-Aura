@@ -71,7 +71,7 @@ UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemCompon
 	if (auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-		NewEntry.Item = ItemComponent->GetItemManifestMutable().Manifest(OwningActor);
+		NewEntry.Item = ItemComponent->GetItemManifestMutable().Manifest(InventoryComponent);
 		InventoryComponent->AddRepSubObj(NewEntry.Item);
 		MarkItemDirty(NewEntry);
 		return NewEntry.Item;
@@ -100,7 +100,7 @@ UInventoryItem* FInventoryFastArray::AddItem(const FInventoryItemManifest& ItemM
 	if (auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-		NewEntry.Item = ItemManifest.ManifestCopy(OwningActor);
+		NewEntry.Item = ItemManifest.ManifestCopy(InventoryComponent);
 		if (OverrideCount > 0)
 		{
 			FInventoryItemManifest& NewManifest = NewEntry.Item->GetItemManifestMutable();

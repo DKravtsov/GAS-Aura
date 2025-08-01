@@ -22,6 +22,8 @@ class UInventoryItem : public UObject
 
 	mutable TOptional<bool> bCachedIsStackable;
 
+	mutable TWeakObjectPtr<class UInventoryStorage> CachedOwningStorage;
+
 public:
 
 	void SetItemManifest(const FInventoryItemManifest& InItemManifest);
@@ -53,4 +55,6 @@ public:
 
 	int32 GetTotalStackCount() const { return TotalStackCount; }
 	void SetTotalStackCount(int32 InStackCount) { TotalStackCount = InStackCount; }
+
+	UInventoryStorage* GetOwningStorage() const;
 };
