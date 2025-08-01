@@ -48,8 +48,6 @@ public:
 	INVENTORY_API virtual void DebugPrintStorage() const override;
 	//#endif//UE_WITH_CHEAT_MANAGER
 
-	bool IsValidItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount);
-
 protected:
 
 	virtual void BeginPlay() override;

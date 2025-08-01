@@ -165,6 +165,29 @@ void UInventoryManagementComponentBase::RemoveCoins(int32 SellValue)
 	}
 }
 
+bool UInventoryManagementComponentBase::IsValidItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount) const
+{
+	if (!IsValid(Item))
+		return false;
+
+	if (!InventoryList.Contains(Item))
+		return false;
+
+	if (Item->IsStackable() && StackCount != InventoryStorage->GetItemStackCount(Item, GridIndex))
+		return false;
+
+	return true;
+}
+
+void UInventoryManagementComponentBase::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount)
+{
+	checkf(IsValid(Item) && Item->GetOwningStorage() == InventoryStorage, TEXT("Item [%s] is not in this inventory"), *GetInventoryItemId(Item))
+	FInventorySlotAvailabilityResult Result;
+	InventoryStorage->HasRoomForItemAtIndex(Result, Item->GetItemManifest(), Index, StackCount);
+	Result.Item = Item;
+	BROADCAST_WITH_LOG(OnStackChanged, Result);
+}
+
 UInventoryItem* UInventoryManagementComponentBase::AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL

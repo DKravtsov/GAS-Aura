@@ -1001,15 +1001,6 @@ bool UInventoryComponent::Server_PutSelectedItemToStorage_Validate()
 	return true;
 }
 
-void UInventoryComponent::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount)
-{
-	//const FInventorySlotAvailabilityResult Result = FInventorySlotAvailabilityResult::Make(Item, Index, bStackable, StackCount);
-	FInventorySlotAvailabilityResult Result;
-	InventoryStorage->HasRoomForItemAtIndex(Result, Item->GetItemManifest(), Index, StackCount);
-	Result.Item = Item;
-	BROADCAST_WITH_LOG(OnStackChanged, Result);
-}
-
 void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(const int32 TargetIndex)
 {
 	LOG_NETFUNCTIONCALL

@@ -289,8 +289,6 @@ private:
 
 	EInventoryEquipmentSlot GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest);
 
-	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount);
-
 	void NotifyHoverItemUpdated();
 	void ClearSelectedItem();
 

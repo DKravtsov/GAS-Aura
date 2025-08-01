@@ -131,19 +131,4 @@ void UInventoryStoreComponent::DebugPrintStorage() const
 
 	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
 }
-
-bool UInventoryStoreComponent::IsValidItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
-{
-	if (!IsValid(Item))
-		return false;
-
-	if (!InventoryList.Contains(Item))
-		return false;
-
-	if (Item->IsStackable() && StackCount != InventoryStorage->GetItemStackCount(Item, GridIndex))
-		return false;
-
-	return true;
-}
-
 //#endif//UE_WITH_CHEAT_MANAGER

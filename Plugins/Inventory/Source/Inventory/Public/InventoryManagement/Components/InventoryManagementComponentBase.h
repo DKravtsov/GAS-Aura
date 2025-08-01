@@ -57,6 +57,10 @@ public:
 	
 	void RemoveCoins(int32 SellValue);
 
+	bool IsValidItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount) const;
+
+	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount);
+
 protected:
 
 	virtual void BeginPlay() override;
