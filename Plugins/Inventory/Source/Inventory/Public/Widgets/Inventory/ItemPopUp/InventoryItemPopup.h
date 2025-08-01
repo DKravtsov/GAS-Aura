@@ -77,6 +77,7 @@ public:
 	void CollapseConsumeButton();
 	void CollapseSellButton();
 	void CollapseBuyButton();
+	void CollapseDropButton();
 
 	FVector2D GetBoxSize() const;
 

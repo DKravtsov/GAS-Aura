@@ -93,6 +93,11 @@ void UInventoryItemPopup::CollapseBuyButton()
 	Button_Buy->SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UInventoryItemPopup::CollapseDropButton()
+{
+	Button_Drop->SetVisibility(ESlateVisibility::Collapsed);
+}
+
 FVector2D UInventoryItemPopup::GetBoxSize() const
 {
 	return FVector2D(SizeBox_Root->GetWidthOverride(), SizeBox_Root->GetHeightOverride());

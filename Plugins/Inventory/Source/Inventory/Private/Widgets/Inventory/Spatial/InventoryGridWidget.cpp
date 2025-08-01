@@ -829,6 +829,10 @@ void UInventoryGridWidget::CreateItemPopupMenu(const int32 GridIndex)
 		CanvasSlot->SetPosition(MousePosition - PopupMenuOffset);
 		CanvasSlot->SetSize(ItemPopupMenu->GetBoxSize());
 
+		if (IsStoreGrid())
+		{
+			ItemPopupMenu->CollapseDropButton();
+		}
 
 		const int32 StackCount = GridSlots[GridIndex]->GetStackCount();
 		if (StackCount >= 2)
@@ -843,7 +847,7 @@ void UInventoryGridWidget::CreateItemPopupMenu(const int32 GridIndex)
 
 		ItemPopupMenu->OnDropDelegate.BindUObject(this, &ThisClass::OnPopupMenuDrop);
 
-		if (RightClickedItem->IsConsumable())
+		if (RightClickedItem->IsConsumable() && !IsStoreGrid())
 		{
 			ItemPopupMenu->OnConsumeDelegate.BindUObject(this, &ThisClass::OnPopupMenuConsume);
 		}
