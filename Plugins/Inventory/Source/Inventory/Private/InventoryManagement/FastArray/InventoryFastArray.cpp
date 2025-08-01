@@ -137,3 +137,13 @@ UInventoryItem* FInventoryFastArray::FindFirstItemByType(const FGameplayTag& Ite
 	});
 	return FoundItem ? ToRawPtr(FoundItem->Item) : nullptr;
 }
+
+bool FInventoryFastArray::Contains(UInventoryItem* Item) const
+{
+	const auto FoundItem = Entries.FindByPredicate([Item](const FInventoryEntry& Entry)
+	{
+		return Entry.Item == Item;
+	});
+	return FoundItem && IsValid(FoundItem->Item);
+	
+}

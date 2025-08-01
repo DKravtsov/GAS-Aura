@@ -46,40 +46,9 @@ int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const i
 	return UInventoryStatics::GetItemSellValue(Item) * (Item->IsStackable() ? StackCount : 1);
 }
 
-bool UInventoryStoreComponent::HasCoins(int32 SellValue)
+int32 UInventoryStoreComponent::GetBuyValue(const UInventoryItem* Item, int32 StackCount) const
 {
-	if (SellValue <= 0)
-		return true;
-	
-	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
-	{
-		return Item->GetTotalStackCount() >= SellValue;
-	}
-	return false;
-}
-
-void UInventoryStoreComponent::RemoveCoins(int32 SellValue)
-{
-	checkf(GetOwner()->HasAuthority(), TEXT("RemoveCoins() called on non-authoritative item"));
-
-	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
-	{
-		if (SellValue > Item->GetTotalStackCount())
-		{
-			UE_LOG(LogInventory, Error, TEXT("Trying to remove more coins than has: %d, when has only %d"), SellValue, Item->GetTotalStackCount());
-			return;
-		}
-		FInventorySlotAvailabilityResult Result;
-		if (ensure(InventoryStorage->FindItemStacks(Result, Item, SellValue)))
-		{
-			for (const auto& AvailabilitySlot : Result.SlotAvailabilities)
-			{
-				RemoveItemFromInventory(Item, AvailabilitySlot.Amount);
-				InventoryStorage->RemoveItemFromGrid(Item, AvailabilitySlot.Index, AvailabilitySlot.Amount);
-			}
-		}
-	}
-	
+	return UInventoryStatics::GetItemSellValue(Item) * (Item->IsStackable() ? StackCount : 1);
 }
 
 void UInventoryStoreComponent::AddStartupItems()
@@ -162,4 +131,19 @@ void UInventoryStoreComponent::DebugPrintStorage() const
 
 	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
 }
+
+bool UInventoryStoreComponent::IsValidItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
+{
+	if (!IsValid(Item))
+		return false;
+
+	if (!InventoryList.Contains(Item))
+		return false;
+
+	if (Item->IsStackable() && StackCount != InventoryStorage->GetItemStackCount(Item, GridIndex))
+		return false;
+
+	return true;
+}
+
 //#endif//UE_WITH_CHEAT_MANAGER

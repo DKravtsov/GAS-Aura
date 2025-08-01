@@ -203,4 +203,8 @@ private:
 	void PutHoverItemDown();
 
 	UInventorySlottedItemWidget* GetSlottedItemWidgetAtIndex(const int32 UpperLeftIndex) const;
+
+	void HandleSellItemResult(bool bSuccess, const FString& ErrorMessage);
+	void HandleBuyItemResult(bool bSuccess, const FString& ErrorMessage);
+
 };

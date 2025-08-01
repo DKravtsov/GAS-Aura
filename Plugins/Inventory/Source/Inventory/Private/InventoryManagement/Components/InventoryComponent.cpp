@@ -1122,7 +1122,7 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation()
 	{
 		const int32 StackCount = HoverItemProxy->StackCount;
 		int32 SellValue = Store->GetSellValue(Item, StackCount);
-		if (!Store->HasCoins(SellValue))
+		if (!Store->HasEnoughCoins(SellValue))
 		{
 			UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell item [%s]%s with value %d, but there is not enough coins in the store."),
 				*GetInventoryItemId(Item), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")),  SellValue)
@@ -1143,13 +1143,12 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(ItemToSell), StackCount)
 
 	int32 SellValue = Store->GetSellValue(ItemToSell, StackCount);
-	if (!Store->HasCoins(SellValue))
+	if (!Store->HasEnoughCoins(SellValue))
 	{
 		Client_SellItemResult(false, TEXT("Not enough coins"));
 		return;
 	}
 	RemoveItemFromInventory(ItemToSell, StackCount);
-//?	InventoryStorage->RemoveItemFromGrid(ItemToSell, GridIndex);
 
 	if (HasHoverItem())
 	{
@@ -1326,4 +1325,75 @@ UInventoryStoreComponent* UInventoryComponent::GetOpenedStore() const
 void UInventoryComponent::Client_SellItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
 {
 	BROADCAST_WITH_LOG(OnSellItemResult, bSuccess, ErrorMessage);
+}
+
+void UInventoryComponent::Client_BuyItemResult_Implementation(bool bSuccess, const FString& ErrorMessage)
+{
+	BROADCAST_WITH_LOG(OnBuyItemResult, bSuccess, ErrorMessage);
+}
+
+void UInventoryComponent::BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
+{
+	if (auto* StoreComp = GetOpenedStore())
+	{
+		Server_BuyItem(StoreComp, ItemToBuy, GridIndex, StackCount);
+	}
+	else
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because store is not opened"),
+			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
+		// Broadcast the result only for the caller client, there was no server call yet
+		BROADCAST_WITH_LOG(OnBuyItemResult, false, TEXT("Store is not opened"));
+	}
+}
+
+void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
+{
+	if (!IsValid(Store))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because store is not opened"),
+			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
+		
+		Client_BuyItemResult(false, TEXT("Store is not opened"));
+		return;
+	}
+
+	if (!Store->IsValidItem(ItemToBuy, GridIndex, StackCount))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because it is not valid"),
+			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
+		
+		Client_BuyItemResult(false, TEXT("Item is not valid"));
+		return;
+	}
+
+	const int32 Price = Store->GetBuyValue(ItemToBuy, StackCount);
+	if (!HasEnoughCoins(Price))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because has not enough coins"),
+			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
+		
+		Client_BuyItemResult(false, TEXT("Not enough coins"));
+		return;
+	}
+
+	Store->RemoveItemFromInventory(ItemToBuy, StackCount);
+
+	if (Price > 0)
+	{
+		const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
+		checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
+		Store->TryAddItem(*CoinsItemManifest, Price);
+
+		RemoveCoins(Price);
+	}
+	
+	TryAddItem(ItemToBuy->GetItemManifest(), StackCount);
+
+	Client_BuyItemResult(true, TEXT("Success"));
+}
+
+bool UInventoryComponent::Server_BuyItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
+{
+	return true;
 }

@@ -53,6 +53,10 @@ public:
 	
 	bool RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount);
 
+	bool HasEnoughCoins(int32 Price) const;
+	
+	void RemoveCoins(int32 SellValue);
+
 protected:
 
 	virtual void BeginPlay() override;

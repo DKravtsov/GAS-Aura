@@ -22,6 +22,7 @@ FReply UInventorySlottedItemWidget::NativeOnMouseButtonUp(const FGeometry& InGeo
 
 void UInventorySlottedItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	check(InventoryItem.IsValid());
 	UInventoryStatics::ItemHovered(GetOwningPlayer(), InventoryItem.Get());
 }
 

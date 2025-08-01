@@ -130,6 +130,41 @@ bool UInventoryManagementComponentBase::RemoveItemFromInventory(UInventoryItem* 
 	return true;
 }
 
+bool UInventoryManagementComponentBase::HasEnoughCoins(int32 Price) const
+{
+	if (Price <= 0)
+		return true;
+	
+	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
+	{
+		return Item->GetTotalStackCount() >= Price;
+	}
+	return false;
+}
+
+void UInventoryManagementComponentBase::RemoveCoins(int32 SellValue)
+{
+	checkf(GetOwner()->HasAuthority(), TEXT("RemoveCoins() called on non-authoritative item"));
+
+	if (const auto Item = InventoryList.FindFirstItemByType(InventoryTags::GameItems_Collectables_Coins))
+	{
+		if (SellValue > Item->GetTotalStackCount())
+		{
+			UE_LOG(LogInventory, Error, TEXT("Trying to remove more coins than has: %d, when has only %d"), SellValue, Item->GetTotalStackCount());
+			return;
+		}
+		FInventorySlotAvailabilityResult Result;
+		if (ensure(InventoryStorage->FindItemStacks(Result, Item, SellValue)))
+		{
+			for (const auto& AvailabilitySlot : Result.SlotAvailabilities)
+			{
+				RemoveItemFromInventory(Item, AvailabilitySlot.Amount);
+				InventoryStorage->RemoveItemFromGrid(Item, AvailabilitySlot.Index, AvailabilitySlot.Amount);
+			}
+		}
+	}
+}
+
 UInventoryItem* UInventoryManagementComponentBase::AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL

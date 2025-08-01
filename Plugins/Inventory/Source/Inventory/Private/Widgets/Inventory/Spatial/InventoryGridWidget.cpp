@@ -65,6 +65,9 @@ void UInventoryGridWidget::CreateGridViewModel(UInventoryStorage* InventoryStora
 		
 		InventoryComponent->OnHoverItemReset.AddUObject(this, &UInventoryGridWidget::HandleOnHoverItemReset);
 		InventoryComponent->OnHoverItemUpdated.AddUObject(this, &UInventoryGridWidget::HandleOnHoverItemUpdated);
+
+		InventoryComponent->OnSellItemResult.AddUObject(this, &UInventoryGridWidget::HandleSellItemResult);
+		InventoryComponent->OnBuyItemResult.AddUObject(this, &UInventoryGridWidget::HandleBuyItemResult);
 	}
 }
 
@@ -952,7 +955,15 @@ void UInventoryGridWidget::OnPopupMenuDrop(const int32 GridIndex)
 
 void UInventoryGridWidget::OnPopupMenuBuy(const int32 GridIndex)
 {
-	DebugPrint(TEXT("Buy Item Clicked"));
+	check(GridSlots.IsValidIndex(GridIndex));
+	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+	if( !IsValid(RightClickedItem))
+		return;
+	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
+
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index %d"), *GetInventoryItemId(RightClickedItem), UpperLeftIndex)
+
+	InventoryComponent->BuyItem(RightClickedItem, UpperLeftIndex, GridSlots[UpperLeftIndex]->GetStackCount());
 }
 
 void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
@@ -962,6 +973,8 @@ void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 	if( !IsValid(RightClickedItem))
 		return;
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
+
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index %d"), *GetInventoryItemId(RightClickedItem), UpperLeftIndex)
 
 	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	InventoryComponent->Server_SellSelectedItem();
@@ -1010,3 +1023,14 @@ void UInventoryGridWidget::ValidateCompiledDefaults(class IWidgetCompilerLog& Co
 	}
 }
 #endif//WITH_EDITOR
+
+void UInventoryGridWidget::HandleSellItemResult(bool bSuccess, const FString& ErrorMessage)
+{
+	UE_LOG(LogInventory, Log, TEXT("SellItemResult: %s"), *ErrorMessage);
+}
+
+void UInventoryGridWidget::HandleBuyItemResult(bool bSuccess, const FString& ErrorMessage)
+{
+	UE_LOG(LogInventory, Log, TEXT("BuyItemResult: %s"), *ErrorMessage);
+}
+

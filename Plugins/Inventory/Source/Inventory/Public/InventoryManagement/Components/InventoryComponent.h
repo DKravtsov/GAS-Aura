@@ -74,6 +74,7 @@ public:
 	FInventoryMenuVisibilityChangedSugnature OnStoreMenuClosed;
 
 	FInventoryOperationResultDelegate OnSellItemResult;
+	FInventoryOperationResultDelegate OnBuyItemResult;
 
 private:
 
@@ -138,6 +139,7 @@ public:
 	INVENTORY_API UInventoryComponent();
 
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
+	UInventoryWidgetBase* GetStoreMenu() const { return StoreMenu; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
@@ -215,8 +217,13 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SellSelectedItem();
 
+	void BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount);
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SellItem(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_BuyItem(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount);
 
 	// returns the number of coins
 	int32 GetWealth() const;
@@ -303,4 +310,7 @@ private:
 
 	UFUNCTION(Client, Reliable)
 	void Client_SellItemResult(bool bSuccess, const FString& ErrorMessage);
+
+	UFUNCTION(Client, Reliable)
+	void Client_BuyItemResult(bool bSuccess, const FString& ErrorMessage);
 };
