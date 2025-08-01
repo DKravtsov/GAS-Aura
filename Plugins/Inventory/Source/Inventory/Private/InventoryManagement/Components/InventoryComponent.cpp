@@ -1293,22 +1293,7 @@ void UInventoryComponent::OpenStoreMenu(UInventoryStoreComponent* Store)
 	StoreMenu->OnOpenedMenu();
 	Store->SetMenuOpen(true);
 
-	// TODO Consider to choose input mode by parent project
-
-	// For 3dr person template
-	// if (OwningPlayerController.IsValid())
-	// {
-	// 	FInputModeGameAndUI InputMode;
-	// 	OwningPlayerController->SetInputMode(InputMode);
-	// 	OwningPlayerController->SetShowMouseCursor(true);
-	// }
-
-	// specific to Aura project
-	if (OwningPlayerController.IsValid())
-	{
-		FInputModeUIOnly InputMode;
-		OwningPlayerController->SetInputMode(InputMode);
-	}
+	// The owning player controller is responsible for Input Mode 
 	OnStoreMenuOpened.Broadcast();
 }
 
@@ -1331,23 +1316,7 @@ void UInventoryComponent::CloseStoreMenu()
 	}
 	StoreMenu = nullptr;
 
-	// TODO Consider to choose input mode by parent project
-	
-	// For 3dr person template
-	// if (OwningPlayerController.IsValid())
-	// {
-	// 	FInputModeGameOnly InputMode;
-	// 	OwningPlayerController->SetInputMode(InputMode);
-	// 	OwningPlayerController->SetShowMouseCursor(false);
-	// }
-
-	// specific to Aura project
-	if (OwningPlayerController.IsValid())
-	{
-		FInputModeGameAndUI InputMode;
-		InputMode.SetHideCursorDuringCapture(false);
-		OwningPlayerController->SetInputMode(InputMode);
-	}
+	// The owning player controller is responsible for Input Mode 
 	OnStoreMenuClosed.Broadcast();
 }
 

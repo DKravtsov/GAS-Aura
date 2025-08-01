@@ -154,4 +154,10 @@ private:
 
     UFUNCTION(Client, Reliable)
     void ClientHideMagicCircle();
+
+    UFUNCTION()
+    void HandleMenuOpened();
+
+    UFUNCTION()
+    void HandleMenuClosed();
 };

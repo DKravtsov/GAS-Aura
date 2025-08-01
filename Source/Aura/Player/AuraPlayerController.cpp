@@ -108,6 +108,13 @@ void AAuraPlayerController::BeginPlay()
     }
 
     InventoryComponent = FindComponentByClass<UInventoryComponent>();
+    if (InventoryComponent.IsValid())
+    {
+        InventoryComponent->OnInventoryMenuOpened.AddDynamic(this, &AAuraPlayerController::HandleMenuOpened);
+        InventoryComponent->OnInventoryMenuClosed.AddDynamic(this, &AAuraPlayerController::HandleMenuClosed);
+        InventoryComponent->OnStoreMenuOpened.AddDynamic(this, &AAuraPlayerController::HandleMenuOpened);
+        InventoryComponent->OnStoreMenuClosed.AddDynamic(this, &AAuraPlayerController::HandleMenuClosed);
+    }
 
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
@@ -487,3 +494,17 @@ void AAuraPlayerController::Server_DebugPrintStores_Implementation() const
     UE_LOG(LogTemp, Warning, TEXT("\nSERVER:"));
     DebugPrintStores();
 }
+
+void AAuraPlayerController::HandleMenuOpened()
+{
+    FInputModeUIOnly InputMode;
+    SetInputMode(InputMode);
+}
+
+void AAuraPlayerController::HandleMenuClosed()
+{
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    SetInputMode(InputMode);
+}
+
