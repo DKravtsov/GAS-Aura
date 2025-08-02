@@ -1009,13 +1009,7 @@ void UInventoryComponent::Server_PutSelectedItemToStorage_Implementation()
 	if (!HasHoverItem())
 		return;
 	
-	FInventorySlotAvailabilityResult Result;
-	ensure(GetInventoryStorage()->HasRoomForItem(Result, HoverItemProxy->InventoryItem->GetItemManifest(), HoverItemProxy->StackCount));
-	Result.Item = HoverItemProxy->InventoryItem;
-
-	BROADCAST_WITH_LOG(OnStackChanged, Result);
-
-	ClearSelectedItem();
+	Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
 }
 
 bool UInventoryComponent::Server_PutSelectedItemToStorage_Validate()
@@ -1391,6 +1385,7 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent
 	}
 
 	Store->RemoveItemFromInventory(ItemToBuy, StackCount);
+	Store->GetInventoryStorage()->RemoveItemFromGrid(ItemToBuy, GridIndex);
 
 	if (Price > 0)
 	{
