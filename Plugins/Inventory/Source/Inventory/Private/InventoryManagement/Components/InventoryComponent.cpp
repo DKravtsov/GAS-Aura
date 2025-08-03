@@ -800,8 +800,8 @@ void UInventoryComponent::Server_SwapStackCountWithHoverItem_Implementation(UInv
 		return;
 	}
 
-	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
-	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, HoverItemProxy->StackCount);
+	int32 StackCount =  InventoryStorage->GetItemStackCount(Item, GridIndex);
+	InventoryStorage->SetItemStackCount(Item, GridIndex, HoverItemProxy->StackCount);
 	HoverItemProxy->StackCount = StackCount;
 	NotifyHoverItemUpdated();
 }
@@ -887,6 +887,13 @@ void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item,
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select NULL item."))
 		return;
 	}
+
+	UInventoryStorage* Storage = Item->GetOwningStorage();
+	if (!IsValid(Storage))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select item [%s] from invalid storage"), *GetInventoryItemId(Item))
+		return;
+	}
 	
 	if (!HasHoverItem())
 	{
@@ -895,17 +902,15 @@ void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item,
 	HoverItemProxy->InventoryItem = Item;
 	HoverItemProxy->bStackable = Item->IsStackable();
 	
-	HoverItemProxy->StackCount = HoverItemProxy->bStackable ? GetInventoryStorage()->GetItemStackCount(Item, GridIndex) : 0;
+	HoverItemProxy->StackCount = HoverItemProxy->bStackable ? Storage->GetItemStackCount(Item, GridIndex) : 0;
 	if (PrevIndex != INDEX_NONE)
 	{
 		HoverItemProxy->PreviousIndex = PrevIndex;
 	}
 
-	if (auto* Storage = Item->GetOwningStorage())
-	{
-		UE_LOG(LogInventory, Log, TEXT("Server: Removing item [%s] from storage [%s]"), *GetInventoryItemId(Item), *Storage->GetName())
-		Storage->RemoveItemFromGrid(Item, GridIndex);
-	}
+	UE_LOG(LogInventory, Log, TEXT("Server: Removing item [%s] from storage [%s]"), *GetInventoryItemId(Item), *Storage->GetName())
+	Storage->RemoveItemFromGrid(Item, GridIndex);
+
 	NotifyHoverItemUpdated();
 }
 
@@ -1149,7 +1154,7 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation()
 			Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
 			return;
 		}
-		Server_SellItem(Store, Item, HoverItemProxy->PreviousIndex, StackCount);
+		Server_SellItem(Item, HoverItemProxy->PreviousIndex, StackCount);
 	}
 }
 
@@ -1158,9 +1163,11 @@ bool UInventoryComponent::Server_SellSelectedItem_Validate()
 	return true;
 }
 
-void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
+void UInventoryComponent::Server_SellItem_Implementation(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(ItemToSell), StackCount)
+
+	UInventoryStoreComponent* Store = GetOpenedStore();
 
 	if (!IsValid(Store))
 	{
@@ -1207,7 +1214,7 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryStoreComponen
 	Client_ReceiveSellItemResult(true, TEXT("Success"));
 }
 
-bool UInventoryComponent::Server_SellItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
+bool UInventoryComponent::Server_SellItem_Validate(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
 {
 	return true;
 }
@@ -1339,23 +1346,9 @@ void UInventoryComponent::Client_ReceivePurchaseItemResult_Implementation(bool b
 	BROADCAST_WITH_LOG(OnBuyItemResult, bSuccess, ErrorMessage);
 }
 
-void UInventoryComponent::BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
+void UInventoryComponent::Server_BuyItem_Implementation(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
 {
-	if (auto* StoreComp = GetOpenedStore())
-	{
-		Server_BuyItem(StoreComp, ItemToBuy, GridIndex, StackCount);
-	}
-	else
-	{
-		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because store is not opened"),
-			*GetInventoryItemId(ItemToBuy), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")))
-		// Broadcast the result only for the caller client, there was no server call yet
-		BROADCAST_WITH_LOG(OnBuyItemResult, false, TEXT("Store is not opened"));
-	}
-}
-
-void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
-{
+	UInventoryStoreComponent* Store = GetOpenedStore();
 	if (!IsValid(Store))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Cannot buy item [%s]%s, because store is not opened"),
@@ -1401,7 +1394,7 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryStoreComponent
 	Client_ReceivePurchaseItemResult(true, TEXT("Success"));
 }
 
-bool UInventoryComponent::Server_BuyItem_Validate(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
+bool UInventoryComponent::Server_BuyItem_Validate(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
 {
 	return true;
 }

@@ -217,13 +217,11 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SellSelectedItem();
 
-	void BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SellItem(UInventoryStoreComponent* Store, UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_BuyItem(UInventoryStoreComponent* Store, UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount);
+	void Server_BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount);
 
 	// returns the number of coins
 	int32 GetWealth() const;

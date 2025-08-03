@@ -967,7 +967,7 @@ void UInventoryGridWidget::OnPopupMenuBuy(const int32 GridIndex)
 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index %d"), *GetInventoryItemId(RightClickedItem), UpperLeftIndex)
 
-	InventoryComponent->BuyItem(RightClickedItem, UpperLeftIndex, GridSlots[UpperLeftIndex]->GetStackCount());
+	InventoryComponent->Server_BuyItem(RightClickedItem, UpperLeftIndex, GridSlots[UpperLeftIndex]->GetStackCount());
 }
 
 void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
@@ -1031,10 +1031,20 @@ void UInventoryGridWidget::ValidateCompiledDefaults(class IWidgetCompilerLog& Co
 void UInventoryGridWidget::HandleSellItemResult(bool bSuccess, const FString& ErrorMessage)
 {
 	UE_LOG(LogInventory, Log, TEXT("SellItemResult: %s"), *ErrorMessage);
+
+	if (bSuccess)
+	{
+		// Show an in-game message?
+	}
 }
 
 void UInventoryGridWidget::HandleBuyItemResult(bool bSuccess, const FString& ErrorMessage)
 {
 	UE_LOG(LogInventory, Log, TEXT("BuyItemResult: %s"), *ErrorMessage);
+
+	if (bSuccess)
+	{
+		// show an in-game message?
+	}
 }
 
