@@ -223,7 +223,7 @@ FInventorySlotAvailabilityResult UInventoryStorageGrid::HasRoomForItemAtIndex(co
 		break;
 	}
 
-	if (Result.Remainder > 0)
+	if (AmountToFill > 0)
 	{
 		const auto MoreResult = HasRoomForItem(ItemManifest, Result.Remainder);
 		Result.Union(MoreResult);

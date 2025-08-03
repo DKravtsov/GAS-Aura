@@ -26,7 +26,7 @@ class UInventoryStoreWidgetSpatial : public UInventoryWidgetSpatial
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> StoreGridSwitcher;
 
-	TWeakObjectPtr<UInventoryStoreComponent> StoreComponent;
+	TWeakObjectPtr<class UInventoryStoreComponent> StoreComponent;
 
 public:
 
