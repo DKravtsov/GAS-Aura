@@ -55,4 +55,6 @@ public:
 
 	bool IsGridSlotAvailable(int32 Index) const;
 
+	bool IsMyItem(const UInventoryItem* Item) const;
+
 };

@@ -46,6 +46,18 @@ void UInventoryStoreWidgetSpatial::OnOpenedMenu()
 	PopulateItemsFromStore();
 }
 
+void UInventoryStoreWidgetSpatial::OnCloseMenu()
+{
+	LOG_NETFUNCTIONCALL
+
+	Super::OnCloseMenu();
+
+	if (ActiveStoreGrid.IsValid())
+	{
+		ActiveStoreGrid->OnHide();
+	}
+}
+
 void UInventoryStoreWidgetSpatial::PopulateStore(UInventoryStoreComponent* Store)
 {
 	LOG_NETFUNCTIONCALL
@@ -84,18 +96,29 @@ void UInventoryStoreWidgetSpatial::HandleOnActiveGridSwitched(UInventoryGridWidg
 {
 	check(InventoryGridWidget && StoreGridSwitcher);
 	FGameplayTag ItemCategory = InventoryGridWidget->GetItemCategory();
+
+	if (ActiveStoreGrid.IsValid())
+	{
+		ActiveStoreGrid->OnHide();
+	}
+	
 	if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment))
 	{
-		StoreGridSwitcher->SetActiveWidget(StoreGrid_Equipment);
+		ActiveStoreGrid = StoreGrid_Equipment;
 	}
 	else if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Consumable))
 	{
-		StoreGridSwitcher->SetActiveWidget(StoreGrid_Consumable);
+		ActiveStoreGrid = StoreGrid_Consumable;
 	}
 	else if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Crafting))
 	{
-		StoreGridSwitcher->SetActiveWidget(StoreGrid_Crafting);
+		ActiveStoreGrid = StoreGrid_Crafting;
 	}
+	else
+	{
+		checkNoEntry();
+	}
+	StoreGridSwitcher->SetActiveWidget(ActiveStoreGrid.Get());
 }
 
 void UInventoryStoreWidgetSpatial::PopulateItemsFromStore()

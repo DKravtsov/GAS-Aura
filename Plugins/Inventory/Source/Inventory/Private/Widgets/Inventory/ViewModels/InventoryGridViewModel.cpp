@@ -9,6 +9,7 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Items/InventoryItem.h"
 
 void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, UInventoryStorage* Storage, const FGameplayTag& ItemCategory)
 {
@@ -46,6 +47,11 @@ const FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlot(int32 Inde
 bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
 {
 	return GetGridSlot(Index).IsAvailable();
+}
+
+bool UInventoryGridViewModel::IsMyItem(const UInventoryItem* Item) const
+{
+	return IsValid(Item) && Item->GetOwningStorage() == StorageGrid->GetOuter(); 
 }
 
 FInventoryItemGridChangedDelegate& UInventoryGridViewModel::GetOnItemAddedToGridDelegate() const

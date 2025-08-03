@@ -26,6 +26,7 @@ class UInventoryStoreWidgetSpatial : public UInventoryWidgetSpatial
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> StoreGridSwitcher;
 
+	TWeakObjectPtr<UInventoryGridWidget> ActiveStoreGrid;
 	TWeakObjectPtr<class UInventoryStoreComponent> StoreComponent;
 
 public:
@@ -37,6 +38,7 @@ public:
 	//~ End of UUserWidget interface
 
 	virtual void OnOpenedMenu() override;
+	virtual void OnCloseMenu() override;
 
 	void PopulateStore(UInventoryStoreComponent* Store);
 
