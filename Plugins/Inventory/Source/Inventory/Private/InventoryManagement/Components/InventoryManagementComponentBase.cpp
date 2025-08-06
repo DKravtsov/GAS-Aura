@@ -175,8 +175,16 @@ bool UInventoryManagementComponentBase::IsValidItem(UInventoryItem* Item, int32 
 	if (!InventoryList.Contains(Item))
 		return false;
 
-	if (Item->IsStackable() && StackCount != InventoryStorage->GetItemStackCount(Item, GridIndex))
-		return false;
+	if (Item->IsStackable())
+	{
+		if (GridIndex != INDEX_NONE)
+		{
+			if (StackCount != InventoryStorage->GetItemStackCount(Item, GridIndex))
+				return false;
+		}
+		if (StackCount > Item->GetTotalStackCount())
+			return false;
+	}
 
 	return true;
 }

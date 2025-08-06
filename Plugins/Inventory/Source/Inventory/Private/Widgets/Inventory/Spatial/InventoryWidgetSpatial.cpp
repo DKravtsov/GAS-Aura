@@ -563,11 +563,7 @@ void UInventoryWidgetSpatial::HandleOnHoverItemUpdated(UInventoryItem* Item, boo
 	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
 
 	HoverItem->UpdateStackCount(StackCount);
-
-	if (PreviousIndex != INDEX_NONE)
-	{
-		HoverItem->SetPreviousGridIndex(PreviousIndex);
-	}
+	HoverItem->SetPreviousGridIndex(PreviousIndex);
 	
 }
 

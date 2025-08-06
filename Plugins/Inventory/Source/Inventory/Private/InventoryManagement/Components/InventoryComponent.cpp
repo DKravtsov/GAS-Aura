@@ -1430,6 +1430,11 @@ void UInventoryComponent::DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIn
 
 		RemoveCoins(PurchaseValue);
 	}
+
+	if (HasItemSelected())
+	{
+		ClearSelectedItem();
+	}
 	
 	TryAddItem(ItemToBuy->GetItemManifest(), StackCount);
 
