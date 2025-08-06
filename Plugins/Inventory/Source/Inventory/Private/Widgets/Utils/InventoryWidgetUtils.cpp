@@ -6,6 +6,7 @@
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Components/Widget.h"
 #include "Items/InventoryItem.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 
 int32 UInventoryWidgetUtils::GetIndexFromPosition(const FIntPoint& Position, const int32 Columns)
 {
@@ -63,3 +64,12 @@ FVector2D UInventoryWidgetUtils::GetItemDrawSize(const UInventoryItem* Item, con
 	const auto GridFragment = GetGridFragmentFromInventoryItem(Item);
 	return GridFragment ? GetDrawSize(*GridFragment, TileSize) : FVector2D::ZeroVector;
 }
+
+FSlateBrush UInventoryWidgetUtils::GetTempBrush()
+{
+	FSlateBrush Brush;
+	Brush.DrawAs = ESlateBrushDrawType::Image;
+	Brush.ImageSize = FVector2D{1,1};
+	return Brush;
+}
+

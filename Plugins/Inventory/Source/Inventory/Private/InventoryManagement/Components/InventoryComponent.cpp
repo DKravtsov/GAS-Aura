@@ -753,10 +753,10 @@ void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInve
 		return;
 	}
 
-	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
+	if (!HasItemSelected() || HoverItemProxy->InventoryItem != Item)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
-			*GetInventoryItemId(Item), *GetInventoryItemId(HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr))
+			*GetInventoryItemId(Item), *GetInventoryItemId(HasItemSelected() ? HoverItemProxy->InventoryItem.Get() : nullptr))
 		return;
 	}
 	const int32 Remainder = InventoryStorage->FillInStacksOrConsumeHover(Item, GridIndex, HoverItemProxy->StackCount);
@@ -793,10 +793,10 @@ void UInventoryComponent::Server_SwapStackCountWithHoverItem_Implementation(UInv
 		return;
 	}
 	
-	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
+	if (!HasItemSelected() || HoverItemProxy->InventoryItem != Item)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
-			*GetInventoryItemId(Item), *GetInventoryItemId(HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr))
+			*GetInventoryItemId(Item), *GetInventoryItemId(HasItemSelected() ? HoverItemProxy->InventoryItem.Get() : nullptr))
 		return;
 	}
 
@@ -815,7 +815,7 @@ void UInventoryComponent::Server_SwapSelectedWitItem_Implementation(UInventoryIt
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index: %d"), *GetInventoryItemId(ItemOnGrid), GridIndex)
 
-	if (!IsValid(ItemOnGrid) || !HasHoverItem())
+	if (!IsValid(ItemOnGrid) || !HasItemSelected())
 		return;
 
 	FHoverItemProxy PrevHoverItemProxy = HoverItemProxy.GetValue();
@@ -895,7 +895,7 @@ void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item,
 		return;
 	}
 	
-	if (!HasHoverItem())
+	if (!HasItemSelected())
 	{
 		HoverItemProxy = FHoverItemProxy();
 	}
@@ -930,20 +930,20 @@ void UInventoryComponent::Server_SelectItemInSlot_Implementation(EInventoryEquip
 		return;
 	}
 
-	if ( HasHoverItem() && HoverItemProxy->bStackable)
+	if ( HasItemSelected() && HoverItemProxy->bStackable)
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Cannot equip stackable item [%s]"), *GetInventoryItemId(HoverItemProxy->InventoryItem.Get()))
 		return;
 	}
 
 	UInventoryItem* ItemToUnequip = EquipSlot->GetInventoryItem().Get();
-	UInventoryItem* ItemToEquip = HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr;
+	UInventoryItem* ItemToEquip = HasItemSelected() ? HoverItemProxy->InventoryItem.Get() : nullptr;
 
 	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 
 	if (ItemToUnequip)
 	{
-		if (!HasHoverItem())
+		if (!HasItemSelected())
 		{
 			HoverItemProxy = FHoverItemProxy();
 		}
@@ -972,7 +972,7 @@ void UInventoryComponent::Server_EquipSelectedItem_Implementation(EInventoryEqui
 		return;
 	}
 
-	if (!HasHoverItem())
+	if (!HasItemSelected())
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to equip item in slot %d, but there is no item selected"), static_cast<int32>(SlotId))
 		return;
@@ -991,7 +991,7 @@ void UInventoryComponent::Server_EquipSelectedItem_Implementation(EInventoryEqui
 
 	if (ItemToUnequip)
 	{
-		if (!HasHoverItem())
+		if (!HasItemSelected())
 		{
 			HoverItemProxy = FHoverItemProxy();
 		}
@@ -1011,7 +1011,7 @@ bool UInventoryComponent::Server_EquipSelectedItem_Validate(EInventoryEquipmentS
 
 void UInventoryComponent::Server_PutSelectedItemToStorage_Implementation()
 {
-	if (!HasHoverItem())
+	if (!HasItemSelected())
 		return;
 	
 	Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
@@ -1026,7 +1026,7 @@ void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(
 {
 	LOG_NETFUNCTIONCALL
 
-	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	UInventoryItem* Item = HasItemSelected()? HoverItemProxy->InventoryItem.Get() : nullptr;
 	if (!IsValid(Item))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to put NULL item to storage."))
@@ -1058,7 +1058,7 @@ void UInventoryComponent::Server_DropSelectedItemOff_Implementation()
 {
 	LOG_NETFUNCTIONCALL
 	
-	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	UInventoryItem* Item = HasItemSelected()? HoverItemProxy->InventoryItem.Get() : nullptr;
 	if (!IsValid(Item))
 	{
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to drop NULL item."))
@@ -1093,7 +1093,7 @@ void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventory
 		return;
 	}
 	
-	if (!HasHoverItem())
+	if (!HasItemSelected())
 	{
 		HoverItemProxy.Emplace(Item, GridIndex, StackCount, Item->IsStackable());
 	}
@@ -1132,7 +1132,7 @@ void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInvent
 
 void UInventoryComponent::Server_SellSelectedItem_Implementation()
 {
-	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	UInventoryItem* Item = HasItemSelected()? HoverItemProxy->InventoryItem.Get() : nullptr;
 	
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Selling item [%s]"), *GetInventoryItemId(Item))
 	
@@ -1154,7 +1154,8 @@ void UInventoryComponent::Server_SellSelectedItem_Implementation()
 			Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
 			return;
 		}
-		Server_SellItem(Item, HoverItemProxy->PreviousIndex, StackCount);
+		ClearSelectedItem();
+		DoSellItem(Item, INDEX_NONE, StackCount, SellValue);
 	}
 }
 
@@ -1163,7 +1164,36 @@ bool UInventoryComponent::Server_SellSelectedItem_Validate()
 	return true;
 }
 
-void UInventoryComponent::Server_SellItem_Implementation(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
+void UInventoryComponent::DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue)
+{
+	checkf(HasAuthority(), TEXT("DoSellItem should only be called on the server"));
+
+	check(IsValid(ItemToSell));
+
+	UInventoryStoreComponent* Store = GetOpenedStore();
+	check(IsValid(Store));
+	
+	RemoveItemFromInventory(ItemToSell, StackCount);
+	if (GridIndex != INDEX_NONE)
+	{
+		RemoveItemFromStorage(ItemToSell, GridIndex);
+	}
+
+	if (SellValue > 0)
+	{
+		const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
+		checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
+		TryAddItem(*CoinsItemManifest, SellValue);
+
+		Store->RemoveCoins(SellValue);
+	}
+	
+	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
+
+	Client_ReceiveSellItemResult(true, TEXT("Success"));
+}
+
+void UInventoryComponent::Server_SellItem_Implementation(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *GetInventoryItemId(ItemToSell), StackCount)
 
@@ -1187,34 +1217,22 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryItem* ItemToS
 		return;
 	}
 
-	int32 SellValue = Store->GetSellValue(ItemToSell, StackCount);
+	const int32 SellValue = Store->GetSellValue(ItemToSell, StackCount);
 	if (!Store->HasEnoughCoins(SellValue))
 	{
 		Client_ReceiveSellItemResult(false, TEXT("Not enough coins"));
 		return;
 	}
-	RemoveItemFromInventory(ItemToSell, StackCount);
 
-	if (HasHoverItem())
+	if (HasItemSelected())
 	{
 		ClearSelectedItem();
 	}
 
-	if (SellValue > 0)
-	{
-		const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
-		checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
-		TryAddItem(*CoinsItemManifest, SellValue);
-
-		Store->RemoveCoins(SellValue);
-	}
-	
-	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
-
-	Client_ReceiveSellItemResult(true, TEXT("Success"));
+	DoSellItem(ItemToSell, GridIndex, StackCount, SellValue);
 }
 
-bool UInventoryComponent::Server_SellItem_Validate(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount)
+bool UInventoryComponent::Server_SellItem_Validate(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
 {
 	return true;
 }
@@ -1222,6 +1240,8 @@ bool UInventoryComponent::Server_SellItem_Validate(UInventoryItem* ItemToSell, i
 void UInventoryComponent::ExchangeItemsWithOtherInventory(UInventoryComponent* OtherInventory,
 	const FInventoryItemManifest& ItemManifestA, int32 StackCountA, const FInventoryItemManifest& ItemManifestB, int32 StackCountB)
 {
+	unimplemented();
+	
 	// Remove ItemA from this inventory?
 	
 	// Remove ItemB from OtherInventory
@@ -1346,8 +1366,10 @@ void UInventoryComponent::Client_ReceivePurchaseItemResult_Implementation(bool b
 	BROADCAST_WITH_LOG(OnBuyItemResult, bSuccess, ErrorMessage);
 }
 
-void UInventoryComponent::Server_BuyItem_Implementation(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
+void UInventoryComponent::Server_BuyItem_Implementation(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
 {
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], index %d, stack count [%d]"), *GetInventoryItemId(ItemToBuy), GridIndex, StackCount)
+	
 	UInventoryStoreComponent* Store = GetOpenedStore();
 	if (!IsValid(Store))
 	{
@@ -1377,24 +1399,39 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryItem* ItemToBu
 		return;
 	}
 
-	Store->RemoveItemFromInventory(ItemToBuy, StackCount);
-	Store->GetInventoryStorage()->RemoveItemFromGrid(ItemToBuy, GridIndex);
+	DoPurchaseItem(ItemToBuy, GridIndex, StackCount, Price);
+}
 
-	if (Price > 0)
+bool UInventoryComponent::Server_BuyItem_Validate(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], index %d, stack count [%d]"), *GetInventoryItemId(ItemToBuy), GridIndex, StackCount)
+	checkf(HasAuthority(), TEXT("DoPurchaseItem should only be called on the server"));
+	check(IsValid(ItemToBuy));
+	
+	UInventoryStoreComponent* Store = GetOpenedStore();
+	check(IsValid(Store));
+	
+	Store->RemoveItemFromInventory(ItemToBuy, StackCount);
+	if (GridIndex != INDEX_NONE)
+	{
+		Store->GetInventoryStorage()->RemoveItemFromGrid(ItemToBuy, GridIndex);
+	}
+
+	if (PurchaseValue > 0)
 	{
 		const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
 		checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
-		Store->TryAddItem(*CoinsItemManifest, Price);
+		Store->TryAddItem(*CoinsItemManifest, PurchaseValue);
 
-		RemoveCoins(Price);
+		RemoveCoins(PurchaseValue);
 	}
 	
 	TryAddItem(ItemToBuy->GetItemManifest(), StackCount);
 
 	Client_ReceivePurchaseItemResult(true, TEXT("Success"));
-}
-
-bool UInventoryComponent::Server_BuyItem_Validate(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount)
-{
-	return true;
 }

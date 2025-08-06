@@ -23,6 +23,7 @@
 #include "Editor/WidgetCompilerLog.h"
 #endif
 #include "DebugHelper.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
 
 void UInventoryGridWidget::NativeOnInitialized()
 {
@@ -63,9 +64,6 @@ void UInventoryGridWidget::CreateGridViewModel(UInventoryStorage* InventoryStora
 		GridViewModel->GetOnGridSlotsResetDelegate().AddUObject(this, &UInventoryGridWidget::HandleOnRemovedItemFromGrid);
 		GridViewModel->GetOnGridSlotsUpdatedDelegate().AddUObject(this, &UInventoryGridWidget::HandleOnUpdateGridSlots);
 		
-		InventoryComponent->OnHoverItemReset.AddUObject(this, &UInventoryGridWidget::HandleOnHoverItemReset);
-		InventoryComponent->OnHoverItemUpdated.AddUObject(this, &UInventoryGridWidget::HandleOnHoverItemUpdated);
-
 		InventoryComponent->OnSellItemResult.AddUObject(this, &UInventoryGridWidget::HandleSellItemResult);
 		InventoryComponent->OnBuyItemResult.AddUObject(this, &UInventoryGridWidget::HandleBuyItemResult);
 	}
@@ -115,11 +113,11 @@ void UInventoryGridWidget::UpdateTileParameters(const FVector2D& CanvasPosition,
 
 void UInventoryGridWidget::OnTileParametersUpdated(const FInventoryTileParameters& Parameters)
 {
-	if (!IsValid(HoverItem))
+	if (!HasHoverItem())
 		return;
 	
 	// Get Hover Item's dimensions
-	const FIntPoint Dimensions = HoverItem->GetGridDimensions();
+	const FIntPoint Dimensions = GetHoverItem()->GetGridDimensions();
 	
 	// calculate the starting coordinate for highlighting
 	const FIntPoint StartCoords = CalculateStartingCoordinates(Parameters.TileCoordinates, Dimensions, Parameters.TileQuadrant);
@@ -366,7 +364,7 @@ UInventorySlottedItemWidget* UInventoryGridWidget::CreateSlottedItemWidget(UInve
 
 void UInventoryGridWidget::SetSlottedItemImage(const UInventorySlottedItemWidget* SlottedItem, const FInventoryItemGridFragment& GridFragment, const FInventoryItemImageFragment& ImageFragment) const
 {
-	SlottedItem->SetImageBrush(GetTempBrush());
+	SlottedItem->SetImageBrush(UInventoryWidgetUtils::GetTempBrush());
 	
 	const FVector2D DrawSize = UInventoryWidgetUtils::GetDrawSize(GridFragment, TileSize);
 	ImageFragment.GetIcon().LoadAsync(FLoadSoftObjectPathAsyncDelegate::CreateLambda([DrawSize, SlottedItem](const FSoftObjectPath& SoftPath, UObject* LoadedObject)
@@ -384,22 +382,12 @@ void UInventoryGridWidget::SetSlottedItemImage(const UInventorySlottedItemWidget
 	}));
 }
 
-FSlateBrush UInventoryGridWidget::GetTempBrush()
-{
-	FSlateBrush Brush;
-	Brush.DrawAs = ESlateBrushDrawType::Image;
-	Brush.ImageSize = FVector2D{1,1};
-	return Brush;
-}
-
 void UInventoryGridWidget::PutHoverItemDown()
 {
 	if (!HasHoverItem())
 		return;
 
 	InventoryComponent->Server_PutSelectedItemToStorage();
-
-	ClearHoverItem();
 }
 
 void UInventoryGridWidget::AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const
@@ -549,41 +537,44 @@ void UInventoryGridWidget::PutDownItemInInventoryAtIndex(const int32 GridIndex)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Index: %d"), GridIndex)
 	
-	if(!IsValid(HoverItem))
+	if(!HasHoverItem())
 	{
 		UE_LOG(LogInventory, Error, TEXT("Hover item is not valid"));
 		return;
 	}
-	
-//	AddItemAtIndex(HoverItem->GetInventoryItem(), GridIndex, HoverItem->IsStackable(), HoverItem->GetStackCount());
 
-	InventoryComponent->Server_PutSelectedItemToStorageAtIndex(GridIndex);
-
-//	ClearHoverItem();
-}
-
-void UInventoryGridWidget::ShowDefaultCursor() const
-{
-	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, nullptr);
-}
-
-void UInventoryGridWidget::ClearHoverItem()
-{
-	if (IsValid(HoverItem))
+	auto* HoverItem = GetHoverItem();
+	if (GridViewModel->IsMyItem(HoverItem->GetInventoryItem()))
 	{
-		HoverItem->Reset();
-		HoverItem->RemoveFromParent();
-		HoverItem = nullptr;
+		InventoryComponent->Server_PutSelectedItemToStorageAtIndex(GridIndex);
 	}
+	else
+	{
+		// we're trying to sell or to buy the item by drag-n-drop
 
-	ShowDefaultCursor();
+		// item must have the same category
+		check(IsValid(HoverItem->GetInventoryItem()) && HoverItem->GetInventoryItem()->GetItemManifest().GetItemCategory() == ItemCategory);
+
+		if (IsStoreGrid())
+		{
+			// Selling
+
+			InventoryComponent->Server_SellItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount());
+		}
+		else
+		{
+			// Purchasing
+
+			InventoryComponent->Server_BuyItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount());
+		}
+	}
 }
 
 void UInventoryGridWidget::SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex)
 {
 	LOG_NETFUNCTIONCALL
 	
-	if (!IsValid(HoverItem))
+	if (!HasHoverItem())
 	{
 		UE_LOG(LogInventory, Error, TEXT("Hover item is not valid"));
 		return;
@@ -598,66 +589,9 @@ void UInventoryGridWidget::SwapWithHoverItem(UInventoryItem* ClickedInventoryIte
 	InventoryComponent->Server_SwapSelectedWitItem(ClickedInventoryItem, GridIndex);
 }
 
-void UInventoryGridWidget::HandleOnHoverItemReset()
-{
-	LOG_NETFUNCTIONCALL
-	
-	ClearHoverItem();
-}
-
-void UInventoryGridWidget::HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex)
-{
-	LOG_NETFUNCTIONCALL
-	
-	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(Item);
-	if (GridFragment == nullptr)
-		return;
-	const auto ImageFragment = UInventoryWidgetUtils::GetImageFragmentFromInventoryItem(Item);
-	if (ImageFragment == nullptr)
-		return;
-
-	if(!IsValid(HoverItem))
-	{
-		HoverItem = CreateWidget<UInventoryHoverItemWidget>(GetOwningPlayer(), HoverItemClass);
-	}
-
-	const FVector2D DrawSize = UInventoryWidgetUtils::GetDrawSize(*GridFragment, TileSize) * UWidgetLayoutLibrary::GetViewportScale(this);;
-
-	ImageFragment->GetIcon().LoadAsync(FLoadSoftObjectPathAsyncDelegate::CreateLambda([DrawSize, this](const FSoftObjectPath& SoftPath, UObject* LoadedObject)
-	{
-		if (!IsValid(LoadedObject))
-		{
-			UE_LOG(LogInventory, Error, TEXT("Loading failed: [%s]"), *SoftPath.ToString());
-			return;
-		}
-		if (!IsValid(HoverItem))
-			return; // it's too late, the hover item is destroyed. It happens when we drop item using Drop button in the menu
-		FSlateBrush ImageBrush;
-		ImageBrush.SetResourceObject(LoadedObject);
-		ImageBrush.DrawAs = ESlateBrushDrawType::Image;
-		ImageBrush.ImageSize = DrawSize;
-		HoverItem->SetImageBrush(ImageBrush);
-	}));
-
-	HoverItem->SetImageBrush(GetTempBrush());
-	HoverItem->SetGridDimensions(GridFragment->GetGridSize());
-	HoverItem->SetInventoryItem(Item);
-	HoverItem->SetIsStackable(Item->IsStackable());
-
-	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
-
-	HoverItem->UpdateStackCount(StackCount);
-
-	if (PreviousIndex != INDEX_NONE)
-	{
-		HoverItem->SetPreviousGridIndex(PreviousIndex);
-	}
-}
-
 void UInventoryGridWidget::OnHide()
 {
 	PutHoverItemDown();
-	ShowDefaultCursor();
 }
 
 void UInventoryGridWidget::HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray)
@@ -683,8 +617,9 @@ void UInventoryGridWidget::HandleOnRemovedItemFromGrid(const TArrayView<int32>& 
 
 void UInventoryGridWidget::OnGridSlotClicked(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
 {
+	auto* HoverItem = GetHoverItem();
 	LOG_NETFUNCTIONCALL_MSG(TEXT("GridIndex [%d]; HoverItem [%s]"), GridSlotIndex,
-		HoverItem ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
+		HoverItem ? *GetInventoryItemId(HoverItem->GetInventoryItem()) : TEXT("None"));
 
 	if (!IsValid(HoverItem) || !GridSlots.IsValidIndex(ItemDropIndex))
 		return;
@@ -707,7 +642,7 @@ void UInventoryGridWidget::OnGridSlotClicked(int32 GridSlotIndex, const FPointer
 
 void UInventoryGridWidget::OnGridSlotHovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
 {
-	if (IsValid(HoverItem))
+	if (HasHoverItem())
 		return;
 
 	const auto GridSlot = GridViewModel->GetGridSlot(GridSlotIndex);
@@ -721,7 +656,7 @@ void UInventoryGridWidget::OnGridSlotHovered(int32 GridSlotIndex, const FPointer
 
 void UInventoryGridWidget::OnGridSlotUnhovered(int32 GridSlotIndex, const FPointerEvent& MouseEvent)
 {
-	if (IsValid(HoverItem))
+	if (HasHoverItem())
 		return;
 
 	if (GridViewModel->IsGridSlotAvailable(GridSlotIndex))
@@ -734,6 +669,8 @@ void UInventoryGridWidget::OnGridSlotUnhovered(int32 GridSlotIndex, const FPoint
 
 bool UInventoryGridWidget::IsHoverItemSameStackableAs(const UInventoryItem* ClickedInventoryItem) const
 {
+	auto* HoverItem = GetHoverItem();
+	check(IsValid(HoverItem));
 	const bool bSameItem = ClickedInventoryItem == HoverItem->GetInventoryItem();
 	const bool bIsStackable = ClickedInventoryItem->IsStackable();
 	return bSameItem && bIsStackable; //&& HoverItem->GetItemType().MatchesTagExact(ClickedInventoryItem->GetItemType());
@@ -761,7 +698,7 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 	// remove the item description widget
 	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
 
-	if (!IsValid(HoverItem))
+	if (!HasHoverItem())
 	{
 		if (IsLeftMouseButtonClick(MouseEvent))
 		{
@@ -777,7 +714,7 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 	// Do the hovered item and the clicked inventory item share a type, and are they stackable?
 	if (IsHoverItemSameStackableAs(ClickedInventoryItem))
 	{
-		const int32 HoveredStackCount = HoverItem->GetStackCount();
+		const int32 HoveredStackCount = GetHoverItem()->GetStackCount();
 		const int32 MaxStackSize = GetMaxStackSize(ClickedInventoryItem);
 		const int32 ClickedStackCount = GridSlots[GridIndex]->GetStackCount();
 		
@@ -876,44 +813,6 @@ void UInventoryGridWidget::CreateItemPopupMenu(const int32 GridIndex)
 	}
 }
 
-void UInventoryGridWidget::SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex)
-{
-	UpdateStackCountInSlot(GridIndex, HoveredStackCount);
-	HoverItem->UpdateStackCount(ClickedStackCount);
-}
-
-void UInventoryGridWidget::FillInStacksOrConsumeHover(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex)
-{
-	const int32 FillAmount = FMath::Min(HoveredStackCount, MaxStackCount - ClickedStackCount);
-	if (FillAmount == 0)
-		return;
-	
-	const int32 NewStackCount = ClickedStackCount + FillAmount;
-	const int32 Remainder = HoveredStackCount - FillAmount;
-
-	UpdateStackCountInSlot(GridIndex, NewStackCount);
-
-	if (Remainder == 0)
-	{
-		ClearHoverItem();
-		ShowDefaultCursor();
-
-		const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(GridSlots[GridIndex]->GetInventoryItem().Get());
-		const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
-		HighlightSlots(GridIndex, Dimensions);
-	}
-	else
-	{
-		HoverItem->UpdateStackCount(Remainder);
-	}
-}
-
-void UInventoryGridWidget::UpdateStackCountInSlot(const int32 GridIndex, const int32 NewStackCount)
-{
-	UInventorySlottedItemWidget* SlottedItem = SlottedItems.FindChecked(GridIndex);
-	SlottedItem->UpdateStackCount(NewStackCount);
-}
-
 void UInventoryGridWidget::SetOwningCanvas(UCanvasPanel* OwningCanvas)
 {
 	OwningCanvasPanel = OwningCanvas;
@@ -967,36 +866,69 @@ void UInventoryGridWidget::OnPopupMenuBuy(const int32 GridIndex)
 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index %d"), *GetInventoryItemId(RightClickedItem), UpperLeftIndex)
 
+	checkf(InventoryComponent.IsValid() && IsValid(InventoryComponent->GetOpenedStore()), TEXT("The Store should be opened first"))
+	
+	// Do some pre-checks to not call RPC if it fails anyway
+	
+	const int32 StackCount = GridSlots[UpperLeftIndex]->GetStackCount();
+	FInventorySlotAvailabilityResult Result;
+	if (!InventoryComponent->GetInventoryStorage()->HasRoomForItem(Result, RightClickedItem->GetItemManifest(), StackCount))
+	{
+		UE_LOG(LogInventory, Error, TEXT("There's not enough room in for the item [%s]"), *GetInventoryItemId(RightClickedItem))
+		return;
+	}
+
 	InventoryComponent->Server_BuyItem(RightClickedItem, UpperLeftIndex, GridSlots[UpperLeftIndex]->GetStackCount());
 }
 
 void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 {
 	check(GridSlots.IsValidIndex(GridIndex));
+	check(InventoryComponent.IsValid());
+	
 	UInventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
-	if( !IsValid(RightClickedItem))
+	if (!IsValid(RightClickedItem))
 		return;
 	const int32 UpperLeftIndex = GridSlots[GridIndex]->GetStartIndex();
 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index %d"), *GetInventoryItemId(RightClickedItem), UpperLeftIndex)
 
+	// Do some pre-checks to not call RPC if it fails anyway
+	
+	if (const auto* Store = InventoryComponent->GetOpenedStore())
+	{
+		const int32 StackCount = GridSlots[UpperLeftIndex]->GetStackCount();
+		FInventorySlotAvailabilityResult Result;
+		if (!Store->GetInventoryStorage()->HasRoomForItem(Result, RightClickedItem->GetItemManifest(), StackCount))
+		{
+			UE_LOG(LogInventory, Error, TEXT("There's not enough room in the store for the item [%s]"), *GetInventoryItemId(RightClickedItem))
+			return;
+		}
+	}
+	else
+	{
+		UE_LOG(LogInventory, Error, TEXT("Store is null"))
+		return;
+	}
+
 	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
 	InventoryComponent->Server_SellSelectedItem();
-	if (!GetOwningPlayer()->HasAuthority())
-	{
-		ClearHoverItem();//just in case ???
-	}
 }
 
 void UInventoryGridWidget::DropHoverItemOnGround()
 {
-	if (IsValid(HoverItem))
+	if (HasHoverItem())
 		InventoryComponent->Server_DropSelectedItemOff();
 }
 
 bool UInventoryGridWidget::HasHoverItem() const
 {
-	return IsValid(HoverItem);
+	return InventoryComponent->HasItemSelected();
+}
+
+UInventoryHoverItemWidget* UInventoryGridWidget::GetHoverItem() const
+{
+	return UInventoryStatics::GetHoverItem(GetOwningPlayer());
 }
 
 #if WITH_EDITOR
@@ -1016,10 +948,6 @@ void UInventoryGridWidget::ValidateCompiledDefaults(class IWidgetCompilerLog& Co
 	if (!SlottedItemClass)
 	{
 		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no SlottedItemClass specified.")));
-	}
-	if (!HoverItemClass)
-	{
-		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no HoverItemClass specified.")));
 	}
 	if (!ItemPopupMenuClass)
 	{

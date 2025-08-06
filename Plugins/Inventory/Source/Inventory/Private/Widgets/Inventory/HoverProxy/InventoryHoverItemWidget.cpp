@@ -7,6 +7,7 @@
 #include "Components/TextBlock.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
+#include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 
 void UInventoryHoverItemWidget::SetImageBrush(const FSlateBrush& Brush)
 {
@@ -56,6 +57,11 @@ void UInventoryHoverItemWidget::SetIsStackable(bool bStackable)
 void UInventoryHoverItemWidget::SetInventoryItem(UInventoryItem* Item)
 {
 	InventoryItem = Item;
+}
+
+UInventoryStorage* UInventoryHoverItemWidget::GetInventoryStorage() const
+{
+	return InventoryItem.IsValid() ? InventoryItem->GetOwningStorage() : nullptr;
 }
 
 void UInventoryHoverItemWidget::Reset()

@@ -70,6 +70,14 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	FTimerHandle TimerHandle_Description;
 	FTimerHandle TimerHandle_EquippedDescription;
 
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<class UInventoryHoverItemWidget> HoverItemClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryHoverItemWidget> HoverItem;
+
+	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+	
 public:
 
 	//~ Begin of UUserWidget interface
@@ -145,4 +153,10 @@ private:
 	UInventoryEquippedGridSlot* FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const;
 
 	FGameplayTag FindItemBestEquipType(const UInventoryItem* Item) const;
+
+	void ShowDefaultCursor() const;
+	void ClearHoverItem();
+	void HandleOnHoverItemReset();
+	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
+
 };

@@ -18,6 +18,7 @@
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
 
 #include "DebugHelper.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "InventoryManagement/Storage/InventoryStorage.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
@@ -34,13 +35,13 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	
 	ShowEquipmentGrid();
 
-	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
-	check(InventoryComponent);
-	WidgetTree->ForEachWidget([this, InventoryComponent](UWidget* Widget)
+	InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(InventoryComponent.IsValid());
+	WidgetTree->ForEachWidget([this, InventoryComp = InventoryComponent.Get()](UWidget* Widget)
 	{
 		if (auto EquipmentSlotWidget = Cast<UInventoryEquippedGridSlot>(Widget))
 		{
-			if (EquipmentSlotWidget->Bind(InventoryComponent, EquipmentSlotWidget->GetSlotId()))
+			if (EquipmentSlotWidget->Bind(InventoryComp, EquipmentSlotWidget->GetSlotId()))
 			{
 				EquippedGridSlots.Emplace(EquipmentSlotWidget);
 			    EquipmentSlotWidget->EquippedGridSlotClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedGridSlotClicked);
@@ -144,12 +145,12 @@ void UInventoryWidgetSpatial::OnInventoryUnhovered()
 
 bool UInventoryWidgetSpatial::HasHoverItem() const
 {
-	return ActiveGrid->HasHoverItem();
+	return IsValid(HoverItem);
 }
 
 UInventoryHoverItemWidget* UInventoryWidgetSpatial::GetHoverItem() const
 {
-	return ActiveGrid.IsValid() ? ActiveGrid->GetHoverItem() : nullptr;
+	return IsValid(HoverItem) ? ToRawPtr(HoverItem) : nullptr;
 }
 
 float UInventoryWidgetSpatial::GetTileSize() const
@@ -159,6 +160,19 @@ float UInventoryWidgetSpatial::GetTileSize() const
 
 void UInventoryWidgetSpatial::OnCloseMenu()
 {
+
+	if (InventoryComponent.IsValid())
+	{
+		if (InventoryComponent->OnHoverItemUpdated.IsBoundToObject(this))
+		{
+			InventoryComponent->OnHoverItemUpdated.RemoveAll(this);
+		}
+		if (InventoryComponent->OnHoverItemReset.IsBoundToObject(this))
+		{
+			InventoryComponent->OnHoverItemReset.RemoveAll(this);
+		}
+	}
+	
 	if (ActiveGrid.IsValid())
 	{
 		ActiveGrid->OnHide();
@@ -175,6 +189,18 @@ void UInventoryWidgetSpatial::OnOpenedMenu()
 			EquippedGridSlot->UpdateIfPending();
 		}
 	}, 0.1f, false);
+	
+	if (InventoryComponent.IsValid())
+	{
+		if (!InventoryComponent->OnHoverItemUpdated.IsBoundToObject(this))
+		{
+			InventoryComponent->OnHoverItemUpdated.AddUObject(this, &UInventoryWidgetSpatial::HandleOnHoverItemUpdated);
+		}
+		if (!InventoryComponent->OnHoverItemReset.IsBoundToObject(this))
+		{
+			InventoryComponent->OnHoverItemReset.AddUObject(this, &UInventoryWidgetSpatial::HandleOnHoverItemReset);
+		}
+	}
 }
 
 void UInventoryWidgetSpatial::ShowEquipmentGrid()
@@ -229,8 +255,7 @@ void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s]"), *GetInventoryItemId(Item));
 	
-	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
-	check(InventoryComponent != nullptr);
+	check(InventoryComponent.IsValid());
 
 	const FInventoryEquipmentSlot* EquipmentSlot = InventoryComponent->FindEquipmentSlotByEquippedItem(Item);
 
@@ -286,11 +311,8 @@ void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot
 	{
 		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
 
-		InventoryGrid_Equipment->ClearHoverItem();
-
 		// Inform the server that we've equipped an item (potentially unequipping an item as well)
-		UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
-		check(IsValid(InventoryComponent));
+		check(InventoryComponent.IsValid());
 
 		//InventoryComponent->EquipItem(ItemToEquip, nullptr, GridSlot->GetSlotId());
 		InventoryComponent->Server_EquipSelectedItem(GridSlot->GetSlotId());
@@ -302,7 +324,6 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 	// Remove the Item Description
 	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
 
-	const auto HoverItem = GetHoverItem();
 	if (IsValid(HoverItem) && HoverItem->IsStackable())
 		return;
 
@@ -311,11 +332,11 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("ItemToEquip [%s]; ItemToUnequip [%s]"), *GetInventoryItemId(ItemToEquip), *GetInventoryItemId(ItemToUnequip));
 
-	// To avoid putting the hover item back to the inventory
-	ActiveGrid->ClearHoverItem();
-
-	// The equipment grid should be active to be able to put the item to the inventory, otherwise it will be lost
-	ShowEquipmentGrid();
+	if (ActiveGrid != InventoryGrid_Equipment)
+	{
+		// The equipment grid should be active to be able to put the item to the inventory, otherwise it will be lost
+		ShowEquipmentGrid();
+	}
 
 	// Get the Equipped Grid Slot holding this item
 	UInventoryEquippedGridSlot* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
@@ -390,7 +411,6 @@ bool UInventoryWidgetSpatial::CanEquipHoverItem(const UInventoryEquippedGridSlot
 	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid())
 		return false;
 
-	const UInventoryHoverItemWidget* HoverItem = GetHoverItem();
 	if (!IsValid(HoverItem))
 		return false;
 
@@ -443,7 +463,7 @@ void UInventoryWidgetSpatial::MakeEquippedSlottedItem(const UInventoryEquippedSl
 
 void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId) const
 {
-	if (const auto InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
+	if (InventoryComponent.IsValid())
 	{
 		InventoryComponent->Server_SelectItemInSlot(SlotId);
 	}
@@ -494,5 +514,86 @@ void UInventoryWidgetSpatial::ValidateCompiledDefaults(class IWidgetCompilerLog&
 	{
 		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no EquippedItemDescription specified.")));
 	}
+	if (!HoverItemClass)
+	{
+		CompileLog.Error(FText::FromString(GetName() + TEXT(" has no HoverItemClass specified.")));
+	}
 }
 #endif//WITH_EDITOR
+
+void UInventoryWidgetSpatial::HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex)
+{
+	LOG_NETFUNCTIONCALL
+	
+	const auto GridFragment = UInventoryWidgetUtils::GetGridFragmentFromInventoryItem(Item);
+	if (GridFragment == nullptr)
+		return;
+	const auto ImageFragment = UInventoryWidgetUtils::GetImageFragmentFromInventoryItem(Item);
+	if (ImageFragment == nullptr)
+		return;
+
+	if(!IsValid(HoverItem))
+	{
+		HoverItem = CreateWidget<UInventoryHoverItemWidget>(GetOwningPlayer(), HoverItemClass);
+	}
+
+	const FVector2D DrawSize = UInventoryWidgetUtils::GetDrawSize(*GridFragment, GetTileSize()) * UWidgetLayoutLibrary::GetViewportScale(this);;
+
+	ImageFragment->GetIcon().LoadAsync(FLoadSoftObjectPathAsyncDelegate::CreateLambda([DrawSize, this](const FSoftObjectPath& SoftPath, UObject* LoadedObject)
+	{
+		if (!IsValid(LoadedObject))
+		{
+			UE_LOG(LogInventory, Error, TEXT("Loading failed: [%s]"), *SoftPath.ToString());
+			return;
+		}
+		if (!IsValid(HoverItem))
+			return; // it's too late, the hover item is destroyed. It happens when we drop item using Drop button in the menu
+		FSlateBrush ImageBrush;
+		ImageBrush.SetResourceObject(LoadedObject);
+		ImageBrush.DrawAs = ESlateBrushDrawType::Image;
+		ImageBrush.ImageSize = DrawSize;
+		HoverItem->SetImageBrush(ImageBrush);
+	}));
+
+	HoverItem->SetImageBrush(UInventoryWidgetUtils::GetTempBrush());
+	HoverItem->SetGridDimensions(GridFragment->GetGridSize());
+	HoverItem->SetInventoryItem(Item);
+	HoverItem->SetIsStackable(Item->IsStackable());
+
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
+
+	HoverItem->UpdateStackCount(StackCount);
+
+	if (PreviousIndex != INDEX_NONE)
+	{
+		HoverItem->SetPreviousGridIndex(PreviousIndex);
+	}
+	
+}
+
+void UInventoryWidgetSpatial::ShowDefaultCursor() const
+{
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, nullptr);
+}
+
+void UInventoryWidgetSpatial::HandleOnHoverItemReset()
+{
+	if (!IsVisible())
+		return;
+	
+	LOG_NETFUNCTIONCALL
+	
+	ClearHoverItem();
+}
+
+void UInventoryWidgetSpatial::ClearHoverItem()
+{
+	if (IsValid(HoverItem))
+	{
+		HoverItem->Reset();
+		HoverItem->RemoveFromParent();
+		HoverItem = nullptr;
+	}
+
+	ShowDefaultCursor();
+}

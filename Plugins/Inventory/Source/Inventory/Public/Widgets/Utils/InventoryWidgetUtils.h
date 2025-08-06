@@ -43,5 +43,6 @@ public:
 	}
 
 	static INVENTORY_API FVector2D GetItemDrawSize(const UInventoryItem* Item, const float TileSize);
-
+	
+	static INVENTORY_API FSlateBrush GetTempBrush();
 };

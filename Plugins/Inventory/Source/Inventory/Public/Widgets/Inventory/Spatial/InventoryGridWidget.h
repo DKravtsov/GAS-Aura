@@ -9,6 +9,7 @@
 #include "InventoryGridWidget.generated.h"
 
 
+class UInventoryHoverItemWidget;
 class UInventoryStoreComponent;
 struct FInventoryItemManifest;
 class UInventoryGridSlotWidget;
@@ -34,9 +35,6 @@ class UInventoryGridWidget : public UUserWidget
 	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryHoverItemWidget> HoverItemClass;
-
-	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventoryItemPopup> ItemPopupMenuClass;
 
 	int32 Rows = 0;
@@ -54,9 +52,6 @@ class UInventoryGridWidget : public UUserWidget
 
 	UPROPERTY(Transient)
 	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UInventoryHoverItemWidget> HoverItem;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
@@ -114,8 +109,7 @@ public:
 	void DropHoverItemOnGround();
 
 	bool HasHoverItem() const;
-	UInventoryHoverItemWidget* GetHoverItem() const {return HoverItem;}
-	void ClearHoverItem();
+	UInventoryHoverItemWidget* GetHoverItem() const;
 
 	void OnHide();
 
@@ -123,9 +117,6 @@ public:
 	void HandleOnStackChanged(const FInventorySlotAvailabilityResult& Result);
 	void HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
 	void HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
-
-	void HandleOnHoverItemReset();
-	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
 
 	int32 GetNumGridSlots() const {return GridSlots.Num();}
 
@@ -156,7 +147,6 @@ private:
 
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void PutDownItemInInventoryAtIndex(const int32 GridIndex);
-	void ShowDefaultCursor() const;
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
 	void OnTileParametersUpdated(const FInventoryTileParameters& Parameters);
@@ -167,10 +157,6 @@ private:
 
 	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
 	void SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex);
-	void SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex);
-	void FillInStacksOrConsumeHover(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex);
-	
-	void UpdateStackCountInSlot(int32 GridIndex, int32 NewStackCount);
 
 	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
@@ -197,8 +183,6 @@ private:
 	void OnPopupMenuDrop(const int32 GridIndex);
 	void OnPopupMenuBuy(const int32 GridIndex);
 	void OnPopupMenuSell(const int32 GridIndex);
-
-	static FSlateBrush GetTempBrush();
 
 	void PutHoverItemDown();
 

@@ -9,6 +9,7 @@
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryEquipmentSlotFastArray.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "InventoryComponent.generated.h"
 
 class UInventoryStoreComponent;
@@ -150,7 +151,7 @@ public:
 	INVENTORY_API void OpenStoreMenu(UInventoryStoreComponent* Store);
 	INVENTORY_API void CloseStoreMenu();
 
-	bool HasHoverItem() const {return HoverItemProxy.IsSet();}
+	bool HasItemSelected() const {return HoverItemProxy.IsSet();}
 
 	TArray<FInventoryEquipmentSlot> GetEquipmentSlotsCopy() const {return EquipmentSlots.GetAllItems();}
 
@@ -218,13 +219,15 @@ public:
 	void Server_SellSelectedItem();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount);
+	void Server_SellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex = INDEX_NONE);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount);
+	void Server_BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 TargetGridIndex = INDEX_NONE);
 
 	// returns the number of coins
 	int32 GetWealth() const;
+
+	UInventoryStoreComponent* GetOpenedStore() const;
 
 protected:
 	virtual void CreateInventoryStorage() override;
@@ -302,11 +305,12 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_NotifyStoreMenuClosed();
 	
-	UInventoryStoreComponent* GetOpenedStore() const;
-
 	UFUNCTION(Client, Reliable)
 	void Client_ReceiveSellItemResult(bool bSuccess, const FString& ErrorMessage);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivePurchaseItemResult(bool bSuccess, const FString& ErrorMessage);
+
+	void DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue);
+	void DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue);
 };

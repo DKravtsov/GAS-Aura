@@ -93,7 +93,7 @@ void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 	}
 }
 
-class UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
+UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
 {
 	const UInventoryWidgetBase* InventoryMenu = GetInventoryWidget(PlayerController);
 	return InventoryMenu ? InventoryMenu->GetHoverItem() : nullptr;
