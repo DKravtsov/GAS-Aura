@@ -216,9 +216,6 @@ public:
 	void Server_SwapSelectedWitItem(UInventoryItem* ItemOnGrid, int32 GridIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SellSelectedItem();
-
-	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex = INDEX_NONE);
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -267,10 +264,6 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_RequestStartupEquipment();
-
-	void ExchangeItemsWithOtherInventory(UInventoryComponent* OtherInventory,
-		const FInventoryItemManifest& ItemManifestA, int32 StackCountA,
-		const FInventoryItemManifest& ItemManifestB, int32 StackCountB);
 
 private:
 	void SetOwnerInternal();

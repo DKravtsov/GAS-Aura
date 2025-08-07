@@ -1132,40 +1132,6 @@ void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInvent
 	NotifyHoverItemUpdated();
 }
 
-void UInventoryComponent::Server_SellSelectedItem_Implementation()
-{
-	UInventoryItem* Item = HasItemSelected()? HoverItemProxy->InventoryItem.Get() : nullptr;
-	
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Selling item [%s]"), *GetInventoryItemId(Item))
-	
-	if (!IsValid(Item))
-	{
-		UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell NULL item."))
-		Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
-		return;
-	}
-	
-	if (UInventoryStoreComponent* Store = GetOpenedStore())
-	{
-		const int32 StackCount = HoverItemProxy->StackCount;
-		int32 SellValue = Store->GetSellValue(Item, StackCount);
-		if (!Store->HasEnoughCoins(SellValue))
-		{
-			UE_LOG(LogInventory, Error, TEXT("Server: Trying to sell item [%s]%s with value %d, but there is not enough coins in the store."),
-				*GetInventoryItemId(Item), (StackCount > 1 ? *FString::Printf(TEXT(" (x%d)"), StackCount) : TEXT("")),  SellValue)
-			Server_PutSelectedItemToStorageAtIndex(HoverItemProxy->PreviousIndex);
-			return;
-		}
-		ClearSelectedItem();
-		DoSellItem(Item, INDEX_NONE, StackCount, SellValue);
-	}
-}
-
-bool UInventoryComponent::Server_SellSelectedItem_Validate()
-{
-	return true;
-}
-
 void UInventoryComponent::DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue, FInventorySlotAvailabilityResult* OutResult)
 {
 	checkf(HasAuthority(), TEXT("DoSellItem should only be called on the server"));
@@ -1242,31 +1208,6 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryItem* ItemToS
 bool UInventoryComponent::Server_SellItem_Validate(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
 {
 	return true;
-}
-
-void UInventoryComponent::ExchangeItemsWithOtherInventory(UInventoryComponent* OtherInventory,
-	const FInventoryItemManifest& ItemManifestA, int32 StackCountA, const FInventoryItemManifest& ItemManifestB, int32 StackCountB)
-{
-	unimplemented();
-	
-	// Remove ItemA from this inventory?
-	
-	// Remove ItemB from OtherInventory
-	UInventoryItem* ItemB = OtherInventory->InventoryList.FindFirstItemByType(ItemManifestB.GetItemType());
-	if (ItemB == nullptr)
-	{
-		const AActor* OtherInventoryOwner = nullptr;
-		UE_LOG(LogInventory, Error, TEXT("Item [%s] not found in inventory %s"), *ItemManifestB.GetItemType().ToString(),
-			*DebugHelper::GetCallerPathAndOwner(OtherInventory, OtherInventoryOwner, nullptr))
-		return;
-	}
-	OtherInventory->RemoveItemFromInventory(ItemB, StackCountB);
-	
-	// Add ItemB to this inventory
-	TryAddItem(ItemManifestB, StackCountB);
-	
-	// Add ItemA to OtherInventory
-	OtherInventory->TryAddItem(ItemManifestA, StackCountA);
 }
 
 int32 UInventoryComponent::GetWealth() const
