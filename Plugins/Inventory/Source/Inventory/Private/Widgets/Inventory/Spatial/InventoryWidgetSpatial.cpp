@@ -16,10 +16,15 @@
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 #include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 #include "DebugHelper.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
-#include "InventoryManagement/Storage/InventoryStorage.h"
+
+namespace InventoryTags
+{
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_Error_CannotEquip, "Inventory.Error.CannotEquip", "Cannot equip the item")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_Error_CannotDropItem, "Inventory.Error.CannotDropItem", "Cannot drop the item (most likely because it doesn't belong to the player)")
+}
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
 {
@@ -67,9 +72,20 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 
 FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	if (ActiveGrid.IsValid())
+	if (HasHoverItem())
 	{
-		ActiveGrid->DropHoverItemOnGround();
+		if (IsHoverItemOwnedByPlayer())
+		{
+			InventoryComponent->Server_DropSelectedItemOff();
+		}
+		else if (HoverItem->GetPreviousGridIndex() != INDEX_NONE)
+		{
+			InventoryComponent->Server_PutSelectedItemToStorageAtIndex(HoverItem->GetPreviousGridIndex());
+		}
+		else
+		{
+			InventoryComponent->Server_PutSelectedItemToStorage();
+		}
 	}
 	return FReply::Handled();
 }
@@ -301,47 +317,63 @@ void UInventoryWidgetSpatial::EquipmentSlotClicked(UInventoryEquipmentSlotWidget
 		GetHoverItem() ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
 
 	// Check to see if we can equip the Hover Item
-	if (!CanEquipHoverItem(GridSlot, EquipmentTypeTag))
+	if (!CanEquipHoverItem(GridSlot, EquipmentTypeTag) || GridSlot->GetInventoryItem().IsValid())
+	{
+		UE_LOG(LogInventory, Warning, TEXT("Cannot equip item"))
+		BROADCAST_WITH_LOG(OnInventoryInteractionError, InventoryTags::Inventory_Error_CannotEquip)
 		return;
+	}
 
 	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
 	const float TileSize = GetTileSize();
 	UInventoryItem* ItemToEquip = GetHoverItem()->GetInventoryItem();
+	check(ItemToEquip);
+	check(InventoryComponent.IsValid());
+
 	if (UInventoryEquippedSlottedItemWidget* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentTypeTag, TileSize))
 	{
 		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
 
-		// Inform the server that we've equipped an item (potentially unequipping an item as well)
-		check(InventoryComponent.IsValid());
-
-		//InventoryComponent->EquipItem(ItemToEquip, nullptr, GridSlot->GetSlotId());
 		InventoryComponent->Server_EquipSelectedItem(GridSlot->GetSlotId());
 	}
 }
 
 void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem)
 {
+	check(IsValid(EquippedSlottedItem));
+	
 	// Remove the Item Description
 	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
 
 	if (IsValid(HoverItem) && HoverItem->IsStackable())
+	{
+		UE_LOG(LogInventory, Warning, TEXT("Cannot equip stackable item"))
+		BROADCAST_WITH_LOG(OnInventoryInteractionError, InventoryTags::Inventory_Error_CannotEquip)
 		return;
+	}
 
-	UInventoryItem* ItemToEquip = IsValid(HoverItem) ? HoverItem->GetInventoryItem() : nullptr;
+	UInventoryItem* ItemToEquip = HoverItem ? HoverItem->GetInventoryItem() : nullptr;
 	UInventoryItem* ItemToUnequip = EquippedSlottedItem->GetInventoryItem();
 
 	LOG_NETFUNCTIONCALL_MSG(TEXT("ItemToEquip [%s]; ItemToUnequip [%s]"), *GetInventoryItemId(ItemToEquip), *GetInventoryItemId(ItemToUnequip));
 
+	// Get the Equipped Grid Slot holding this item
+	UInventoryEquipmentSlotWidget* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
+	checkf(EquippedGridSlot != nullptr, TEXT("EquippedGridSlot must exist if there is EquippedSlottedItem"));
+
+	if (HoverItem && !CanEquipHoverItem(EquippedGridSlot, EquippedSlottedItem->GetEquipmentTypeTag()))
+	{
+		UE_LOG(LogInventory, Warning, TEXT("Cannot equip item"))
+		BROADCAST_WITH_LOG(OnInventoryInteractionError, InventoryTags::Inventory_Error_CannotEquip)
+		return;
+	}
+		
 	if (ActiveGrid != InventoryGrid_Equipment)
 	{
 		// The equipment grid should be active to be able to put the item to the inventory, otherwise it will be lost
 		ShowEquipmentGrid();
 	}
 
-	// Get the Equipped Grid Slot holding this item
-	UInventoryEquipmentSlotWidget* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
-	checkf(EquippedGridSlot != nullptr, TEXT("EquippedGridSlot must exist if there is EquippedSlottedItem"));
-	
 	// Clear the equipped grid slot of this item (set its inventory item to nullptr)
 	ClearSlotOfItem(EquippedGridSlot);
 
@@ -408,13 +440,16 @@ UInventoryItemDescription* UInventoryWidgetSpatial::GetOrCreateEquippedItemDescr
 
 bool UInventoryWidgetSpatial::CanEquipHoverItem(const UInventoryEquipmentSlotWidget* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const
 {
-	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid())
+	if (!IsValid(EquippedGridSlot))
 		return false;
 
 	if (!IsValid(HoverItem))
 		return false;
 
 	const UInventoryItem* HeldItem = HoverItem->GetInventoryItem();
+	if (HeldItem->GetOwningStorage() != InventoryComponent->GetInventoryStorage())
+		return false;
+	
 	return UInventoryStatics::CanEquipItem(HeldItem, EquipmentTypeTag);
 }
 
@@ -520,6 +555,11 @@ void UInventoryWidgetSpatial::ValidateCompiledDefaults(class IWidgetCompilerLog&
 	}
 }
 #endif//WITH_EDITOR
+
+bool UInventoryWidgetSpatial::IsHoverItemOwnedByPlayer() const
+{
+	return HoverItem && HoverItem->GetInventoryStorage() == InventoryComponent->GetInventoryStorage();
+}
 
 void UInventoryWidgetSpatial::HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex)
 {

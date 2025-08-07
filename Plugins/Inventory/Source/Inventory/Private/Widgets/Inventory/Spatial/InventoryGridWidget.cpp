@@ -711,6 +711,9 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 		return;
 	}
 
+	if (!IsLeftMouseButtonClick(MouseEvent))
+		return;
+
 	// Do the hovered item and the clicked inventory item share a type, and are they stackable?
 	if (IsHoverItemSameStackableAs(ClickedInventoryItem))
 	{
@@ -722,12 +725,10 @@ void UInventoryGridWidget::OnSlottedItemClicked(int32 GridIndex, const FPointerE
 		if (ClickedStackCount == MaxStackSize && HoveredStackCount < MaxStackSize)
 		{
 			InventoryComponent->Server_SwapStackCountWithHoverItem(ClickedInventoryItem, GridIndex);
-//			SwapStackCountsWithHoverItem(ClickedStackCount, HoveredStackCount, GridIndex);
 			return;
 		}
 
 		InventoryComponent->Server_FillInStacksOrConsumeHover(ClickedInventoryItem, GridIndex);
-//		FillInStacksOrConsumeHover(ClickedStackCount, HoveredStackCount, MaxStackSize, GridIndex);
 		return;
 	}
 
@@ -914,12 +915,6 @@ void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 	InventoryComponent->Server_SellItem(RightClickedItem, UpperLeftIndex, GridSlots[UpperLeftIndex]->GetStackCount());
 }
 
-void UInventoryGridWidget::DropHoverItemOnGround()
-{
-	if (HasHoverItem())
-		InventoryComponent->Server_DropSelectedItemOff();
-}
-
 bool UInventoryGridWidget::HasHoverItem() const
 {
 	return InventoryComponent->HasItemSelected();
@@ -927,7 +922,7 @@ bool UInventoryGridWidget::HasHoverItem() const
 
 UInventoryHoverItemWidget* UInventoryGridWidget::GetHoverItem() const
 {
-	return UInventoryStatics::GetHoverItem(GetOwningPlayer());
+	return UInventoryStatics::GetHoverItemWidget(GetOwningPlayer());
 }
 
 #if WITH_EDITOR

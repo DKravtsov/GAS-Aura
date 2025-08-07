@@ -126,7 +126,10 @@ public:
 	static void ItemUnhovered(APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory", BlueprintCosmetic)
-	static UInventoryHoverItemWidget* GetHoverItem(const APlayerController* PlayerController);
+	static UInventoryHoverItemWidget* GetHoverItemWidget(const APlayerController* PlayerController);
+
+	UFUNCTION(BlueprintPure, Category = "Inventory", BlueprintCosmetic)
+	static bool IsHoverItemOwnedByPlayer(const APlayerController* PlayerController);
 
 	// Returns widget of opened inventory menu (or Store menu)
 	UFUNCTION(BlueprintPure, Category = "Inventory", BlueprintCosmetic)

@@ -36,7 +36,10 @@ void UInventoryEquipmentSlotWidget::NativeOnMouseEnter(const FGeometry& InGeomet
 
 	if (!IsAvailable() || IsValid(EquippedSlottedItem))
 		return;
-	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
+	if (!UInventoryStatics::IsHoverItemOwnedByPlayer(GetOwningPlayer()))
+		return;
+	
+	if (const auto HoverItem = UInventoryStatics::GetHoverItemWidget(GetOwningPlayer()))
 	{
 		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(GetEquipmentTypeTag())) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
 		{
@@ -52,7 +55,7 @@ void UInventoryEquipmentSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMo
 	
 	if (!IsAvailable() || IsValid(EquippedSlottedItem))
 		return;
-	if (const auto HoverItem = UInventoryStatics::GetHoverItem(GetOwningPlayer()))
+	if (const auto HoverItem = UInventoryStatics::GetHoverItemWidget(GetOwningPlayer()))
 	{
 		if (HoverItem->GetItemEquipmentTypeTag().MatchesTag(GetEquipmentTypeTag())) // partially match, e.g. "Item.Equipment.Sword" matches "Item.Equipment" 
 		{
@@ -64,6 +67,9 @@ void UInventoryEquipmentSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMo
 
 FReply UInventoryEquipmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+		return FReply::Unhandled();
+	
 	BROADCAST_WITH_LOG(EquipmentSlotClicked, this, GetEquipmentTypeTag());
 	return FReply::Handled();
 }

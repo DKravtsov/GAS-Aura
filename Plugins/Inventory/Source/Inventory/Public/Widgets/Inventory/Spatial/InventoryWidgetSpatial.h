@@ -12,11 +12,18 @@ class UWidgetSwitcher;
 class UInventoryGridWidget;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryGridWidgetSwitchedSignature, UInventoryGridWidget*);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryCommonNotifySignature, FGameplayTag, ErrorTag);
 
 UCLASS(MinimalAPI, Abstract)
 class UInventoryWidgetSpatial : public UInventoryWidgetBase
 {
 	GENERATED_BODY()
+
+public:
+
+	FInventoryCommonNotifySignature OnInventoryInteractionError;
+
+private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<class UInventoryItemDescription> ItemDescriptionClass;
@@ -102,6 +109,8 @@ public:
 	//~ End UWidget Interface
 
 	FInventoryGridWidgetSwitchedSignature& GetOnGridWidgetSwitchedDelegate() {return OnActiveGridSwitched;}
+
+	bool IsHoverItemOwnedByPlayer() const;
 
 protected:
 	UCanvasPanel* GetCanvasPanel() const {return CanvasPanel;}

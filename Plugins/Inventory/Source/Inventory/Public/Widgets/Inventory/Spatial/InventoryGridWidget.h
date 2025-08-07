@@ -106,8 +106,6 @@ public:
 
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
 
-	void DropHoverItemOnGround();
-
 	bool HasHoverItem() const;
 	UInventoryHoverItemWidget* GetHoverItem() const;
 
