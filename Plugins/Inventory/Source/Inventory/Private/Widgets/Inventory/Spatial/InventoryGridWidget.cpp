@@ -559,13 +559,13 @@ void UInventoryGridWidget::PutDownItemInInventoryAtIndex(const int32 GridIndex)
 		{
 			// Selling
 
-			InventoryComponent->Server_SellItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount());
+			InventoryComponent->Server_SellItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount(), GridIndex);
 		}
 		else
 		{
 			// Purchasing
 
-			InventoryComponent->Server_BuyItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount());
+			InventoryComponent->Server_BuyItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount(), GridIndex);
 		}
 	}
 }
@@ -911,8 +911,7 @@ void UInventoryGridWidget::OnPopupMenuSell(const int32 GridIndex)
 		return;
 	}
 
-	PickUpItemInInventory(RightClickedItem, UpperLeftIndex);
-	InventoryComponent->Server_SellSelectedItem();
+	InventoryComponent->Server_SellItem(RightClickedItem, UpperLeftIndex, GridSlots[UpperLeftIndex]->GetStackCount());
 }
 
 void UInventoryGridWidget::DropHoverItemOnGround()

@@ -97,6 +97,8 @@ public:
 
 	bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const;
 
+	void MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex);
+
 private:
 	void ConstructGrid();
 	void InitOwner();

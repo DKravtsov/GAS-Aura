@@ -49,7 +49,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// returns a newly created item or null if the item already in the inventory or failed
-	UInventoryItem* TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	bool TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount,
+	                FInventorySlotAvailabilityResult* OutResult = nullptr);
 	
 	bool RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount);
 
@@ -70,7 +71,7 @@ protected:
 	FORCEINLINE bool HasAuthority() const {return GetOwner()->HasAuthority();}
 
 	UInventoryItem* AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
-	void AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	UInventoryItem* AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	bool FindItemStacks(UInventoryItem* Item, int32 TotalCount, FInventorySlotAvailabilityResult& Result) const;
 

@@ -600,8 +600,10 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 			const EInventoryEquipmentSlot EquipSlotId = Item.bShouldEquip ?
 				GetValidEquipSlotId(Item.EquipmentSlot, ItemData->GetItemManifest()) : EInventoryEquipmentSlot::Invalid;
 
-			if (auto NewItem = TryAddItem(ItemData->GetItemManifest(), StackCount))
+			FInventorySlotAvailabilityResult Result;
+			if (TryAddItem(ItemData->GetItemManifest(), StackCount, &Result))
 			{
+				UInventoryItem* NewItem = Result.Item.Get();
 				if (EquipSlotId != EInventoryEquipmentSlot::Invalid)
 				{
 					if (GetEquipmentSlot(EquipSlotId))
@@ -1164,7 +1166,7 @@ bool UInventoryComponent::Server_SellSelectedItem_Validate()
 	return true;
 }
 
-void UInventoryComponent::DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue)
+void UInventoryComponent::DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue, FInventorySlotAvailabilityResult* OutResult)
 {
 	checkf(HasAuthority(), TEXT("DoSellItem should only be called on the server"));
 
@@ -1187,8 +1189,8 @@ void UInventoryComponent::DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex
 
 		Store->RemoveCoins(SellValue);
 	}
-	
-	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount);
+
+	Store->TryAddItem(ItemToSell->GetItemManifest(), StackCount, OutResult);
 
 	Client_ReceiveSellItemResult(true, TEXT("Success"));
 }
@@ -1229,7 +1231,12 @@ void UInventoryComponent::Server_SellItem_Implementation(UInventoryItem* ItemToS
 		ClearSelectedItem();
 	}
 
-	DoSellItem(ItemToSell, GridIndex, StackCount, SellValue);
+	FInventorySlotAvailabilityResult Result;
+	DoSellItem(ItemToSell, GridIndex, StackCount, SellValue, &Result);
+	if (const int32 AddedIndex = Result.GetFirstAvailableIndex(); AddedIndex != TargetGridIndex && TargetGridIndex != INDEX_NONE)
+	{
+		Store->GetInventoryStorage()->MoveItem(Result.Item.Get(), AddedIndex, TargetGridIndex);
+	}
 }
 
 bool UInventoryComponent::Server_SellItem_Validate(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
@@ -1399,7 +1406,12 @@ void UInventoryComponent::Server_BuyItem_Implementation(UInventoryItem* ItemToBu
 		return;
 	}
 
-	DoPurchaseItem(ItemToBuy, GridIndex, StackCount, Price);
+	FInventorySlotAvailabilityResult Result;
+	DoPurchaseItem(ItemToBuy, GridIndex, StackCount, Price, &Result);
+	if (const int32 SourceIndex = Result.GetFirstAvailableIndex(); SourceIndex != TargetGridIndex && TargetGridIndex != INDEX_NONE)
+	{
+		InventoryStorage->MoveItem(Result.Item.Get(), SourceIndex, TargetGridIndex);
+	}
 }
 
 bool UInventoryComponent::Server_BuyItem_Validate(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 TargetGridIndex)
@@ -1407,7 +1419,7 @@ bool UInventoryComponent::Server_BuyItem_Validate(UInventoryItem* ItemToBuy, int
 	return true;
 }
 
-void UInventoryComponent::DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue)
+void UInventoryComponent::DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue, FInventorySlotAvailabilityResult* OutResult)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], index %d, stack count [%d]"), *GetInventoryItemId(ItemToBuy), GridIndex, StackCount)
 	checkf(HasAuthority(), TEXT("DoPurchaseItem should only be called on the server"));
@@ -1435,8 +1447,33 @@ void UInventoryComponent::DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIn
 	{
 		ClearSelectedItem();
 	}
-	
-	TryAddItem(ItemToBuy->GetItemManifest(), StackCount);
+
+	TryAddItem(ItemToBuy->GetItemManifest(), StackCount, OutResult);
 
 	Client_ReceivePurchaseItemResult(true, TEXT("Success"));
+}
+
+void UInventoryComponent::Server_MoveItem_Implementation(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index %d -> %d"), *GetInventoryItemId(Item), SourceGridIndex, TargetGridIndex)
+
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select NULL item."))
+		return;
+	}
+
+	UInventoryStorage* Storage = Item->GetOwningStorage();
+	if (!IsValid(Storage))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select item [%s] from invalid storage"), *GetInventoryItemId(Item))
+		return;
+	}
+
+	Storage->MoveItem(Item, SourceGridIndex, TargetGridIndex);
+}
+
+bool UInventoryComponent::Server_MoveItem_Validate(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex)
+{
+	return true;
 }

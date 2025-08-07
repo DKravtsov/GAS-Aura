@@ -248,3 +248,11 @@ bool UInventorySpatialStorage::FindItemStacks(FInventorySlotAvailabilityResult& 
 	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found: %s"), *Item->GetItemManifest().GetItemCategory().ToString());
 	return false;
 }
+
+void UInventorySpatialStorage::MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex)
+{
+	check(IsValid(Item) && Item->GetOwningStorage() == this)
+	const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+	check(Grid);
+	Grid->MoveItem(Item, SourceGridIndex, TargetGridIndex);
+}

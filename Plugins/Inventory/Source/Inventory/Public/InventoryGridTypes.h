@@ -67,6 +67,11 @@ public:
 	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex, bool bStackable, int32 StackCount);
 
 	FInventorySlotAvailabilityResult& Union(const FInventorySlotAvailabilityResult& OtherResult);
+
+	FORCEINLINE int32 GetFirstAvailableIndex() const
+	{
+		return SlotAvailabilities.Num() > 0 ? SlotAvailabilities[0].Index : INDEX_NONE;
+	}
 };
 
 UENUM(BlueprintType)

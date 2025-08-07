@@ -69,7 +69,8 @@ void UInventoryManagementComponentBase::CreateInventoryStorage()
 	InventoryStorage->SetupStorage(SetupData);
 }
 
-UInventoryItem* UInventoryManagementComponentBase::TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+bool UInventoryManagementComponentBase::TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount,
+                                                   FInventorySlotAvailabilityResult* OutResult)
 {
 	LOG_NETFUNCTIONCALL
 	
@@ -80,7 +81,7 @@ UInventoryItem* UInventoryManagementComponentBase::TryAddItem(const FInventoryIt
 	{
 		UE_LOG(LogInventory, Error, TEXT("Adding startup item [%s]: inventory has no room for %d items."),
 			*ItemManifest.GetItemType().ToString(), StackCount);
-		return nullptr;
+		return false;
 	}
 	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
 	Result.Item = FoundItem;
@@ -95,14 +96,16 @@ UInventoryItem* UInventoryManagementComponentBase::TryAddItem(const FInventoryIt
 	{
 		BROADCAST_WITH_LOG(OnStackChanged, Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		AddStacksToItem(ItemManifest, Result.TotalRoomToFill);
+		Result.Item = AddStacksToItem(ItemManifest, Result.TotalRoomToFill);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		return AddNewItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1);
+		Result.Item = AddNewItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1);
 	}
-	return nullptr;
+	if (OutResult)
+		*OutResult = Result;
+	return Result.TotalRoomToFill > 0;
 }
 
 bool UInventoryManagementComponentBase::RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount)
@@ -217,7 +220,7 @@ UInventoryItem* UInventoryManagementComponentBase::AddNewItem(const FInventoryIt
 	return NewItem;
 }
 
-void UInventoryManagementComponentBase::AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
+UInventoryItem* UInventoryManagementComponentBase::AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
 	LOG_NETFUNCTIONCALL
 	
@@ -227,7 +230,9 @@ void UInventoryManagementComponentBase::AddStacksToItem(const FInventoryItemMani
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
+		return Item;
 	}
+	return nullptr;
 }
 
 bool UInventoryManagementComponentBase::FindItemStacks(UInventoryItem* Item, int32 TotalCount, FInventorySlotAvailabilityResult& Result) const

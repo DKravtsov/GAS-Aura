@@ -48,7 +48,7 @@ public:
 
 	virtual void SetupStorage(const FInventoryStorageSetupData* SetupData) {}
 
-	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;};
+	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;}
 	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) {return 0;};
 	virtual void SetItemStackCount(UInventoryItem* Item, int32 GridIndex, int32 NewStackCount) {}
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}
@@ -61,6 +61,8 @@ public:
 	//#endif//UE_WITH_CHEAT_MANAGER
 
 	virtual bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const { unimplemented(); return false;}
+
+	virtual void MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex) {}
 
 protected:
 

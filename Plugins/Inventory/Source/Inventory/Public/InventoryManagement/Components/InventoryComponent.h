@@ -224,6 +224,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 TargetGridIndex = INDEX_NONE);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex);
+	
 	// returns the number of coins
 	int32 GetWealth() const;
 
@@ -311,6 +314,6 @@ private:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivePurchaseItemResult(bool bSuccess, const FString& ErrorMessage);
 
-	void DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue);
-	void DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue);
+	void DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue, FInventorySlotAvailabilityResult* OutResult = nullptr);
+	void DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue, FInventorySlotAvailabilityResult* OutResult = nullptr);
 };

@@ -526,3 +526,25 @@ bool UInventoryStorageGrid::FindItemStacks(FInventorySlotAvailabilityResult& Res
 	}
 	return Result.Remainder <= 0;
 }
+
+void UInventoryStorageGrid::MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex)
+{
+	if (!MatchesCategory(Item))
+		return;
+    
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Moving item: [%s] %d ->%d"), *GetInventoryItemId(Item), SourceGridIndex,TargetGridIndex)
+
+	const int32 SourceStackCount = GridSlots.GetStackCount(SourceGridIndex);
+	FInventorySlotAvailabilityResult Result = HasRoomForItemAtIndex(Item->GetItemManifest(), TargetGridIndex, SourceStackCount);
+	Result.Item = Item;
+	if (Result.TotalRoomToFill == 0)
+	{
+		UE_LOG(LogInventory, Error, TEXT("No room to move item: [%s] %d ->%d"), *GetInventoryItemId(Item), SourceGridIndex,TargetGridIndex)
+		return;
+	}
+    
+	RemoveItemFromGrid(Item, SourceGridIndex);
+
+	//AddItemToIndexes(Result, Item); // This ?
+	HandleStackChanged(Result);          // Or this ?
+}

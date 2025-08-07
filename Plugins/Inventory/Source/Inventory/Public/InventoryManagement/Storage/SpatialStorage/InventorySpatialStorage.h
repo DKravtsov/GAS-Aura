@@ -72,6 +72,9 @@ public:
 	FString GetInventoryGridNamesDebugString() const;
 
 	virtual bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const override;
+
+	virtual void MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex) override;
+	
 protected:
 
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();
