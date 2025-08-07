@@ -559,13 +559,13 @@ void UInventoryGridWidget::PutDownItemInInventoryAtIndex(const int32 GridIndex)
 		{
 			// Selling
 
-			InventoryComponent->Server_SellItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount(), GridIndex);
+			InventoryComponent->Server_SellItem(HoverItem->GetInventoryItem(), INDEX_NONE, HoverItem->GetStackCount(), GridIndex);
 		}
 		else
 		{
 			// Purchasing
 
-			InventoryComponent->Server_BuyItem(HoverItem->GetInventoryItem(), HoverItem->GetPreviousGridIndex(), HoverItem->GetStackCount(), GridIndex);
+			InventoryComponent->Server_BuyItem(HoverItem->GetInventoryItem(), INDEX_NONE, HoverItem->GetStackCount(), GridIndex);
 		}
 	}
 }
