@@ -1,7 +1,7 @@
 ﻿// Copyright 4sandwiches
 
 
-#include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
+#include "Widgets/Inventory/GridSlot/InventoryEquipmentSlotWidget.h"
 
 #include "DebugHelper.h"
 #include "Inventory.h"
@@ -16,7 +16,7 @@
 #include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
 
-bool UInventoryEquippedGridSlot::Bind(UInventoryComponent* InInventoryComponent, EInventoryEquipmentSlot SlotId)
+bool UInventoryEquipmentSlotWidget::Bind(UInventoryComponent* InInventoryComponent, EInventoryEquipmentSlot SlotId)
 {
 	if (IsValid(InInventoryComponent) && SlotId != EInventoryEquipmentSlot::Invalid)
 	{
@@ -30,7 +30,7 @@ bool UInventoryEquippedGridSlot::Bind(UInventoryComponent* InInventoryComponent,
 	return false;
 }
 
-void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+void UInventoryEquipmentSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	OnMouseEnter( InGeometry, InMouseEvent ); // call BP event directly because we don't call super
 
@@ -46,7 +46,7 @@ void UInventoryEquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry,
 	}
 }
 
-void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+void UInventoryEquipmentSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	OnMouseLeave(InMouseEvent); // call BP event directly because we don't call super
 	
@@ -62,13 +62,13 @@ void UInventoryEquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouse
 	}
 }
 
-FReply UInventoryEquippedGridSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UInventoryEquipmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	BROADCAST_WITH_LOG(EquippedGridSlotClicked, this, GetEquipmentTypeTag());
+	BROADCAST_WITH_LOG(EquipmentSlotClicked, this, GetEquipmentTypeTag());
 	return FReply::Handled();
 }
 
-const FGameplayTag& UInventoryEquippedGridSlot::GetEquipmentTypeTag() const
+const FGameplayTag& UInventoryEquipmentSlotWidget::GetEquipmentTypeTag() const
 {
 	if (const auto BoundSlot = GetBoundEquipmentSlot(); ensure(BoundSlot))
 	{
@@ -77,24 +77,24 @@ const FGameplayTag& UInventoryEquippedGridSlot::GetEquipmentTypeTag() const
 	return FGameplayTag::EmptyTag;
 }
 
-void UInventoryEquippedGridSlot::SetGrayedIconBrush(const FSlateBrush& Brush)
+void UInventoryEquipmentSlotWidget::SetGrayedIconBrush(const FSlateBrush& Brush)
 {
 	Image_GrayedOutIcon->SetBrush(Brush);
 }
 
-bool UInventoryEquippedGridSlot::IsAvailable() const
+bool UInventoryEquipmentSlotWidget::IsAvailable() const
 {
 	const auto BoundSlot = GetBoundEquipmentSlot();
 	return BoundSlot ? BoundSlot->IsAvailable() : false;
 }
 
-TWeakObjectPtr<UInventoryItem> UInventoryEquippedGridSlot::GetInventoryItem() const
+TWeakObjectPtr<UInventoryItem> UInventoryEquipmentSlotWidget::GetInventoryItem() const
 {
 	const auto BoundSlot = GetBoundEquipmentSlot();
 	return BoundSlot ? BoundSlot->GetInventoryItem() : TWeakObjectPtr<UInventoryItem>();
 }
 
-UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
+UInventoryEquippedSlottedItemWidget* UInventoryEquipmentSlotWidget::OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize)
 {
 	// Check the Equipment Type TagAdd commentMore actions
 	if (!Tag.MatchesTagExact(GetEquipmentTypeTag()))
@@ -149,7 +149,7 @@ UInventoryEquippedSlottedItemWidget* UInventoryEquippedGridSlot::OnItemEquipped(
 	return EquippedSlottedItem;
 }
 
-void UInventoryEquippedGridSlot::UpdateIfPending()
+void UInventoryEquipmentSlotWidget::UpdateIfPending()
 {
 	if (bPendingEquipping)
 	{
@@ -159,12 +159,12 @@ void UInventoryEquippedGridSlot::UpdateIfPending()
 	}
 }
 
-const FInventoryEquipmentSlot* UInventoryEquippedGridSlot::GetBoundEquipmentSlot() const
+const FInventoryEquipmentSlot* UInventoryEquipmentSlotWidget::GetBoundEquipmentSlot() const
 {
 	return InventoryComponent.IsValid() ? InventoryComponent->GetEquipmentSlot(EquipmentSlotId) : nullptr;
 }
 
-void UInventoryEquippedGridSlot::ClearEquippedSlot()
+void UInventoryEquipmentSlotWidget::ClearEquippedSlot()
 {
 	//SetInventoryItem(nullptr);
 	EquippedSlottedItem = nullptr;

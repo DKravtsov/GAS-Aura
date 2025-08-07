@@ -63,7 +63,7 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	TObjectPtr<class UCanvasPanel> CanvasPanel;
 
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<class UInventoryEquippedGridSlot>> EquippedGridSlots;
+	TArray<TObjectPtr<class UInventoryEquipmentSlotWidget>> EquippedGridSlots;
 
 	TWeakObjectPtr<UInventoryGridWidget> ActiveGrid;
 
@@ -125,7 +125,7 @@ private:
 	void ShowCraftingGrid();
 
 	UFUNCTION()
-	void EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag);
+	void EquipmentSlotClicked(UInventoryEquipmentSlotWidget* GridSlot, const FGameplayTag& EquipmentTypeTag);
 
 	UFUNCTION()
 	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
@@ -140,17 +140,17 @@ private:
 	UInventoryItemDescription* GetOrCreateItemDescription();
 	UInventoryItemDescription* GetOrCreateEquippedItemDescription();
 
-	bool CanEquipHoverItem(const UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
+	bool CanEquipHoverItem(const UInventoryEquipmentSlotWidget* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
 
-	UInventoryEquippedGridSlot* FindSlotWithEquippedItem(const UInventoryItem* EquippedItem) const;
-	void ClearSlotOfItem(UInventoryEquippedGridSlot* EquippedGridSlot);
+	UInventoryEquipmentSlotWidget* FindSlotWithEquippedItem(const UInventoryItem* EquippedItem) const;
+	void ClearSlotOfItem(UInventoryEquipmentSlotWidget* EquippedGridSlot);
 	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
-	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
+	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquipmentSlotWidget* EquippedGridSlot, UInventoryItem* ItemToEquip);
 
 	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId) const;
 
-	UInventoryEquippedGridSlot* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
-	UInventoryEquippedGridSlot* FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const;
+	UInventoryEquipmentSlotWidget* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
+	UInventoryEquipmentSlotWidget* FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const;
 
 	FGameplayTag FindItemBestEquipType(const UInventoryItem* Item) const;
 

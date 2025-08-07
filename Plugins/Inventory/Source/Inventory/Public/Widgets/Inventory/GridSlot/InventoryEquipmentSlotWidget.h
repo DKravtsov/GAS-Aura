@@ -6,24 +6,24 @@
 #include "GameplayTagContainer.h"
 #include "InventoryGridSlotWidget.h"
 #include "InventoryGridTypes.h"
-#include "InventoryEquippedGridSlot.generated.h"
+#include "InventoryEquipmentSlotWidget.generated.h"
 
 class UInventoryComponent;
 struct FInventoryEquipmentSlot;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, UInventoryEquippedGridSlot*, GridSlot,
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, UInventoryEquipmentSlotWidget*, GridSlot,
                                              const FGameplayTag&, EquipmentTypeTag);
 
 /**
  * 
  */
 UCLASS()
-class UInventoryEquippedGridSlot : public UInventoryGridSlotWidgetBase
+class UInventoryEquipmentSlotWidget : public UInventoryGridSlotWidgetBase
 {
 	GENERATED_BODY()
 public:
 
-	FEquippedGridSlotClickedSignature EquippedGridSlotClicked;
+	FEquippedGridSlotClickedSignature EquipmentSlotClicked;
 
 private:
 
