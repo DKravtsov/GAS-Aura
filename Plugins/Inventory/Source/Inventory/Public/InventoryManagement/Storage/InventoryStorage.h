@@ -49,7 +49,7 @@ public:
 	virtual void SetupStorage(const FInventoryStorageSetupData* SetupData) {}
 
 	virtual int32 GetItemIndex(UInventoryItem* Item) {return INDEX_NONE;}
-	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) {return 0;};
+	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) {return 0;}
 	virtual void SetItemStackCount(UInventoryItem* Item, int32 GridIndex, int32 NewStackCount) {}
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) {}
 	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count = -1) {}
@@ -64,7 +64,24 @@ public:
 
 	virtual void MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex) {}
 
+	// Try to lock the item for the specified player controller.
+	// This is needed if two or more players clicked on the same item at the same time (frame). In this case only one request will be processed and the others fail.
+	// Returns the Player Controller that owns this Item. It will be `PlayerController` if the lock was successful, or another player controller if not.
+	// Note: the responsibility of checking whether the item is locked is completely on the callers. This can be checked only when trying to lock.
+	APlayerController* TryLockItem(UInventoryItem* Item, int32 GridIndex, APlayerController* PlayerController);
+	
+	// Unlocks the locked item (@see TryLockItem)
+	bool UnlockItem(UInventoryItem* Item, int32 GridIndex, APlayerController* PlayerController);
 protected:
 
 	virtual FInventorySlotAvailabilityResult HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const;
+
+	struct FLockedItemData
+	{
+		TWeakObjectPtr<UInventoryItem> Item;
+		int32 GridIndex;
+		TWeakObjectPtr<APlayerController> PlayerController;
+	};
+
+	TArray<FLockedItemData> LockedItems;
 };

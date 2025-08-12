@@ -727,6 +727,16 @@ void UInventoryComponent::Client_EquipStartupInventory_Implementation(const TArr
 
 void UInventoryComponent::ClearSelectedItem()
 {
+	if (!HoverItemProxy.IsSet())
+		return;
+	if (HasAuthority() && HoverItemProxy->InventoryItem.IsValid())
+	{
+		auto* Storage = HoverItemProxy->InventoryItem->GetOwningStorage();
+		if (Storage && Storage != InventoryStorage)
+		{
+			Storage->UnlockItem(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->PreviousIndex, OwningPlayerController.Get());
+		}
+	}
 	HoverItemProxy.Reset();
 
 	BROADCAST_WITH_LOG(OnHoverItemReset);
@@ -896,10 +906,24 @@ void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item,
 		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select item [%s] from invalid storage"), *GetInventoryItemId(Item))
 		return;
 	}
+
+	if (Storage != InventoryStorage)
+	{
+		// Try to lock the item in the other storage
+		if (const APlayerController* LockedPC = Storage->TryLockItem(Item, GridIndex, OwningPlayerController.Get()); LockedPC != OwningPlayerController)
+		{
+			UE_LOG(LogInventory, Error, TEXT("Server: The item [%s] is locked by [%s]"), *GetInventoryItemId(Item), *LockedPC->GetName())
+			return;
+		}
+	}
 	
 	if (!HasItemSelected())
 	{
 		HoverItemProxy = FHoverItemProxy();
+	}
+	else if (Storage != InventoryStorage)
+	{
+		Storage->UnlockItem(HoverItemProxy->InventoryItem.Get(), GridIndex, OwningPlayerController.Get());
 	}
 	HoverItemProxy->InventoryItem = Item;
 	HoverItemProxy->bStackable = Item->IsStackable();
