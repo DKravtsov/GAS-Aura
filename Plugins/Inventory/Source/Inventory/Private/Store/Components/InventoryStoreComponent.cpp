@@ -59,16 +59,22 @@ void UInventoryStoreComponent::AddStartupItems()
 
 	const TArray<FInventoryItemProxy>& StartupInventoryItems = InventorySetupData->DefaultStartupInventory;
 
-	TArray<FSoftObjectPath> AssetList;
-	AssetList.Reserve(StartupInventoryItems.Num());
-
-	for (const auto& Item : StartupInventoryItems)
+	if (StartupInventoryItems.Num() > 0)
 	{
-		AssetList.Add(Item.InventoryItem.ToSoftObjectPath());
+		TArray<FSoftObjectPath> AssetList;
+		AssetList.Reserve(StartupInventoryItems.Num());
+
+		for (const auto& Item : StartupInventoryItems)
+		{
+			AssetList.Add(Item.InventoryItem.ToSoftObjectPath());
+		}
+	
+		UAssetManager::Get().LoadAssetList(AssetList, FStreamableDelegate::CreateUObject(this, &UInventoryStoreComponent::StartupItemsAssetsLoaded), FStreamableManager::DefaultAsyncLoadPriority, TEXT("Store:LoadAssets"));
 	}
-	
-	UAssetManager::Get().LoadAssetList(AssetList, FStreamableDelegate::CreateUObject(this, &UInventoryStoreComponent::StartupItemsAssetsLoaded), FStreamableManager::DefaultAsyncLoadPriority, TEXT("Store:LoadAssets"));
-	
+	else
+	{
+		StartupItemsAssetsLoaded();
+	}
 }
 
 void UInventoryStoreComponent::StartupItemsAssetsLoaded()
