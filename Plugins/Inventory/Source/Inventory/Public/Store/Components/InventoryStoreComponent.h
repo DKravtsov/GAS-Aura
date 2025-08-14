@@ -8,6 +8,7 @@
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 #include "InventoryStoreComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryStoreNotifySignature);
 
 class UInventoryStorage;
 class UInventoryWidgetBase;
@@ -17,6 +18,17 @@ class UInventoryStoreComponent : public UInventoryManagementComponentBase
 {
 	GENERATED_BODY()
 
+
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FInventoryStoreNotifySignature OnStoreOpened;
+
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FInventoryStoreNotifySignature OnStoreClosed;
+
+private:
+	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FText InteractMessage;
 
@@ -35,14 +47,14 @@ public:
 	const FText& GetInteractMessage() const { return InteractMessage; }
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
-	void SetMenuOpen(bool bOpen) { bInventoryMenuOpen = bOpen; }
+	void SetMenuOpen(bool bOpen);
 
 	bool AreStartupItemsInitialized() const { return bStartupItemsInitialized; }
 
 	// The Sell Value is the price what the store is agree to pay for the item, not its actual value
-	int32 GetSellValue(const UInventoryItem* Item, int32 StackCount) const;
+	virtual int32 GetSellValue(const UInventoryItem* Item, int32 StackCount) const;
 	// The Buy Value is the price what the store wants for the item, not its actual value
-	int32 GetPurchaseValue(const UInventoryItem* Item, int32 StackCount) const;
+	virtual int32 GetPurchaseValue(const UInventoryItem* Item, int32 StackCount) const;
 
 	//#if UE_WITH_CHEAT_MANAGER
 	INVENTORY_API virtual void DebugPrintStorage() const override;

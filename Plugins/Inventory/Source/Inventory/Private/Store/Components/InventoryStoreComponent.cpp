@@ -29,6 +29,7 @@ void UInventoryStoreComponent::BeginPlay()
 
 	if (HasAuthority())
 	{
+		GetOwner()->SetReplicates(true);
 		AddStartupItems();
 	}
 }
@@ -39,6 +40,20 @@ void UInventoryStoreComponent::GetLifetimeReplicatedProps(TArray<class FLifetime
 	DOREPLIFETIME(UInventoryStoreComponent, InventoryList);
 	DOREPLIFETIME(UInventoryStoreComponent, InventoryStorage);
 	DOREPLIFETIME(UInventoryStoreComponent, bStartupItemsInitialized);
+}
+
+void UInventoryStoreComponent::SetMenuOpen(bool bOpen)
+{
+	bInventoryMenuOpen = bOpen;
+
+	if (bInventoryMenuOpen)
+	{
+		OnStoreOpened.Broadcast();
+	}
+	else
+	{
+		OnStoreClosed.Broadcast();
+	}
 }
 
 int32 UInventoryStoreComponent::GetSellValue(const UInventoryItem* Item, const int32 StackCount) const
