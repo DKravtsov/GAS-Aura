@@ -87,7 +87,7 @@ public:
 	void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount);
 	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count = -1/*entire stack*/);
 
-	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices);
+	void NotifyGridChanged(TArrayView<int32> ChangedIndices);
 
 	int32 GetStackCount(int32 GridIndex) const;
 	void SetStackCount(int32 GridIndex, int32 NewStackCount);

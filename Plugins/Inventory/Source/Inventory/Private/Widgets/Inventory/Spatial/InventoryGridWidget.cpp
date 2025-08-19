@@ -952,7 +952,7 @@ void UInventoryGridWidget::ValidateCompiledDefaults(class IWidgetCompilerLog& Co
 
 void UInventoryGridWidget::HandleSellItemResult(bool bSuccess, const FString& ErrorMessage)
 {
-	UE_LOG(LogInventory, Log, TEXT("SellItemResult: %s"), *ErrorMessage);
+	LOG_NETFUNCTIONCALL_MSG(TEXT("SellItemResult: %s"), *ErrorMessage);
 
 	if (bSuccess)
 	{
@@ -962,7 +962,7 @@ void UInventoryGridWidget::HandleSellItemResult(bool bSuccess, const FString& Er
 
 void UInventoryGridWidget::HandleBuyItemResult(bool bSuccess, const FString& ErrorMessage)
 {
-	UE_LOG(LogInventory, Log, TEXT("BuyItemResult: %s"), *ErrorMessage);
+	LOG_NETFUNCTIONCALL_MSG(TEXT("BuyItemResult: %s"), *ErrorMessage);
 
 	if (bSuccess)
 	{

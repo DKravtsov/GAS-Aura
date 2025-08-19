@@ -11,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "DebugHelper.h"
+#include "Algo/Partition.h"
 
 namespace
 {
@@ -443,21 +444,23 @@ void UInventoryStorageGrid::OnRep_GridSlots()
 	}
 }
 
-void UInventoryStorageGrid::NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices)
+void UInventoryStorageGrid::NotifyGridChanged(TArrayView<int32> ChangedIndices)
 {
 	if (GetOwningActor()->HasAuthority() || ChangedIndices.IsEmpty())
 		return;
 
-	// TODO: an assumption that in 99.9% cases we batch only the removes or only the adds. May be a shot in the leg here.
-	const bool bRemoved = ChangedIndices.Num() > 0 && GetGridSlot(ChangedIndices[0]).IsAvailable();
-	LOG_NETFUNCTIONCALL_MSG(TEXT("Changed: %d;"), ChangedIndices.Num())
-	if (bRemoved)
+	// Split ChangedIndices to 2 subarrays: indices that were reset and indices that were updated
+	const int32 UpdatedStartIndex = Algo::Partition(ChangedIndices, [this](const int32 GridSlotIndex)
 	{
-		BROADCAST_WITH_LOG(OnGridSlotsReset, ChangedIndices);
+		return GetGridSlot(GridSlotIndex).IsAvailable();
+	});
+	if (UpdatedStartIndex > 0)
+	{
+		BROADCAST_WITH_LOG(OnGridSlotsReset, ChangedIndices.Left(UpdatedStartIndex));
 	}
-	else
+	if (UpdatedStartIndex < ChangedIndices.Num())
 	{
-		BROADCAST_WITH_LOG(OnGridSlotsUpdated, ChangedIndices);
+		BROADCAST_WITH_LOG(OnGridSlotsUpdated, ChangedIndices.RightChop(UpdatedStartIndex));
 	}
 }
 
@@ -535,6 +538,9 @@ void UInventoryStorageGrid::MoveItem(UInventoryItem* Item, int32 SourceGridIndex
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Moving item: [%s] %d ->%d"), *GetInventoryItemId(Item), SourceGridIndex,TargetGridIndex)
 
 	const int32 SourceStackCount = GridSlots.GetStackCount(SourceGridIndex);
+	
+	RemoveItemFromGrid(Item, SourceGridIndex);
+
 	FInventorySlotAvailabilityResult Result = HasRoomForItemAtIndex(Item->GetItemManifest(), TargetGridIndex, SourceStackCount);
 	Result.Item = Item;
 	if (Result.TotalRoomToFill == 0)
@@ -543,8 +549,6 @@ void UInventoryStorageGrid::MoveItem(UInventoryItem* Item, int32 SourceGridIndex
 		return;
 	}
     
-	RemoveItemFromGrid(Item, SourceGridIndex);
-
 	//AddItemToIndexes(Result, Item); // This ?
 	HandleStackChanged(Result);          // Or this ?
 }
