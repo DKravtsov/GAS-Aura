@@ -8,6 +8,7 @@
 #include "Widgets/Utils/InventoryWidgetUtils.h"
 #include "InventoryStatics.generated.h"
 
+class UInventoryWidgetBase;
 struct FInventoryItemManifest;
 class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
@@ -118,16 +119,20 @@ public:
 		}
 	}
 
-	UFUNCTION(blueprintCallable, Category = "Inventory")
+	UFUNCTION(blueprintCallable, Category = "Inventory", BlueprintCosmetic)
 	static void ItemHovered(APlayerController* PlayerController, UInventoryItem* Item);
 	
-	UFUNCTION(blueprintCallable, Category = "Inventory")
+	UFUNCTION(blueprintCallable, Category = "Inventory", BlueprintCosmetic)
 	static void ItemUnhovered(APlayerController* PlayerController);
 
-	UFUNCTION(BlueprintPure, Category = "Inventory")
-	static UInventoryHoverItemWidget* GetHoverItem(const APlayerController* PlayerController);
+	UFUNCTION(BlueprintPure, Category = "Inventory", BlueprintCosmetic)
+	static UInventoryHoverItemWidget* GetHoverItemWidget(const APlayerController* PlayerController);
 
-	UFUNCTION(BlueprintPure, Category = "Inventory")
+	UFUNCTION(BlueprintPure, Category = "Inventory", BlueprintCosmetic)
+	static bool IsHoverItemOwnedByPlayer(const APlayerController* PlayerController);
+
+	// Returns widget of opened inventory menu (or Store menu)
+	UFUNCTION(BlueprintPure, Category = "Inventory", BlueprintCosmetic)
 	static UInventoryWidgetBase* GetInventoryWidget(const APlayerController* PlayerController);
 
 	static bool CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag);
@@ -136,4 +141,8 @@ public:
 	static bool IsItemEquipable(const UInventoryItem* Item);
 
 	static FGameplayTag GetItemEquipmentTag(const UInventoryItem* Item);
+
+	static const FInventoryItemManifest& GetCoinItemManifest(const UObject* WorldContextObject);
+
+	static int32 GetItemSellValue(const UInventoryItem* Item);
 };

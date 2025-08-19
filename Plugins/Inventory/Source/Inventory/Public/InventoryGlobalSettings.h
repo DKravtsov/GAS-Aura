@@ -6,17 +6,22 @@
 #include "Engine/DeveloperSettings.h"
 #include "InventoryGlobalSettings.generated.h"
 
+struct FInventoryItemManifest;
+class UInventoryItemData;
 class UInventoryStorageGrid;
 /**
  * 
  */
-UCLASS()
+UCLASS(config = Game, defaultconfig)
 class INVENTORY_API UInventoryGlobalSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", Config)
 	TSoftClassPtr<UInventoryStorageGrid> SpatialStorageGridClass;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory", Config)
+	TSoftObjectPtr<UInventoryItemData> CoinsItemData;
 
 public:
 
@@ -25,4 +30,6 @@ public:
 	static const UInventoryGlobalSettings& Get(); 
 
 	static TSubclassOf<UInventoryStorageGrid> GetSpatialStorageGridClass();
+
+	static const FInventoryItemManifest* GetCoinsItemManifest();
 };

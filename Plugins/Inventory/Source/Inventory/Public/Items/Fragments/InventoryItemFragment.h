@@ -138,6 +138,7 @@ struct FInventoryNumericValue : public FInventoryNumericValueBase
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FVector2D MinMaxValue{0.f, 1.f};
 
+	UPROPERTY()
 	uint8 bInitialized:1 = false;
 
 	INVENTORY_API virtual void Initialize() override;
@@ -170,8 +171,6 @@ private:
 
 protected:
 
-	float GetValue() const {return IsValueValid() ? NumericValue.Get().GetValue() : 0.f;}
-
 	bool IsValueValid() const {return NumericValue.IsValid();}
 
 public:
@@ -180,6 +179,8 @@ public:
 
 	const FText& GetLabelText() const {return LabelText;}
 	void SetFragmentText(const FText& NewText) {LabelText = NewText;}
+
+	float GetValue() const {return IsValueValid() ? NumericValue.Get().GetValue() : 0.f;}
 
 	//~ Begin of FInventoryItemDescriptionFragment interface
 	INVENTORY_API virtual void Assimilate(UInventoryCompositeBase* Composite) const override;
@@ -344,4 +345,5 @@ namespace InventoryFragmentTags
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_Consumable);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_ItemName);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_ItemDescription);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(FragmentTag_SellValue);
 }

@@ -39,7 +39,6 @@ private:
 	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="Inventory.ItemCategory"), Replicated)
 	FGameplayTag ItemCategory;
 
-	mutable TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	mutable TWeakObjectPtr<AActor> OwningActor;
 
 public:
@@ -73,6 +72,7 @@ public:
 	bool IsValidIndex(int32 Index) const {return GridSlots.IsValidIndex(Index);}
 
 	FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
+	FInventorySlotAvailabilityResult HasRoomForItemAtIndex(const FInventoryItemManifest& ItemManifest, int32 Index, const int32 StackCountOverride = -1) const;
 	
 	void ConstructGrid(int32 InNumRows, int32 InNumColumns);
 
@@ -85,9 +85,9 @@ public:
 	void HandleStackChanged(const FInventorySlotAvailabilityResult& Result);
 	
 	void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount);
-	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex);
+	void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count = -1/*entire stack*/);
 
-	void NotifyGridChanged(TArrayView<FPlatformTypes::int32> ChangedIndices);
+	void NotifyGridChanged(TArrayView<int32> ChangedIndices);
 
 	int32 GetStackCount(int32 GridIndex) const;
 	void SetStackCount(int32 GridIndex, int32 NewStackCount);
@@ -95,9 +95,13 @@ public:
 	// returns remainder
 	int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount);
 
+	bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const;
+
+	void MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex);
+
 private:
 	void ConstructGrid();
-	void InitOwner() const;
+	void InitOwner();
 
 	bool IsInGridBounds(int32 StartIndex, const FIntPoint& Dimensions) const;
 
@@ -122,7 +126,6 @@ private:
 	bool MatchesCategory(const UInventoryItem* Item) const;
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
-	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackAmount);
 
 	UFUNCTION()
 	void OnRep_GridSlots();

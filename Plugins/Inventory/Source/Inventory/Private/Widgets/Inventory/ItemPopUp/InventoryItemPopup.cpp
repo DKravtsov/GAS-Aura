@@ -16,6 +16,8 @@ void UInventoryItemPopup::NativeOnInitialized()
 	Button_Consume->OnClicked.AddDynamic(this, &UInventoryItemPopup::ConsumeButtonClicked);
 	Button_Drop->OnClicked.AddDynamic(this, &UInventoryItemPopup::DropButtonClicked);
 	Slider_Split->OnValueChanged.AddDynamic(this, &UInventoryItemPopup::SliderValueChanged);
+	Button_Sell->OnClicked.AddDynamic(this, &UInventoryItemPopup::SellButtonClicked);
+	Button_Buy->OnClicked.AddDynamic(this, &UInventoryItemPopup::BuyButtonClicked);
 
 	Slider_Split->SetStepSize(1);
 	Slider_Split->MouseUsesStep = true;
@@ -57,6 +59,18 @@ void UInventoryItemPopup::ConsumeButtonClicked()
 	HideMenu();
 }
 
+void UInventoryItemPopup::SellButtonClicked()
+{
+	OnSellItemDelegate.ExecuteIfBound(GridIndex);
+	HideMenu();
+}
+
+void UInventoryItemPopup::BuyButtonClicked()
+{
+	OnBuyItemDelegate.ExecuteIfBound(GridIndex);
+	HideMenu();
+}
+
 void UInventoryItemPopup::CollapseSplitButton()
 {
 	Button_Split->SetVisibility(ESlateVisibility::Collapsed);
@@ -67,6 +81,21 @@ void UInventoryItemPopup::CollapseSplitButton()
 void UInventoryItemPopup::CollapseConsumeButton()
 {
 	Button_Consume->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UInventoryItemPopup::CollapseSellButton()
+{
+	Button_Sell->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UInventoryItemPopup::CollapseBuyButton()
+{
+	Button_Buy->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UInventoryItemPopup::CollapseDropButton()
+{
+	Button_Drop->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 FVector2D UInventoryItemPopup::GetBoxSize() const

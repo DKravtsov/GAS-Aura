@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryHoverItemWidget.generated.h"
 
+class UInventoryStorage;
 struct FGameplayTag;
 class UImage;
 class UTextBlock;
@@ -53,6 +54,8 @@ public:
 
 	UInventoryItem* GetInventoryItem() const {return InventoryItem.Get();}
 	void SetInventoryItem(UInventoryItem* Item);
+
+	UInventoryStorage* GetInventoryStorage() const;
 
 	void Reset();
 };

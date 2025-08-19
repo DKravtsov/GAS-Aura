@@ -4,7 +4,6 @@
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 
 #include "InventoryGlobalSettings.h"
-#include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventoryStorageGrid.h"
 #include "Items/InventoryItem.h"
 #include "Items/Manifest/InventoryItemManifest.h"
@@ -42,9 +41,6 @@ void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* Se
 
 	const FInventorySpatialStorageSetupData& SpatialSetupData = *static_cast<const FInventorySpatialStorageSetupData*>(SetupData);
 
-	UInventoryComponent* InventoryComponent = GetOwningInventoryComponent();
-	check(InventoryComponent);
-
 	const UClass* GridClass = GetStorageGridClass();
 	check(GridClass != nullptr);
 
@@ -52,6 +48,13 @@ void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* Se
 	{
 		UE_LOG(LogInventory, Error, TEXT("Forgot to create grid categories."))
 		return;
+	}
+
+	UActorComponent* OwningComponent = Cast<UActorComponent>(GetOuter());
+	if (!IsValid(OwningComponent) || !OwningComponent->IsUsingRegisteredSubObjectList() ||
+		!OwningComponent->IsReadyForReplication())
+	{
+		OwningComponent = nullptr;
 	}
 	
 	for (const auto& ItemCategory : SpatialSetupData.GridCategories)
@@ -63,7 +66,10 @@ void UInventorySpatialStorage::SetupStorage(const FInventoryStorageSetupData* Se
         
 		InventoryGrids.Emplace(NewGrid);
 
-		InventoryComponent->AddRepSubObj(NewGrid);
+		if (OwningComponent)
+		{
+			OwningComponent->AddReplicatedSubObject(NewGrid);
+		}
 	}
 }
 
@@ -97,6 +103,7 @@ int32 UInventorySpatialStorage::GetItemStackCount(UInventoryItem* Item, int32 Gr
 {
 	if (IsValid(Item))
 	{
+		check(Item->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 		check(Grid);
 		return Grid->GetStackCount(GridIndex);
@@ -108,6 +115,7 @@ void UInventorySpatialStorage::SetItemStackCount(UInventoryItem* Item, int32 Gri
 {
 	if (IsValid(Item))
 	{
+		check(Item->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->SetStackCount(GridIndex, NewStackCount);
@@ -118,27 +126,43 @@ void UInventorySpatialStorage::UpdateGridSlots(UInventoryItem* NewItem, int32 In
 {
 	if (IsValid(NewItem))
 	{
+		check(NewItem->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(NewItem->GetItemManifest().GetItemCategory());
 		check(Grid);
 		Grid->UpdateGridSlots(NewItem, Index, bStackable, StackAmount);
 	}
 }
 
-void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex)
+void UInventorySpatialStorage::RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count)
 {
 	if (IsValid(ItemToRemove))
 	{
+		check(ItemToRemove->GetOwningStorage() == this)
 		const auto Grid = FindInventoryGridByCategory(ItemToRemove->GetItemManifest().GetItemCategory());
 		check(Grid);
-		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex);
+		Grid->RemoveItemFromGrid(ItemToRemove, GridIndex, Count);
 	}
 }
 
 int32 UInventorySpatialStorage::FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount)
 {
+	check(IsValid(Item) && Item->GetOwningStorage() == this)
 	const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
 	check(Grid);
 	return Grid->FillInStacksOrConsumeHover(Item, TargetIndex, AddStackCount);
+}
+
+bool UInventorySpatialStorage::HasRoomForItemAtIndex(FInventorySlotAvailabilityResult& Result, const FInventoryItemManifest& ItemManifest, const int32 Index, const int32 StackCountOverride) const
+{
+	if (const auto* Grid = FindInventoryGridByCategory(ItemManifest.GetItemCategory()))
+	{
+		Result = Grid->HasRoomForItemAtIndex(ItemManifest, Index, StackCountOverride);
+		return Result.TotalRoomToFill > 0;
+	}
+	
+	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found."));
+	return false;
+	
 }
 
 void UInventorySpatialStorage::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -150,10 +174,10 @@ void UInventorySpatialStorage::GetLifetimeReplicatedProps(TArray<class FLifetime
 
 FInventorySlotAvailabilityResult UInventorySpatialStorage::HasRoomForItemInternal(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
 {
-	if (auto* Grid = FindInventoryGridByCategory(ItemManifest.GetItemCategory()))
+	if (const auto* Grid = FindInventoryGridByCategory(ItemManifest.GetItemCategory()))
 		return Grid->HasRoomForItem(ItemManifest, StackCountOverride);
 	
-	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
+	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found."));
 	return FInventorySlotAvailabilityResult{};
 }
 
@@ -210,4 +234,25 @@ FString UInventorySpatialStorage::GetInventoryGridNamesDebugString() const
 	FStringBuilderBase Output;
 	Output.Join(GridNames, TEXT(","));
 	return Output.ToString();
+}
+
+bool UInventorySpatialStorage::FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount) const
+{
+	check(IsValid(Item));
+	check(Item->GetOwningStorage() == this)
+
+	if (const auto* Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory()))
+	{
+		return Grid->FindItemStacks(Result, Item, TotalCount);
+	}
+	UE_LOG(LogInventory, Error, TEXT("A grid for the specified Item Category was not found: %s"), *Item->GetItemManifest().GetItemCategory().ToString());
+	return false;
+}
+
+void UInventorySpatialStorage::MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex)
+{
+	check(IsValid(Item) && Item->GetOwningStorage() == this)
+	const auto Grid = FindInventoryGridByCategory(Item->GetItemManifest().GetItemCategory());
+	check(Grid);
+	Grid->MoveItem(Item, SourceGridIndex, TargetGridIndex);
 }

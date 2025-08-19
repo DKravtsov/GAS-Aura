@@ -15,7 +15,7 @@ class UInventoryItemComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta=(EditCondition="bOverridePickupMessage"))
 	FText PickupMessage;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -30,12 +30,17 @@ class UInventoryItemComponent : public UActorComponent
 
 	UPROPERTY(EditInstanceOnly, Category = "Inventory", meta=(InlineEditConditionToggle))
 	bool bOverrideItemManifest = false;
+
+	UPROPERTY(EditInstanceOnly, Category = "Inventory", meta=(InlineEditConditionToggle))
+	bool bOverridePickupMessage = false;
+
+	bool bCachedStackable;
 	
 public:
 
 	INVENTORY_API UInventoryItemComponent();
 
-	FText GetPickupMessage() { return PickupMessage; }
+	FText GetPickupMessage() const;
 
 	const FInventoryItemManifest& GetItemManifest() const { return ItemManifest; }
 	FInventoryItemManifest& GetItemManifestMutable() { return ItemManifest; }
@@ -51,10 +56,18 @@ public:
 	void CopyManifestFromData();
 #endif
 
+	const FText& GetItemDisplayName() const; 
+	int32 GetStackSize() const;
+	
 protected:
 
 	INVENTORY_API virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Inventory", meta=(DisplayName="On Picked Up"))
 	void BP_PickedUp();
+
+private:
+
+	FText GetFormattedMessage(const FText& Fmt) const;;
+
 };

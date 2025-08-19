@@ -11,10 +11,19 @@ class UButton;
 class UWidgetSwitcher;
 class UInventoryGridWidget;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryGridWidgetSwitchedSignature, UInventoryGridWidget*);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryCommonNotifySignature, FGameplayTag, ErrorTag);
+
 UCLASS(MinimalAPI, Abstract)
 class UInventoryWidgetSpatial : public UInventoryWidgetBase
 {
 	GENERATED_BODY()
+
+public:
+
+	FInventoryCommonNotifySignature OnInventoryInteractionError;
+
+private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<class UInventoryItemDescription> ItemDescriptionClass;
@@ -46,6 +55,8 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> GridSwitcher;
 
+	FInventoryGridWidgetSwitchedSignature OnActiveGridSwitched;
+
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UButton> Button_Equipment;
 
@@ -59,13 +70,21 @@ class UInventoryWidgetSpatial : public UInventoryWidgetBase
 	TObjectPtr<class UCanvasPanel> CanvasPanel;
 
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<class UInventoryEquippedGridSlot>> EquippedGridSlots;
+	TArray<TObjectPtr<class UInventoryEquipmentSlotWidget>> EquippedGridSlots;
 
 	TWeakObjectPtr<UInventoryGridWidget> ActiveGrid;
 
 	FTimerHandle TimerHandle_Description;
 	FTimerHandle TimerHandle_EquippedDescription;
 
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	TSubclassOf<class UInventoryHoverItemWidget> HoverItemClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryHoverItemWidget> HoverItem;
+
+	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
+	
 public:
 
 	//~ Begin of UUserWidget interface
@@ -89,6 +108,20 @@ public:
 #endif
 	//~ End UWidget Interface
 
+	FInventoryGridWidgetSwitchedSignature& GetOnGridWidgetSwitchedDelegate() {return OnActiveGridSwitched;}
+
+	bool IsHoverItemOwnedByPlayer() const;
+
+protected:
+	UCanvasPanel* GetCanvasPanel() const {return CanvasPanel;}
+	
+	UFUNCTION()
+	void UpdateEquippedItemStatus(UInventoryItem* Item);
+
+	void UpdateAllEquippedItemsStatus();
+
+	virtual void UpdateInventoryGrids();
+
 private:
 
 	UFUNCTION()
@@ -101,13 +134,10 @@ private:
 	void ShowCraftingGrid();
 
 	UFUNCTION()
-	void EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag);
+	void EquipmentSlotClicked(UInventoryEquipmentSlotWidget* GridSlot, const FGameplayTag& EquipmentTypeTag);
 
 	UFUNCTION()
 	void EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
-
-	UFUNCTION()
-	void UpdateEquippedItemStatus(UInventoryItem* Item);
 
 	void ShowEquippedItemDescription(UInventoryItem* Item);
 
@@ -119,17 +149,23 @@ private:
 	UInventoryItemDescription* GetOrCreateItemDescription();
 	UInventoryItemDescription* GetOrCreateEquippedItemDescription();
 
-	bool CanEquipHoverItem(const UInventoryEquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
+	bool CanEquipHoverItem(const UInventoryEquipmentSlotWidget* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
 
-	UInventoryEquippedGridSlot* FindSlotWithEquippedItem(const UInventoryItem* EquippedItem) const;
-	void ClearSlotOfItem(UInventoryEquippedGridSlot* EquippedGridSlot);
+	UInventoryEquipmentSlotWidget* FindSlotWithEquippedItem(const UInventoryItem* EquippedItem) const;
+	void ClearSlotOfItem(UInventoryEquipmentSlotWidget* EquippedGridSlot);
 	void RemoveEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem);
-	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip);
+	void MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem, UInventoryEquipmentSlotWidget* EquippedGridSlot, UInventoryItem* ItemToEquip);
 
 	void BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId) const;
 
-	UInventoryEquippedGridSlot* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
-	UInventoryEquippedGridSlot* FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const;
+	UInventoryEquipmentSlotWidget* FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const;
+	UInventoryEquipmentSlotWidget* FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const;
 
 	FGameplayTag FindItemBestEquipType(const UInventoryItem* Item) const;
+
+	void ShowDefaultCursor() const;
+	void ClearHoverItem();
+	void HandleOnHoverItemReset();
+	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
+
 };

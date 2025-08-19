@@ -105,12 +105,21 @@ public:
     UFUNCTION(BlueprintCallable, Category="inventory")
     void ToggleInventory();
 
+    UFUNCTION(BlueprintCallable, Category="inventory")
+    void CloseStoreMenu();
+
 //#if UE_WITH_CHEAT_MANAGER
     UFUNCTION(Exec)
     void DebugPrintStorage() const;
 
     UFUNCTION(Server, Unreliable)
     void Server_DebugPrintStorage() const;
+
+    UFUNCTION(Exec)
+    void DebugPrintStores() const;
+
+    UFUNCTION(Server, Unreliable)
+    void Server_DebugPrintStores() const;
 //#endif
     
 protected:
@@ -145,4 +154,10 @@ private:
 
     UFUNCTION(Client, Reliable)
     void ClientHideMagicCircle();
+
+    UFUNCTION()
+    void HandleMenuOpened();
+
+    UFUNCTION()
+    void HandleMenuClosed();
 };

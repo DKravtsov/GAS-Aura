@@ -9,6 +9,8 @@
 #include "InventoryGridWidget.generated.h"
 
 
+class UInventoryHoverItemWidget;
+class UInventoryStoreComponent;
 struct FInventoryItemManifest;
 class UInventoryGridSlotWidget;
 class UUniformGridPanel;
@@ -33,9 +35,6 @@ class UInventoryGridWidget : public UUserWidget
 	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryHoverItemWidget> HoverItemClass;
-
-	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventoryItemPopup> ItemPopupMenuClass;
 
 	int32 Rows = 0;
@@ -53,9 +52,6 @@ class UInventoryGridWidget : public UUserWidget
 
 	UPROPERTY(Transient)
 	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UInventoryHoverItemWidget> HoverItem;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
@@ -79,15 +75,23 @@ class UInventoryGridWidget : public UUserWidget
 
 	uint8 bMouseWithinCanvas:1 = false;
 	uint8 bMouseWasWithinCanvas:1 = false;
+
+	UPROPERTY(EditAnywhere, Category="Inventory", meta=(AllowPrivateAccess=true))
+	uint8 bIsStoreGrid:1 = false;
 	
 public:
 
 	FGameplayTag GetItemCategory() const { return ItemCategory; }
 
+	void SetIsStoreGrid(bool bStoreGrid) { bIsStoreGrid = bStoreGrid; }
+	bool IsStoreGrid() const { return bIsStoreGrid; }
+
 	//~ Begin of UUserWidget interface
 	INVENTORY_API virtual void NativeOnInitialized() override;
 	INVENTORY_API virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 	//~ End of UUserWidget interface
+
+	void ConstructForStore(UInventoryStoreComponent* Store);
 
 	float GetTileSize() const { return TileSize; }
 
@@ -102,11 +106,8 @@ public:
 
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
 
-	void DropHoverItemOnGround();
-
 	bool HasHoverItem() const;
-	UInventoryHoverItemWidget* GetHoverItem() const {return HoverItem;}
-	void ClearHoverItem();
+	UInventoryHoverItemWidget* GetHoverItem() const;
 
 	void OnHide();
 
@@ -115,13 +116,14 @@ public:
 	void HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
 	void HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
 
-	void HandleOnHoverItemReset();
-	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
+	int32 GetNumGridSlots() const {return GridSlots.Num();}
+
+	void UpdateInventoryGridSlots();
 
 private:
 
 	void ConstructGrid();
-	void CreateGridViewModel();
+	void CreateGridViewModel(class UInventoryStorage* InventoryStorage);
 	
 	bool MatchesCategory(const UInventoryItem* Item) const;
 
@@ -143,7 +145,6 @@ private:
 
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void PutDownItemInInventoryAtIndex(const int32 GridIndex);
-	void ShowDefaultCursor() const;
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
 	void OnTileParametersUpdated(const FInventoryTileParameters& Parameters);
@@ -154,10 +155,6 @@ private:
 
 	FInventorySpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const;
 	void SwapWithHoverItem(UInventoryItem* ClickedInventoryItem, const int32 GridIndex);
-	void SwapStackCountsWithHoverItem(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 GridIndex);
-	void FillInStacksOrConsumeHover(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 MaxStackCount, const int32 GridIndex);
-	
-	void UpdateStackCountInSlot(int32 GridIndex, int32 NewStackCount);
 
 	void HighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
 	void UnHighlightSlots(const int32 StartIndex, const FIntPoint& Dimensions);
@@ -182,10 +179,14 @@ private:
 	void OnPopupMenuSplit(const int32 SplitAmount, const int32 GridIndex);
 	void OnPopupMenuConsume(const int32 GridIndex);
 	void OnPopupMenuDrop(const int32 GridIndex);
-
-	static FSlateBrush GetTempBrush();
+	void OnPopupMenuBuy(const int32 GridIndex);
+	void OnPopupMenuSell(const int32 GridIndex);
 
 	void PutHoverItemDown();
 
 	UInventorySlottedItemWidget* GetSlottedItemWidgetAtIndex(const int32 UpperLeftIndex) const;
+
+	void HandleSellItemResult(bool bSuccess, const FString& ErrorMessage);
+	void HandleBuyItemResult(bool bSuccess, const FString& ErrorMessage);
+
 };

@@ -5,11 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "InventoryGridTypes.h"
+#include "InventoryManagementComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/InventoryEquipmentSlotFastArray.h"
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
 #include "InventoryComponent.generated.h"
 
+class UInventoryStoreComponent;
 struct FInventoryStorageSetupData;
 class UInventoryItemData;
 class UInventoryItemComponent;
@@ -17,9 +20,7 @@ struct FInventorySlotAvailabilityResult;
 class UInventoryWidgetBase;
 class UInventoryStorage;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChangeSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryHasNoRoomSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChangedSignature, const FInventorySlotAvailabilityResult&, Result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChangedSignature, UInventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryMenuVisibilityChangedSugnature);
 
@@ -29,6 +30,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FInventoryItemWithIndexAndStackCountDeleg
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemAvailabilityResultDelegate, const FInventorySlotAvailabilityResult& /*Result*/);
 DECLARE_MULTICAST_DELEGATE_FourParams(FInventoryHoverItemUpdatedDelegate, UInventoryItem* /*Item*/, bool /*bStackable*/, int32 /*StackCount*/, int32 /*PreviousIndex*/);
 DECLARE_MULTICAST_DELEGATE(FInventoryHoverItemResetDelegate);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FInventoryOperationResultDelegate, bool /*bSuccess*/, const FString& /*ErrorMessage*/);
 
 USTRUCT(BlueprintType)
 struct FInventoryStartupEquipmentData
@@ -43,16 +45,16 @@ struct FInventoryStartupEquipmentData
 };
 
 UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, Within=PlayerController, meta=(BlueprintSpawnableComponent))
-class UInventoryComponent : public UActorComponent
+class UInventoryComponent : public UInventoryManagementComponentBase
 {
 	GENERATED_BODY()
 
 public:
 
-	FInventoryItemChangeSignature OnItemAdded;
-	FInventoryItemChangeSignature OnItemRemoved;
+	//FInventoryItemChangedDelegate OnItemAdded;
+	//FInventoryItemChangedDelegate OnItemRemoved;
 	FInventoryHasNoRoomSignature OnNoRoomInInventory;
-	FStackChangedSignature OnStackChanged;
+	//FInventoryItemGridChangedDelegate OnStackChanged;
 	FItemEquipStatusChangedSignature OnItemEquipped;
 	FItemEquipStatusChangedSignature OnItemUnequipped;
 	FItemEquipStatusChangedSignature OnItemEquipStatusChanged;
@@ -65,22 +67,30 @@ public:
 
 	FInventoryHoverItemUpdatedDelegate OnHoverItemUpdated;
 	FInventoryHoverItemResetDelegate OnHoverItemReset;
+	
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FInventoryMenuVisibilityChangedSugnature OnStoreMenuOpened;
+
+	UPROPERTY(BlueprintAssignable, Category="Inventory")
+	FInventoryMenuVisibilityChangedSugnature OnStoreMenuClosed;
+
+	FInventoryOperationResultDelegate OnSellItemResult;
+	FInventoryOperationResultDelegate OnBuyItemResult;
 
 private:
 
-	// Inventory Setup Data
-	UPROPERTY(EditDefaultsOnly, Category="Inventory")
-	TSoftObjectPtr<class UInventorySetupData> InventorySetupData;
-
-	// Responsible for HOW the inventory is stored
-	UPROPERTY(Replicated)
-	TObjectPtr<UInventoryStorage> InventoryStorage;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSoftClassPtr<UInventoryWidgetBase> InventoryMenuClass;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryWidgetBase> InventoryMenu;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSoftClassPtr<UInventoryWidgetBase> StoreMenuClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInventoryWidgetBase> StoreMenu;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float DropSpawnAngleMin = -85.f;
@@ -101,10 +111,6 @@ private:
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<class UInventoryPlayerControllerComponent> InventoryController;
 
-	// List of WHAT is stored in the inventory
-	UPROPERTY(Replicated)
-	FInventoryFastArray InventoryList;
-
 	// List of equipment slots
 	UPROPERTY(Replicated)
 	FInventoryEquipmentSlotFastArray EquipmentSlots;
@@ -121,6 +127,10 @@ private:
 	// This is needed on the server to track what's happened on the client.
 	TOptional<FHoverItemProxy> HoverItemProxy;
 
+	mutable TWeakObjectPtr<UInventoryItem> CoinsItem;
+
+	TWeakObjectPtr<UInventoryStoreComponent> StoreComponent;
+
 	uint8 bInventoryMenuOpen:1 = false;
 
 	uint8 bStartupItemsInitialized:1 = false;
@@ -129,17 +139,19 @@ private:
 public:
 	INVENTORY_API UInventoryComponent();
 
-	void AddRepSubObj(UObject* SubObj);
-
 	UInventoryWidgetBase* GetInventoryMenu() const { return InventoryMenu; }
-	UInventoryStorage* GetInventoryStorage() const { return InventoryStorage; }
+	UInventoryWidgetBase* GetStoreMenu() const { return StoreMenu; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	INVENTORY_API void ToggleInventoryMenu();
 
 	bool IsMenuOpen() const { return bInventoryMenuOpen; }
+	bool IsStoreMenuOpen() const { return StoreComponent.IsValid(); }
+	
+	INVENTORY_API void OpenStoreMenu(UInventoryStoreComponent* Store);
+	INVENTORY_API void CloseStoreMenu();
 
-	bool HasHoverItem() const {return HoverItemProxy.IsSet();}
+	bool HasItemSelected() const {return HoverItemProxy.IsSet();}
 
 	TArray<FInventoryEquipmentSlot> GetEquipmentSlotsCopy() const {return EquipmentSlots.GetAllItems();}
 
@@ -150,8 +162,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory", BlueprintAuthorityOnly)
 	INVENTORY_API void TryAddItem(UInventoryItemComponent* ItemComponent);
+	using Super::TryAddItem;
 
-	INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
+	//INVENTORY_API void DropItem(UInventoryItem* Item, int32 StackCount);
 	INVENTORY_API void ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount = 1);
 
 	INVENTORY_API void EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId);
@@ -165,7 +178,7 @@ public:
 	bool AreStartupItemsEquipped() const { return bStartupItemsEquipped; }
 
 //#if UE_WITH_CHEAT_MANAGER
-	INVENTORY_API void DebugPrintStorage() const;
+	INVENTORY_API virtual void DebugPrintStorage() const override;
 //#endif//UE_WITH_CHEAT_MANAGER
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -182,11 +195,17 @@ public:
 	void Server_SelectItemInSlot(EInventoryEquipmentSlot SlotId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_EquipSelectedItem(EInventoryEquipmentSlot SlotId);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_PutSelectedItemToStorage();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_PutSelectedItemToStorageAtIndex(const int32 TargetIndex);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DropItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount);
+	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DropSelectedItemOff();
 
@@ -196,8 +215,22 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SwapSelectedWitItem(UInventoryItem* ItemOnGrid, int32 GridIndex);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 TargetGridIndex = INDEX_NONE);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_BuyItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 TargetGridIndex = INDEX_NONE);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex);
+	
+	// returns the number of coins
+	int32 GetWealth() const;
+
+	UInventoryStoreComponent* GetOpenedStore() const;
+
 protected:
-	INVENTORY_API void CreateInventoryStorage();
+	virtual void CreateInventoryStorage() override;
 
 	virtual void BeginPlay() override;
 
@@ -207,8 +240,8 @@ protected:
 	void AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 	void AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_DropItem(UInventoryItem* Item, int32 StackCount);
+	// UFUNCTION(Server, Reliable, WithValidation)
+	// void Server_DropItem(UInventoryItem* Item, int32 StackCount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount);
@@ -244,10 +277,6 @@ private:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddStartupItems();
-	
-	void TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray); 
-	void AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray);
-	void AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount);
 
 	UFUNCTION(Client, Reliable)
 	void Client_EquipStartupInventory(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData);
@@ -256,9 +285,6 @@ private:
 
 
 	EInventoryEquipmentSlot GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest);
-
-	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount);
-	void RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex);
 
 	void NotifyHoverItemUpdated();
 	void ClearSelectedItem();
@@ -269,4 +295,18 @@ private:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceivedHoverItemReset();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_NotifyStoreMenuOpened(UInventoryStoreComponent* Store);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_NotifyStoreMenuClosed();
+	
+	UFUNCTION(Client, Reliable)
+	void Client_ReceiveSellItemResult(bool bSuccess, const FString& ErrorMessage);
+
+	UFUNCTION(Client, Reliable)
+	void Client_ReceivePurchaseItemResult(bool bSuccess, const FString& ErrorMessage);
+
+	void DoSellItem(UInventoryItem* ItemToSell, int32 GridIndex, int32 StackCount, int32 SellValue, FInventorySlotAvailabilityResult* OutResult = nullptr);
+	void DoPurchaseItem(UInventoryItem* ItemToBuy, int32 GridIndex, int32 StackCount, int32 PurchaseValue, FInventorySlotAvailabilityResult* OutResult = nullptr);
 };

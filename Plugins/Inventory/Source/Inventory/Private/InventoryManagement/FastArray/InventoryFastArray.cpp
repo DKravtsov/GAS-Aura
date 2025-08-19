@@ -33,12 +33,12 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), RemovedIndices.Num())
 
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
+	auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent);
 	if (IsValid(InventoryComponent))
 	{
 		for (const int32 Index : RemovedIndices)
 		{
-			InventoryComponent->OnItemRemoved.Broadcast(Entries[Index].Item);
+			BROADCAST_WITH_LOG_STRUCT(OwnerComponent.Get(), InventoryList, InventoryComponent->OnItemRemoved, Entries[Index].Item);
 		}
 	}
 }
@@ -47,16 +47,19 @@ void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndice
 {
 	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), AddedIndices.Num())
 
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
-	if (IsValid(InventoryComponent))
+	
+	if (const auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent);IsValid(InventoryComponent))
 	{
 		for (const int32 Index : AddedIndices)
 		{
-			InventoryComponent->OnItemAdded.Broadcast(Entries[Index].Item);
+			BROADCAST_WITH_LOG_STRUCT(OwnerComponent.Get(), InventoryList, InventoryComponent->OnItemAdded, Entries[Index].Item);
 		}
 	}
 
-	InventoryComponent->ReceivedStartupItems();
+	if (auto* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	{
+		InventoryComponent->ReceivedStartupItems();
+	}
 }
 
 UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemComponent)
@@ -65,10 +68,10 @@ UInventoryItem* FInventoryFastArray::AddItem(UInventoryItemComponent* ItemCompon
 	AActor* OwningActor = OwnerComponent->GetOwner();
 	check(OwningActor->HasAuthority());
 
-	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	if (auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-		NewEntry.Item = ItemComponent->GetItemManifestMutable().Manifest(OwningActor);
+		NewEntry.Item = ItemComponent->GetItemManifestMutable().Manifest(InventoryComponent);
 		InventoryComponent->AddRepSubObj(NewEntry.Item);
 		MarkItemDirty(NewEntry);
 		return NewEntry.Item;
@@ -94,10 +97,10 @@ UInventoryItem* FInventoryFastArray::AddItem(const FInventoryItemManifest& ItemM
 	AActor* OwningActor = OwnerComponent->GetOwner();
 	check(OwningActor->HasAuthority());
 
-	if (UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent))
+	if (auto* InventoryComponent = Cast<UInventoryManagementComponentBase>(OwnerComponent))
 	{
 		FInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-		NewEntry.Item = ItemManifest.ManifestCopy(OwningActor);
+		NewEntry.Item = ItemManifest.ManifestCopy(InventoryComponent);
 		if (OverrideCount > 0)
 		{
 			FInventoryItemManifest& NewManifest = NewEntry.Item->GetItemManifestMutable();
@@ -133,4 +136,14 @@ UInventoryItem* FInventoryFastArray::FindFirstItemByType(const FGameplayTag& Ite
 		return IsValid(Entry.Item) && Entry.Item->GetItemType().MatchesTagExact(ItemType);
 	});
 	return FoundItem ? ToRawPtr(FoundItem->Item) : nullptr;
+}
+
+bool FInventoryFastArray::Contains(UInventoryItem* Item) const
+{
+	const auto FoundItem = Entries.FindByPredicate([Item](const FInventoryEntry& Entry)
+	{
+		return Entry.Item == Item;
+	});
+	return FoundItem && IsValid(FoundItem->Item);
+	
 }

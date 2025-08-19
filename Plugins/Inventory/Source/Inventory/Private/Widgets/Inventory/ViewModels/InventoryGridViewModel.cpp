@@ -9,22 +9,18 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Storage/SpatialStorage/InventorySpatialStorage.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
+#include "Items/InventoryItem.h"
 
-void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, const FGameplayTag& ItemCategory)
+void UInventoryGridViewModel::Initialize(const APlayerController* OwningPlayer, UInventoryStorage* Storage, const FGameplayTag& ItemCategory)
 {
 	LOG_NETFUNCTIONCALL_MSG(TEXT("Category [%s]"), *ItemCategory.ToString())
 	
-	InventoryComponent = UInventoryStatics::GetInventoryComponent(OwningPlayer);
-	check(InventoryComponent.IsValid());
-	
-	const UInventorySpatialStorage* Storage = Cast<UInventorySpatialStorage>(InventoryComponent->GetInventoryStorage());
-	checkf(Storage, TEXT("GridViewModel initialization failed. The InventoryStorage is null. InventoryComponent [%s]"),
-		*GetNameSafe(InventoryComponent.Get()));
+	const UInventorySpatialStorage* SpatialStorage = Cast<UInventorySpatialStorage>(Storage);
+	checkf(SpatialStorage, TEXT("Note: Only InventorySpatialStorage class is supported."));
 
-	StorageGrid = Storage->FindInventoryGridByCategory(ItemCategory);
-	checkf(StorageGrid.IsValid(), TEXT("GridViewModel initialization failed. Couldn't find the inventory grid. InventoryComponent [%s]. Looked for [%s] but there are only: %s"),
-				*GetNameSafe(InventoryComponent.Get()), *ItemCategory.ToString(), *Storage->GetInventoryGridNamesDebugString())
-	
+	StorageGrid = SpatialStorage->FindInventoryGridByCategory(ItemCategory);
+	checkf(StorageGrid.IsValid(), TEXT("Couldn't find the inventory grid: [%s]. The grids exist: %s"),
+				*ItemCategory.ToString(), *SpatialStorage->GetInventoryGridNamesDebugString())
 }
 
 int32 UInventoryGridViewModel::GetRows() const
@@ -42,11 +38,6 @@ const FGameplayTag& UInventoryGridViewModel::GetInventoryCategory() const
 	return StorageGrid->GetItemCategory();
 }
 
-UInventoryComponent* UInventoryGridViewModel::GetInventoryComponent() const
-{
-	return InventoryComponent.Get();
-}
-
 const FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlot(int32 Index) const
 {
 	check(StorageGrid->IsValidIndex(Index));
@@ -56,6 +47,11 @@ const FInventoryStorageGridSlot& UInventoryGridViewModel::GetGridSlot(int32 Inde
 bool UInventoryGridViewModel::IsGridSlotAvailable(int32 Index) const
 {
 	return GetGridSlot(Index).IsAvailable();
+}
+
+bool UInventoryGridViewModel::IsMyItem(const UInventoryItem* Item) const
+{
+	return IsValid(Item) && Item->GetOwningStorage() == StorageGrid->GetOuter(); 
 }
 
 FInventoryItemGridChangedDelegate& UInventoryGridViewModel::GetOnItemAddedToGridDelegate() const

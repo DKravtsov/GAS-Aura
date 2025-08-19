@@ -2,6 +2,8 @@
 
 
 #include "Widgets/Inventory/SlottedItems/InventorySlottedItemWidget.h"
+
+#include "DebugHelper.h"
 #include "Items/InventoryItem.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -9,7 +11,7 @@
 
 FReply UInventorySlottedItemWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	OnSlottedItemClicked.Broadcast(GridIndex, InMouseEvent);
+	BROADCAST_WITH_LOG(OnSlottedItemClicked, GridIndex, InMouseEvent);
 	return FReply::Handled();
 }
 
@@ -20,6 +22,7 @@ FReply UInventorySlottedItemWidget::NativeOnMouseButtonUp(const FGeometry& InGeo
 
 void UInventorySlottedItemWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	check(InventoryItem.IsValid());
 	UInventoryStatics::ItemHovered(GetOwningPlayer(), InventoryItem.Get());
 }
 

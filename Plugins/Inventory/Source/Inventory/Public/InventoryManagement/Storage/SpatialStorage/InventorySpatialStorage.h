@@ -55,8 +55,9 @@ public:
 	virtual int32 GetItemStackCount(UInventoryItem* Item, int32 GridIndex) override;
 	virtual void SetItemStackCount(UInventoryItem* Item, int32 GridIndex, int32 NewStackCount) override;
 	virtual void UpdateGridSlots(UInventoryItem* NewItem, int32 Index, bool bStackable, int32 StackAmount) override;
-	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex) override;
+	virtual void RemoveItemFromGrid(UInventoryItem* ItemToRemove, int32 GridIndex, int32 Count = -1/*entire stack*/) override;
 	virtual int32 FillInStacksOrConsumeHover(UInventoryItem* Item, int32 TargetIndex, int32 AddStackCount) override;
+	virtual bool HasRoomForItemAtIndex(FInventorySlotAvailabilityResult& Result, const struct FInventoryItemManifest& ItemManifest, const int32 Index, const int32 StackCountOverride = -1) const override;
 	//~ End of UInventoryStorage interface
 
 	//~ Begin of UObject interface
@@ -69,6 +70,11 @@ public:
 	//#endif//UE_WITH_CHEAT_MANAGER
 
 	FString GetInventoryGridNamesDebugString() const;
+
+	virtual bool FindItemStacks(FInventorySlotAvailabilityResult& Result, UInventoryItem* Item, int32 TotalCount = 1) const override;
+
+	virtual void MoveItem(UInventoryItem* Item, int32 SourceGridIndex, int32 TargetGridIndex) override;
+	
 protected:
 
 	static TSubclassOf<UInventoryStorageGrid> GetStorageGridClass();

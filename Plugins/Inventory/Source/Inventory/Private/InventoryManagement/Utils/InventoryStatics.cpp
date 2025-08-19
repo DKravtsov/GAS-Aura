@@ -3,6 +3,7 @@
 
 #include "InventoryManagement/Utils/InventoryStatics.h"
 
+#include "InventoryGlobalSettings.h"
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
@@ -58,48 +59,51 @@ FGameplayTag UInventoryStatics::GetItemCategory(UInventoryItemComponent* ItemCom
 
 UInventoryWidgetBase* UInventoryStatics::GetInventoryWidget(const APlayerController* PlayerController)
 {
-	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	UInventoryWidgetBase* InventoryMenu = nullptr;
+	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
 	{
-		return InventoryComponent->GetInventoryMenu();
+		if (InventoryComponent->IsMenuOpen())
+		{
+			InventoryMenu = InventoryComponent->GetInventoryMenu();
+		}
+		else if (InventoryComponent->IsStoreMenuOpen())
+		{
+			InventoryMenu = InventoryComponent->GetStoreMenu();
+		}
 	}
-	return nullptr;
+	return InventoryMenu;
 }
 
 void UInventoryStatics::ItemHovered(APlayerController* PlayerController, UInventoryItem* Item)
 {
-	if (UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	if (UInventoryWidgetBase* InventoryMenu =GetInventoryWidget(PlayerController))
 	{
-		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
+		if (!InventoryMenu->HasHoverItem())
 		{
-			if (!InventoryMenu->HasHoverItem())
-			{
-				InventoryMenu->OnInventoryHovered(Item);
-			}
+			InventoryMenu->OnInventoryHovered(Item);
 		}
 	}
 }
 
 void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 {
-	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
+	if (UInventoryWidgetBase* InventoryMenu = GetInventoryWidget(PlayerController))
 	{
-		if (UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
-		{
-			InventoryMenu->OnInventoryUnhovered();
-		}
+		InventoryMenu->OnInventoryUnhovered();
 	}
 }
 
-class UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
+UInventoryHoverItemWidget* UInventoryStatics::GetHoverItemWidget(const APlayerController* PlayerController)
 {
-	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
-	{
-		if (const UInventoryWidgetBase* InventoryMenu = InventoryComponent->GetInventoryMenu())
-		{
-			return InventoryMenu->GetHoverItem();
-		}
-	}
-	return nullptr;
+	const UInventoryWidgetBase* InventoryMenu = GetInventoryWidget(PlayerController);
+	return InventoryMenu ? InventoryMenu->GetHoverItem() : nullptr;
+}
+
+bool UInventoryStatics::IsHoverItemOwnedByPlayer(const APlayerController* PlayerController)
+{
+	const UInventoryHoverItemWidget* HoverItem = GetHoverItemWidget(PlayerController);
+	const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController);
+	return IsValid(HoverItem) && IsValid(InventoryComponent) && HoverItem->GetInventoryStorage() == InventoryComponent->GetInventoryStorage();
 }
 
 bool UInventoryStatics::CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag)
@@ -144,5 +148,24 @@ FGameplayTag UInventoryStatics::GetItemEquipmentTag(const UInventoryItem* Item)
 		}
 	}
 	return FGameplayTag::EmptyTag;
+}
+
+const FInventoryItemManifest& UInventoryStatics::GetCoinItemManifest(const UObject* WorldContextObject)
+{
+	const auto* CoinsItemManifest = UInventoryGlobalSettings::GetCoinsItemManifest();
+	checkf(CoinsItemManifest, TEXT("Coins item manifest is not set"));
+	return *CoinsItemManifest;
+}
+
+int32 UInventoryStatics::GetItemSellValue(const UInventoryItem* Item)
+{
+	if (IsValid(Item))
+	{
+		if (const auto* CostFragment = Item->GetItemManifest().GetFragmentOfTypeWithTag<FInventoryItemLabeledValueFragment>(InventoryFragmentTags::FragmentTag_SellValue))
+		{
+			return FMath::FloorToInt32(CostFragment->GetValue());
+		}
+	}
+	return 0;
 }
 

@@ -21,6 +21,10 @@ namespace InventoryTags
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots_Armour);
 	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_EquipmentSlots_Weapon);
 	
+	/**  Collectables **/
+	
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameItems_Collectables);
+	INVENTORY_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameItems_Collectables_Coins);
 }
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryItemGridChangedDelegate, const struct FInventorySlotAvailabilityResult& /*Result*/);
@@ -61,6 +65,13 @@ public:
 	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex);
 	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex, int32 InMaxStackSize, int32 InAmount);
 	static FInventorySlotAvailabilityResult Make(UInventoryItem* InItem, int32 InStartIndex, bool bStackable, int32 StackCount);
+
+	FInventorySlotAvailabilityResult& Union(const FInventorySlotAvailabilityResult& OtherResult);
+
+	FORCEINLINE int32 GetFirstAvailableIndex() const
+	{
+		return SlotAvailabilities.Num() > 0 ? SlotAvailabilities[0].Index : INDEX_NONE;
+	}
 };
 
 UENUM(BlueprintType)

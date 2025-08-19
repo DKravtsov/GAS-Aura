@@ -1,0 +1,79 @@
+﻿// Copyright 4sandwiches
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "InventoryGridTypes.h"
+#include "InventoryManagement/FastArray/InventoryFastArray.h"
+#include "InventoryManagementComponentBase.generated.h"
+
+
+class UInventoryStorage;
+
+UCLASS(MinimalAPI, ClassGroup=(Inventory), Blueprintable, Abstract, meta=(BlueprintSpawnableComponent))
+class UInventoryManagementComponentBase : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	FInventoryItemChangedDelegate OnItemAdded;
+	FInventoryItemChangedDelegate OnItemRemoved;
+	FInventoryItemGridChangedDelegate OnStackChanged;
+
+protected:
+
+	// Inventory Setup Data
+	UPROPERTY(EditDefaultsOnly, Category="Inventory")
+	TSoftObjectPtr<class UInventorySetupData> InventorySetupData;
+
+	// Responsible for HOW the inventory is stored
+	UPROPERTY(Replicated)
+	TObjectPtr<UInventoryStorage> InventoryStorage;
+
+	// List of WHAT is stored in the inventory
+	UPROPERTY(Replicated)
+	FInventoryFastArray InventoryList;
+
+
+public:
+	UInventoryManagementComponentBase();
+	
+	UInventoryStorage* GetInventoryStorage() const { return InventoryStorage; }
+
+	void AddRepSubObj(UObject* SubObj);
+
+	//#if UE_WITH_CHEAT_MANAGER
+	INVENTORY_API virtual void DebugPrintStorage() const {}
+	//#endif//UE_WITH_CHEAT_MANAGER
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// returns a newly created item or null if the item already in the inventory or failed
+	bool TryAddItem(const FInventoryItemManifest& ItemManifest, int32 StackCount,
+	                FInventorySlotAvailabilityResult* OutResult = nullptr);
+	
+	bool RemoveItemFromInventory(UInventoryItem* Item, int32 StackCount);
+
+	bool HasEnoughCoins(int32 Price) const;
+	
+	void RemoveCoins(int32 SellValue);
+
+	bool IsValidItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount) const;
+
+	void AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount);
+
+protected:
+
+	virtual void BeginPlay() override;
+
+	virtual void CreateInventoryStorage();
+
+	FORCEINLINE bool HasAuthority() const {return GetOwner()->HasAuthority();}
+
+	UInventoryItem* AddNewItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+	UInventoryItem* AddStacksToItem(const FInventoryItemManifest& ItemManifest, int32 StackCount);
+
+	bool FindItemStacks(UInventoryItem* Item, int32 TotalCount, FInventorySlotAvailabilityResult& Result) const;
+
+	void RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex);
+};

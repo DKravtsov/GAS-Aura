@@ -67,6 +67,8 @@ public:
 	void RemoveItem(UInventoryItem* Item);
 
 	UInventoryItem* FindFirstItemByType(const FGameplayTag& ItemType) const;
+
+	bool Contains(UInventoryItem* Item) const;
 };
 
 template<>

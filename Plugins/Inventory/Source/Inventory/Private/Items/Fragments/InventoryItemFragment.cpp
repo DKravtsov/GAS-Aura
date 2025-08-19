@@ -18,6 +18,7 @@ namespace InventoryFragmentTags
 	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_Consumable, "FragmentTag.Consumable");
 	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_ItemName, "FragmentTag.ItemName");
 	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_ItemDescription, "FragmentTag.ItemDescription");
+	UE_DEFINE_GAMEPLAY_TAG(FragmentTag_SellValue, "FragmentTag.SellValue");
 }
 
 FInventoryItemGridFragment::FInventoryItemGridFragment()

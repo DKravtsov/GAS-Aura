@@ -7,6 +7,7 @@
 #include "InventoryGridTypes.h"
 #include "InventoryGridViewModel.generated.h"
 
+class UInventoryStorage;
 class UInventoryGridWidget;
 class UInventoryStorageGrid;
 struct FGameplayTag;
@@ -37,11 +38,10 @@ public:
 private:
 
 	TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
-	TWeakObjectPtr<UInventoryComponent> InventoryComponent;
 
 public:
 
-	void Initialize(const APlayerController* OwningPlayer, const FGameplayTag& ItemCategory);
+	virtual void Initialize(const APlayerController* OwningPlayer, UInventoryStorage* Storage, const FGameplayTag& ItemCategory);
 
 	int32 GetRows() const;
 
@@ -49,12 +49,12 @@ public:
 
 	const FGameplayTag& GetInventoryCategory() const;
 
-	UInventoryComponent* GetInventoryComponent() const;
-
 	TWeakObjectPtr<UInventoryStorageGrid> GetStorageGrid() const {return StorageGrid;};
 
 	const FInventoryStorageGridSlot& GetGridSlot(int32 Index) const;
 
 	bool IsGridSlotAvailable(int32 Index) const;
+
+	bool IsMyItem(const UInventoryItem* Item) const;
 
 };
