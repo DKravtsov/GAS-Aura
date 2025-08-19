@@ -6,17 +6,17 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryGridTypes.h"
 #include "Items/Fragments/InventoryItemFragment.h"
-#include "InventoryGrid.generated.h"
+#include "InventoryGridWidget.generated.h"
 
 
 struct FInventoryItemManifest;
-class UInventoryGridSlot;
+class UInventoryGridSlotWidget;
 class UUniformGridPanel;
 class UGridPanel;
 enum class EInventoryGridSlotVisualState : uint8;
 
 UCLASS(MinimalAPI, Abstract)
-class UInventoryGrid : public UUserWidget
+class UInventoryGridWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -24,24 +24,21 @@ class UInventoryGrid : public UUserWidget
 	FGameplayTag ItemCategory;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UInventoryGridSlot>> GridSlots;
+	TArray<TObjectPtr<UInventoryGridSlotWidget>> GridSlots;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<UInventoryGridSlot> GridSlotClass;
+	TSubclassOf<UInventoryGridSlotWidget> GridSlotClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventorySlottedItemWidget> SlottedItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryHoverProxy> HoverItemClass;
+	TSubclassOf<class UInventoryHoverItemWidget> HoverItemClass;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	TSubclassOf<class UInventoryItemPopup> ItemPopupMenuClass;
 
-	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Rows = 0;
-
-	UPROPERTY(EditAnywhere, Category="Inventory")
 	int32 Columns = 0;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
@@ -58,10 +55,13 @@ class UInventoryGrid : public UUserWidget
 	TMap<int32, TObjectPtr<UInventorySlottedItemWidget>> SlottedItems;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UInventoryHoverProxy> HoverItem;
+	TObjectPtr<UInventoryHoverItemWidget> HoverItem;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInventoryItemPopup> ItemPopupMenu;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UInventoryGridViewModel> GridViewModel;
 
 	TWeakObjectPtr<class UInventoryComponent> InventoryComponent;
 	TWeakObjectPtr<class UCanvasPanel> OwningCanvasPanel;
@@ -89,25 +89,10 @@ public:
 	INVENTORY_API virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 	//~ End of UUserWidget interface
 
-	int32 GetIndexFromPosition(const FIntPoint& Position) const
-	{
-		return Position.X + Position.Y * Columns;
-	}
-
-	FIntPoint GetPositionFromIndex(int32 Index) const
-	{
-		return FIntPoint(Index % Columns, Index / Columns);
-	}
-
 	float GetTileSize() const { return TileSize; }
 
 	UFUNCTION()
-	INVENTORY_API void AddItem(UInventoryItem* Item);
-
-	UFUNCTION()
 	INVENTORY_API void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
-
-	INVENTORY_API FInventorySlotAvailabilityResult HasRoomForItem(const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride = -1) const;
 
 	//~ Begin UWidget Interface
 #if WITH_EDITOR	
@@ -120,21 +105,25 @@ public:
 	void DropHoverItemOnGround();
 
 	bool HasHoverItem() const;
-	UInventoryHoverProxy* GetHoverItem() const {return HoverItem;}
+	UInventoryHoverItemWidget* GetHoverItem() const {return HoverItem;}
 	void ClearHoverItem();
-	void AssignHoverItem(UInventoryItem* ClickedItem, const int32 GridIndex = INDEX_NONE, const int32 PrevGridIndex = INDEX_NONE);
 
 	void OnHide();
 
-	void RemoveItemFromGrid(UInventoryItem* Item);
+	void HandleAddItemToGrid(const FInventorySlotAvailabilityResult& Result);
+	void HandleOnStackChanged(const FInventorySlotAvailabilityResult& Result);
+	void HandleOnUpdateGridSlots(const TArrayView<int32>& GridIndexArray);
+	void HandleOnRemovedItemFromGrid(const TArrayView<int32>& GridIndexArray);
+
+	void HandleOnHoverItemReset();
+	void HandleOnHoverItemUpdated(UInventoryItem* Item, bool bStackable, int32 StackCount, int32 PreviousIndex);
 
 private:
 
 	void ConstructGrid();
+	void CreateGridViewModel();
+	
 	bool MatchesCategory(const UInventoryItem* Item) const;
-
-	UFUNCTION()
-	void OnStackChanged(const FInventorySlotAvailabilityResult& Result);
 
 	void AddItemToIndexes(const FInventorySlotAvailabilityResult& Result, UInventoryItem* NewItem);
 	UInventorySlottedItemWidget* CreateSlottedItemWidget(UInventoryItem* Item, int32 Index,
@@ -146,21 +135,8 @@ private:
 	                         const FInventoryItemImageFragment& ImageFragment) const;
 
 	void AddSlottedItemToGrid(const int32 Index, const FInventoryItemGridFragment& GridFragment, UInventorySlottedItemWidget* SlottedItem) const;
-	
-	void UpdateGridSlots(UInventoryItem* NewItem, const int32 Index, bool bStackable, const int32 StackAmount);
-
-	bool HasRoomAtIndex(const UInventoryGridSlot* GridSlot, const FIntPoint& Dimensions,
-						const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
-						const int32 MaxStackSize, const FGameplayTag& ItemType) const;
-
-	bool CheckSlotConstraints(const UInventoryGridSlot* GridSlot, const UInventoryGridSlot* CurGridSlot,
-							  const TSet<int32>& CheckedIndexes, TSet<int32>& OutTentativelyClaimedIndexes,
-							  const int32 MaxStackSize, const FGameplayTag& ItemType) const;
 
 	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& Dimensions) const;
-
-	int32 GetStackAmountInSlot(const UInventoryGridSlot* GridSlot) const;
-	int32 CalculateStackableFillAmountForSlot(const int32 MaxStackSize, const int32 Amount, const UInventoryGridSlot* GridSlot) const;
 
 	static bool IsLeftMouseButtonClick(const FPointerEvent& MouseEvent);
 	static bool IsRightMouseButtonClick(const FPointerEvent& MouseEvent);
@@ -168,8 +144,6 @@ private:
 	void PickUpItemInInventory(UInventoryItem* ClickedItem, const int32 GridIndex);
 	void PutDownItemInInventoryAtIndex(const int32 GridIndex);
 	void ShowDefaultCursor() const;
-
-	void RemoveItemFromGrid(UInventoryItem* ClickedItem, const int32 GridIndex);
 
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
 	void OnTileParametersUpdated(const FInventoryTileParameters& Parameters);
@@ -212,4 +186,6 @@ private:
 	static FSlateBrush GetTempBrush();
 
 	void PutHoverItemDown();
+
+	UInventorySlottedItemWidget* GetSlottedItemWidgetAtIndex(const int32 UpperLeftIndex) const;
 };

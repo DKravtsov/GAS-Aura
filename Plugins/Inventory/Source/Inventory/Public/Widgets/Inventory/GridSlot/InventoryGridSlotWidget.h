@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryGridSlot.generated.h"
+#include "InventoryGridSlotWidget.generated.h"
 
+class UInventoryItem;
+struct FInventoryStorageGridSlot;
+class UInventoryStorageGrid;
 class UImage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEventSignature, int32, GridIndex, const FPointerEvent&, MouseEvent);
@@ -19,18 +22,13 @@ enum class EInventoryGridSlotVisualState : uint8
 };
 
 UCLASS(MinimalAPI, Abstract)
-class UInventoryGridSlot : public UUserWidget
+class UInventoryGridSlotWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
-
-	FGridSlotEventSignature OnGridSlotClicked;
-	FGridSlotEventSignature OnGridSlotHovered;
-	FGridSlotEventSignature OnGridSlotUnhovered;
 
 private:
-
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;
 
@@ -46,34 +44,11 @@ private:
 	UPROPERTY(EditAnywhere, Category="Inventory")
 	FSlateBrush GrayedOutBrush;
 
-	int32 TileIndex = INDEX_NONE;
-	int32 StackCount = 0;
-	int32 StartIndex = INDEX_NONE; // upper left index where the actual stack count is stored
-
-	TWeakObjectPtr<class UInventoryItem> InventoryItem;
-
 	EInventoryGridSlotVisualState GridSlotState;
 
-	bool bIsAvailable = true;
-	
 public:
-
-	int32 GetTileIndex() const { return TileIndex; }
-	void SetTileIndex(const int32 NewTileIndex) { TileIndex = NewTileIndex; }
-
-	int32 GetStackCount() const { return StackCount; }
-	void SetStackCount(const int32 NewStackCount) { StackCount = NewStackCount; }
-
-	int32 GetStartIndex() const { return StartIndex; }
-	void SetStartIndex(const int32 NewStartIndex) { StartIndex = NewStartIndex; }
-
+	
 	EInventoryGridSlotVisualState GetGridSlotState() const { return GridSlotState; }
-
-	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const { return InventoryItem; }
-	void SetInventoryItem(UInventoryItem* Item);
-
-	bool IsAvailable() const {return bIsAvailable;}
-	void SetIsAvailable(bool bAvailable) { bIsAvailable = bAvailable; }
 	
 	void SetDefaultTexture();
 	void SetOccupiedTexture();
@@ -83,12 +58,48 @@ public:
 
 	//~ Begin of UUserWidget interface
 	virtual void NativePreConstruct() override;
+	//~ End of UUserWidget interface
+
+};
+
+UCLASS(MinimalAPI, Abstract)
+class UInventoryGridSlotWidget : public UInventoryGridSlotWidgetBase
+{
+	GENERATED_BODY()
+
+public:
+
+	FGridSlotEventSignature OnGridSlotClicked;
+	FGridSlotEventSignature OnGridSlotHovered;
+	FGridSlotEventSignature OnGridSlotUnhovered;
+
+private:
+
+	int32 GridIndex = INDEX_NONE;
+
+	TWeakObjectPtr<UInventoryStorageGrid> StorageGrid;
+
+public:
+
+	void Bind(UInventoryStorageGrid* InStorageGrid, int32 InTileIndex);
+	
+	const FInventoryStorageGridSlot& GetStorageSlot() const;
+
+	int32 GetTileIndex() const {return GridIndex;}
+
+	int32 GetStackCount() const;
+
+	int32 GetStartIndex() const;
+
+	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const;
+
+	bool IsAvailable() const;
+
+	//~ Begin of UUserWidget interface
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
-
-private:
 
 	
 };

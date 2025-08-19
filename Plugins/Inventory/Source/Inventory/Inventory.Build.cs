@@ -39,6 +39,7 @@ public class Inventory : ModuleRules
 				"UMG",
 				"SlateCore",
 				"InputCore",
+				"DeveloperSettings",
 			}
 			);
 		

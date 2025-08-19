@@ -3,8 +3,9 @@
 
 #include "InventoryManagement/Components/InventoryComponent.h"
 
-#include "Inventory.h"
 #include "Components/CapsuleComponent.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
@@ -12,9 +13,24 @@
 #include "Items/InventoryItem.h"
 #include "Items/InventoryItemData.h"
 #include "Items/Fragments/InventoryItemFragment.h"
+#include "InventoryManagement/Data/InventorySetupData.h"
+
+#include "DebugHelper.h"
+
+const FInventoryStorageSetupData* FStorageSetupDataProxy::GetData() const
+{
+	return SetupData.GetPtr<FInventoryStorageSetupData>();
+}
+
+TSubclassOf<UInventoryStorage> FStorageSetupDataProxy::GetStorageClass() const
+{
+	const auto Data = GetData();
+	return Data ? Data->StorageClass : nullptr;
+}
 
 UInventoryComponent::UInventoryComponent()
 	: InventoryList(this)
+	, EquipmentSlots(this) 
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
@@ -35,13 +51,40 @@ void UInventoryComponent::ToggleInventoryMenu()
 
 void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	check(ItemComponent != nullptr);
-	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
-	if (Result.TotalRoomToFill == 0)
+
+	if (OwningPlayerController->GetLocalRole() == ROLE_AutonomousProxy /*!OwningPlayerController->HasAuthority() && OwningPlayerController->IsLocalPlayerController()*/)
 	{
-		OnNoRoomInInventory.Broadcast();
+		// Precheck to not call server RPC if it's unnecessary.
+		// Server will check the same anyway, so it doesn't make sense to call this check if HasAuthority.
+		// We assume here that the inventory grid is fully synced at this moment 
+		FInventorySlotAvailabilityResult Result;
+		if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
+		{
+			OnNoRoomInInventory.Broadcast();
+			return;
+		}
+	}
+
+	Server_TryAddItem(ItemComponent);
+}
+
+void UInventoryComponent::Server_TryAddItem_Implementation(UInventoryItemComponent* ItemComponent)
+{
+	LOG_NETFUNCTIONCALL
+	
+	check(ItemComponent != nullptr);
+
+	FInventorySlotAvailabilityResult Result;
+	if (!InventoryStorage->HasRoomForItem(Result, ItemComponent))
+	{
+		if (OwningPlayerController->IsLocalPlayerController())
+		{
+			// The client broadcasts this in TryAddItem()
+			OnNoRoomInInventory.Broadcast();
+		}
 		return;
 	}
 
@@ -52,94 +95,31 @@ void UInventoryComponent::TryAddItem(UInventoryItemComponent* ItemComponent)
 	{
 		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
+		AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
+		AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 1, Result.Remainder);
 	}
 }
 
-void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+bool UInventoryComponent::Server_TryAddItem_Validate(UInventoryItemComponent* ItemComponent)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
-	
-	checkf(OwningPlayerController->IsLocalController(), TEXT("This method should run only for local Player Controller"));
-	
-	FInventorySlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemManifest, StackCount);
-	if (Result.TotalRoomToFill == 0)
-	{
-		OnNoRoomInInventory.Broadcast();
-		return ;
-	}
-	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
-	Result.Item = FoundItem;
-
-	if (Result.Remainder > 0)
-	{
-		UE_LOG(LogInventory, Warning, TEXT("Adding startup item [%s]: inventory has not enough room for %d more item(s) and they will be destroyed."),
-		   *ItemManifest.GetItemType().ToString(), Result.Remainder);
-	}
-
-	if (Result.Item.IsValid() && Result.bStackable)
-	{
-		OnStackChanged.Broadcast(Result);
-		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, EquipmentTypeTag);
-	}
-	else
-	{
-		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipmentTypeTag);
-	}
+	return true;
 }
 
-FInventorySlotAvailabilityResult UInventoryComponent::ServerCheckHasRoomForItem(const FInventoryItemManifest& ItemManifest, int32 StackCountOverride) const
+void UInventoryComponent::TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
-	
-	// TODO: implement proper check on server
-	// For now we always trust in any provided stack count
-	
-	FInventorySlotAvailabilityResult Result;
-
-	// Determine if the item is stackable.Add commentMore actions
-	const auto StackableFragment = ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>();
-	Result.bStackable = StackableFragment != nullptr;
-
-	const auto GridFragment = ItemManifest.GetFragmentOfType<FInventoryItemGridFragment>();
-	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint{1,1};
-	
-	// Determine how many stacks to add.
-
-	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
-	int32 AmountToFill = StackableFragment ? (StackCountOverride >= 0 ? StackCountOverride : StackableFragment->GetStackCount()) : 1;
-
-	Result.TotalRoomToFill += AmountToFill;
-	Result.SlotAvailabilities.Emplace(
-			0,
-			Result.bStackable ? AmountToFill : 0,
-			true
-			);
-
-	Result.Remainder = 0;
-	
-	return Result;
-}
-
-void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
-{
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	checkf(OwningPlayerController->HasAuthority(), TEXT("This method should run only on server"));
 
-	
-	FInventorySlotAvailabilityResult Result = ServerCheckHasRoomForItem(ItemManifest, StackCount);
-	
-	if (Result.TotalRoomToFill == 0)
+	FInventorySlotAvailabilityResult Result;
+	if (!InventoryStorage->HasRoomForItem(Result, ItemManifest, StackCount))
 	{
-		OnNoRoomInInventory.Broadcast();
+		UE_LOG(LogInventory, Error, TEXT("Adding startup item [%s]: inventory has no room for %d items."),
+			*ItemManifest.GetItemType().ToString(), StackCount);
 		return ;
 	}
 	UInventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemManifest.GetItemType());
@@ -155,27 +135,58 @@ void UInventoryComponent::Server_TryAddStartupItem(const FInventoryItemManifest&
 	{
 		OnStackChanged.Broadcast(Result);
 		// Add stacks to an item that already exists in the inventory.Only need to update the stack count
-		Server_AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill, EquipmentTypeTag);
+		AddStacksToItemAtStart(ItemManifest, Result.TotalRoomToFill);
 	}
 	else
 	{
 		// This item doesn't exist in the inventory. Need to create one and update all related stuff
-		Server_AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipmentTypeTag);
+		AddNewStartupItem(ItemManifest, Result.bStackable ? Result.TotalRoomToFill : 1, EquipToSlot, OutStartupEquipmentArray);
 	}
 
 }
 
-void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
+const FInventoryEquipmentSlot* UInventoryComponent::FindEquipmentSlotByEquippedItem(const UInventoryItem* Item) const
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	if (IsValid(Item))
+	{
+		return EquipmentSlots.GetSlotByItem(Item);
+	}
+	return nullptr;
+}
+
+EInventoryEquipmentSlot UInventoryComponent::FindSuitableEquippedGridSlot(const FGameplayTag& ItemEquipmentTypeTag, bool bOnlyEmpty) const
+{
+	auto* EquipSlot = EquipmentSlots.FindByPredicate([ItemEquipmentTypeTag, bOnlyEmpty](const FInventoryEquipmentSlot& EquipmentSlot)
+	{
+		return (!bOnlyEmpty || EquipmentSlot.IsAvailable()) && ItemEquipmentTypeTag.MatchesTag(EquipmentSlot.GetEquipmentTypeTag());
+	});
+	return EquipSlot ? EquipSlot->GetSlotId() : EInventoryEquipmentSlot::Invalid;
+}
+
+FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlotMutable(EInventoryEquipmentSlot SlotId)
+{
+	return EquipmentSlots.GetSlotByIdMutable(SlotId);
+}
+
+const FInventoryEquipmentSlot* UInventoryComponent::GetEquipmentSlot(EInventoryEquipmentSlot SlotId) const
+{
+	return EquipmentSlots.GetSlotById(SlotId);
+}
+
+void UInventoryComponent::AddNewItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
+{
+	check(GetOwner()->HasAuthority());
+
+	LOG_NETFUNCTIONCALL
 	
 	const auto NewItem = InventoryList.AddItem(ItemComponent);
 	NewItem->SetTotalStackCount(StackCount);
-
-	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
+	if (const auto StackableFragment = NewItem->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
 	{
-		OnItemAdded.Broadcast(NewItem);
+		StackableFragment->SetStackCount(StackCount);
 	}
+
+	OnItemAdded.Broadcast(NewItem);
 
 	// tell the item component to destroy its owning actor if Remainder == 0
 	//  otherwise, update the stack count for the pickup
@@ -190,37 +201,36 @@ void UInventoryComponent::Server_AddNewItem_Implementation(UInventoryItemCompone
 	}
 }
 
-bool UInventoryComponent::Server_AddNewItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
+void UInventoryComponent::AddNewStartupItem(const FInventoryItemManifest& ItemManifest, int32 StackCount, EInventoryEquipmentSlot EquipToSlot, TArray<FInventoryStartupEquipmentData>& OutStartupEquipmentArray)
 {
-	return true;
-}
-
-void UInventoryComponent::Server_AddNewStartupItem_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
-{
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
+	check(GetOwner()->HasAuthority());
+
 	const auto NewItem = InventoryList.AddItem(ItemManifest, StackCount);
 	check(NewItem != nullptr);
 	NewItem->SetTotalStackCount(StackCount);
-
-	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
+	if (const auto StackableFragment = NewItem->GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
 	{
-		OnItemAdded.Broadcast(NewItem);
+		StackableFragment->SetStackCount(StackCount);
 	}
-	if (EquipmentTypeTag.IsValid())
+
+	OnItemAdded.Broadcast(NewItem);
+
+	if (EquipToSlot != EInventoryEquipmentSlot::Invalid)
 	{
-		StartupEquipment.Emplace(NewItem, EquipmentTypeTag);
+		if (GetEquipmentSlot(EquipToSlot))
+		{
+			OutStartupEquipmentArray.Emplace(NewItem, EquipToSlot);
+		}
 	}
 }
 
-bool UInventoryComponent::Server_AddNewStartupItem_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
+void UInventoryComponent::AddStacksToItem(UInventoryItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
 {
-	return true;
-}
+	LOG_NETFUNCTIONCALL
 
-void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemComponent* ItemComponent,	int32 StackCount, int32 Remainder)
-{
-	LOG_NETFUNCTIONCALL_COMPONENT
+	check(GetOwner()->HasAuthority());
 	
 	check(IsValid(ItemComponent));
 	const FGameplayTag& ItemType = ItemComponent->GetItemManifest().GetItemType();
@@ -242,30 +252,16 @@ void UInventoryComponent::Server_AddStacksToItem_Implementation(UInventoryItemCo
 	}
 }
 
-bool UInventoryComponent::Server_AddStacksToItem_Validate(UInventoryItemComponent* ItemComponent, int32 StackCount,	int32 Remainder)
+void UInventoryComponent::AddStacksToItemAtStart(const FInventoryItemManifest& ItemManifest, int32 StackCount)
 {
-	return true;
-}
-
-void UInventoryComponent::Server_AddStacksToItemAtStart_Implementation(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
-{
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
 	
 	check(GetOwner()->HasAuthority());
 	const FGameplayTag& ItemType = ItemManifest.GetItemType();
 	if (UInventoryItem* Item = InventoryList.FindFirstItemByType(ItemType))
 	{
 		Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
-
-		if (EquipmentTypeTag.IsValid())
-		{
-			StartupEquipment.Emplace(Item, EquipmentTypeTag);
-		}
 	}
-}
-bool UInventoryComponent::Server_AddStacksToItemAtStart_Validate(const FInventoryItemManifest& ItemManifest, int32 StackCount, const FGameplayTag& EquipmentTypeTag)
-{
-	return true;
 }
 
 
@@ -283,40 +279,155 @@ void UInventoryComponent::DropItem(UInventoryItem* Item, int32 StackCount)
 	Server_DropItem(Item, StackCount);
 }
 
-void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 StackCount)
+void UInventoryComponent::ConsumeItem(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
-	Server_ConsumeItem(Item, StackCount);
+	Server_ConsumeItem(Item, GridIndex, StackCount);
 }
 
-void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::EquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	Server_EquipItem(ItemToEquip, ItemToUnequip);
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
+		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
+	
+	if (!GetOwner()->HasAuthority())
+	{
+		// TODO: store transaction, we'll need this to confirm/revert after receiving the answer from the server
+		// I guess, transactions should be also reverted by timeout if no response is received.
+		// As an option, server can explicitly send Client_RejectEquip() ?
+	}
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
 }
 
-void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::Client_RejectEquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	Multicast_EquipItem(ItemToEquip, ItemToUnequip);
 }
 
-bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::Server_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
+{
+	// TODO: review the comments below, they seem out-of-date
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Equip item [%s] type [%s]; Unequip item [%s]"),
+		*GetNameSafe(ItemToEquip), *UEnum::GetValueAsString(SlotId), *GetNameSafe(ItemToUnequip));
+
+	// Todo: validate the ItemToEquip can be equipped (don't trust anyone)
+	
+	// Find the correct slot to equip the item
+	FInventoryEquipmentSlot* EquippedSlot = GetEquipmentSlotMutable(SlotId);
+	if (!ensure(EquippedSlot))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: The Equipment slot not found: %s"), *UEnum::GetValueAsString(SlotId));
+		return;
+	}
+	if (ItemToEquip)
+	{
+		const FGameplayTag& EquipmentType = UInventoryStatics::GetItemEquipmentTag(ItemToEquip);
+		if (!EquipmentType.MatchesTag(EquippedSlot->GetEquipmentTypeTag()))
+		{
+			UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: The Equipment slot [%s] not fit for Item's type: %s"),
+				*UEnum::GetValueAsString(SlotId), *EquipmentType.ToString());
+			return;
+		}
+	}
+
+	// If the selected slot already has an equipped item, validate if it can be unequipped (and if it's ItemToUnequip?)
+	UInventoryItem* CurrentEquippedItem = EquippedSlot->GetInventoryItem().Get();
+	if (CurrentEquippedItem && CurrentEquippedItem == ItemToEquip)
+	{
+		UE_LOG(LogInventory, Log, TEXT("Server_EquipItem: Trying to equip already equipped item [%s] to slot %d"),
+			*ItemToEquip->GetItemType().ToString(), static_cast<int32>(SlotId));
+		return;
+	}
+	if (CurrentEquippedItem != ItemToUnequip)
+	{
+		if (ItemToUnequip != nullptr)
+		{
+			UE_LOG(LogInventory, Error, TEXT("Server_EquipItem: Trying to unequip item [%s] that is not equipped in slot %d"),
+			   *ItemToUnequip->GetItemType().ToString(), static_cast<int32>(SlotId));
+			return;
+		}
+		else
+		{
+			// we might call this method with arg ItemToUnequip==null to "autodetect" the item to unequip
+			ItemToUnequip = CurrentEquippedItem;
+		}
+	}
+
+	// Before equipping:
+	
+	// Remove ItemToEquip from the inventory storage (if applicable).
+	// Note: the item could be already removed from the storage if this command originally came from UI
+	if (ItemToEquip)
+	{
+		const int32 ItemGridIndex = InventoryStorage->GetItemIndex(ItemToEquip);
+		if (ItemGridIndex != INDEX_NONE)
+		{
+			RemoveItemFromStorage(ItemToEquip, ItemGridIndex);
+		}
+	}
+
+	// Unequip the item:
+	if (ItemToUnequip)
+	{
+		// Remove ItemToUnequip from the slot
+		EquippedSlot->SetInventoryItem(nullptr);
+		
+		// Add ItemToUnequip to the inventory storage (if applicable).
+		// Note: If the command originally came from UI, the Item shouldn't be returned to the storage,
+		// because it's on hover item and will be returned separately. Probably, the best solution how to detect
+		// this case is to have ItemToUnequip argument valid only in this case.
+		
+	}
+
+	// Equip item
+	if (ItemToEquip)
+	{
+		// Add item to the slot
+		EquippedSlot->SetInventoryItem(ItemToEquip);
+		
+		// Apply EquipFragment modifiers
+	}
+	// Notify subscribers about equipping/unequipping fact
+	Multicast_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
+}
+
+bool UInventoryComponent::Server_EquipItem_Validate(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
 	return true;
 }
 
-void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip)
+void UInventoryComponent::BroadcastEquipItem(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("Equip item [%s]; Unequip item [%s]"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
-	LOG_NETFUNCTIONCALL_COMPONENT_MSG(TEXT("    Broadcast OnEquipItem(%s); OnUnequipItem(%s)"), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("[Slot: %d] Broadcast OnEquipItem(%s); OnUnequipItem(%s)"),
+	                                  static_cast<int32>(SlotId), *GetNameSafe(ItemToEquip), *GetNameSafe(ItemToUnequip));
+
+	if (!GetOwner()->HasAuthority())
+	{
+		// TODO: check if the items to equip and unequip are the same as in the current transaction,
+		// so we can revert if needed
+	}
+
 	OnItemUnequipped.Broadcast(ItemToUnequip);
 	OnItemEquipped.Broadcast(ItemToEquip);
+}
+
+void UInventoryComponent::Multicast_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL
+	
+	BroadcastEquipItem(ItemToEquip, ItemToUnequip, SlotId);
+}
+
+void UInventoryComponent::Client_EquipItem_Implementation(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL
+	
+	BroadcastEquipItem(ItemToEquip, ItemToUnequip, SlotId);
 }
 
 void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCount)
 {
 	check(GetOwner()->HasAuthority());
 	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
 	
 	FVector SpawnLocation;
 	FRotator SpawnRotation;
@@ -332,17 +443,21 @@ void UInventoryComponent::SpawnDroppedItem(UInventoryItem* Item, int32 StackCoun
 	std::ignore = ItemManifest.SpawnPickupActor(GetOwner(), SpawnLocation, SpawnRotation);
 }
 
-void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 StackCount)
+void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
-	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+	const int32 NewTotalStackCount = Item->GetTotalStackCount() - StackCount;
 
-	if (NewStackCount <= 0)
+	if (NewTotalStackCount <= 0)
 	{
 		InventoryList.RemoveItem(Item);
 	}
 	else
 	{
-		Item->SetTotalStackCount(NewStackCount);
+		Item->SetTotalStackCount(NewTotalStackCount);
+		const int32 NewStackCount = InventoryStorage->GetItemStackCount(Item, GridIndex) - StackCount;
+		InventoryStorage->SetItemStackCount(Item, GridIndex, NewStackCount);
 	}
 	
 	if (const auto ConsumableFragment = Item->GetItemManifest().GetFragmentOfType<FInventoryItemConsumableFragment>())
@@ -351,7 +466,7 @@ void UInventoryComponent::Server_ConsumeItem_Implementation(UInventoryItem* Item
 	}
 }
 
-bool UInventoryComponent::Server_ConsumeItem_Validate(UInventoryItem* Item, int32 StackCount)
+bool UInventoryComponent::Server_ConsumeItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 StackCount)
 {
 	return true;
 }
@@ -372,6 +487,9 @@ void UInventoryComponent::GetDroppedItemSpawnLocationAndRotation_Implementation(
 
 void UInventoryComponent::Server_DropItem_Implementation(UInventoryItem* Item, int32 StackCount)
 {
+	check(IsValid(Item));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], stack count [%d]"), *Item->GetItemType().ToString(), StackCount)
+
 	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
 
 	if (NewStackCount <= 0)
@@ -396,68 +514,154 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, InventoryList);
+	DOREPLIFETIME(UInventoryComponent, InventoryStorage);
+	DOREPLIFETIME(UInventoryComponent, EquipmentSlots);
 }
 
-bool UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag) const
+void UInventoryComponent::TryEquipItem(UInventoryItem* ItemToEquip, EInventoryEquipmentSlot SlotId)
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
-	
-	return InventoryMenu->TryEquipItem(ItemToEquip, EquipmentTypeTag);
-}
+	check(IsValid(ItemToEquip));
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s], slot %d"), *GetInventoryItemId(ItemToEquip), static_cast<int32>(SlotId))
 
-void UInventoryComponent::Client_ReceivedStartupInventory_Implementation()
-{
-	if (!bStartupItemsInitialized)
+	if (SlotId == EInventoryEquipmentSlot::Invalid)
 		return;
 	
-	LOG_NETFUNCTIONCALL_COMPONENT
+	if (FindEquipmentSlotByEquippedItem(ItemToEquip))
+		return;// is already equipped
 
-	// recombine on the client the array with items that need to be equipped
-	if (OwningPlayerController->HasAuthority())
+	const FGameplayTag EquipmentTypeTag = UInventoryStatics::GetItemEquipmentTag(ItemToEquip);
+	if (!UInventoryStatics::CanEquipItem(ItemToEquip, EquipmentTypeTag))
 		return;
 
-	for (const auto& Item : StartupInventoryItems)
+	const FInventoryEquipmentSlot* EquipSlot = GetEquipmentSlot(SlotId);
+	if (!EquipSlot)
+		return;
+
+	UInventoryItem* ItemToUnequip = nullptr;
+	if (!EquipSlot->IsAvailable())
 	{
-		if (!Item.ShouldEquipToSlot.IsValid())
-			continue;
-		
-		// in theory, this should be loaded at the moment, so, it should be no additional time spent here
-		if (const auto* ItemData = Item.InventoryItem.LoadSynchronous())
-		{
-			if (ItemData->GetItemManifest().GetFragmentOfType<FInventoryItemStackableFragment>())
-				continue;
+		if (!EquipSlot->GetInventoryItem().IsValid())
+			return;
+		ItemToUnequip = EquipSlot->GetInventoryItem().Get();
+	}
 
-			if (auto* InventoryItem = InventoryList.FindFirstItemByType(ItemData->GetItemManifest().GetItemType()))
-			{
-				StartupEquipment.Emplace(InventoryItem, Item.ShouldEquipToSlot);
-			}
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
+	
+}
+
+void UInventoryComponent::CreateInventoryStorage()
+{
+	LOG_NETFUNCTIONCALL
+	
+	if (!ensure(!IsValid(InventoryStorage)))
+		return;
+
+	check(InventorySetupData.IsValid());
+
+	const FInventoryStorageSetupData* SetupData = InventorySetupData->InventoryStorage.GetData();
+	check(SetupData != nullptr);
+
+	InventoryStorage = NewObject<UInventoryStorage>(this, SetupData->StorageClass);	
+	check(InventoryStorage);
+	AddRepSubObj(InventoryStorage);
+
+	if (GetOwner()->HasAuthority())
+	{
+		InventoryStorage->SetupStorage(SetupData);
+
+		for (const auto& [SlotId, EquipmentTypeTag] : InventorySetupData->EquipmentSlots)
+		{
+			EquipmentSlots.AddSlot(SlotId, EquipmentTypeTag);
 		}
 	}
+}
+
+void UInventoryComponent::SetOwnerInternal()
+{
+	if (OwningPlayerController.IsValid())
+		return;
+
+	LOG_NETFUNCTIONCALL
 	
+	OwningPlayerController = CastChecked<APlayerController>(GetOwner());
+	InventoryController = OwningPlayerController->GetComponentByClass<UInventoryPlayerControllerComponent>();
+	checkf(InventoryController != nullptr, TEXT("Player controller [%s] must have InventoryPlayerControllerComponent"),
+	       *OwningPlayerController->GetClass()->GetName());
 }
 
 void UInventoryComponent::BeginPlay()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
+
+	if (!InventorySetupData.IsNull())
+	{
+		// force loading
+		InventorySetupData.LoadSynchronous();
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		CreateInventoryStorage();
+	}
 	
 	Super::BeginPlay();
 
-	OwningPlayerController = CastChecked<APlayerController>(GetOwner());
-	InventoryController = OwningPlayerController->GetComponentByClass<UInventoryPlayerControllerComponent>();
-	checkf(InventoryController != nullptr, TEXT("Player controller [%s] must have InventoryPlayerControllerComponent"),
-		*OwningPlayerController->GetClass()->GetName());
+	SetOwnerInternal();
 
-	ConstructInventory();
-
-	if (OwningPlayerController->IsLocalController() && !StartupInventoryItems.IsEmpty())
+	if (OwningPlayerController->IsLocalController())
 	{
-		Server_AddStartupItems();
+		ConstructInventoryMenu();
+
+		if (!InventorySetupData->DefaultStartupInventory.IsEmpty())
+		{
+			Server_AddStartupItems();
+		}
 	}
+
+}
+
+EInventoryEquipmentSlot UInventoryComponent::GetValidEquipSlotId(EInventoryEquipmentSlot DesiredSlotId, const FInventoryItemManifest& ItemManifest)
+{
+	EInventoryEquipmentSlot EquipSlotId = EInventoryEquipmentSlot::Invalid;
+	while (true)
+	{
+		if (!ItemManifest.GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment)
+			|| ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>())
+		{
+			break;
+		}
+				
+		if (const auto* EquipFragment = ItemManifest.GetFragmentOfType<FInventoryItemEquipmentFragment>())
+		{
+			if (DesiredSlotId == EInventoryEquipmentSlot::Invalid)
+			{
+				// try to find a suitable one
+				const EInventoryEquipmentSlot FoundSlot = FindSuitableEquippedGridSlot(EquipFragment->GetEquipmentType());
+				if (FoundSlot != EInventoryEquipmentSlot::Invalid)
+				{
+					EquipSlotId = FoundSlot;
+					break;
+				}
+			}
+			else if (const auto EquipSlot = GetEquipmentSlot(DesiredSlotId))
+			{
+				if (EquipFragment->GetEquipmentType().MatchesTag(EquipSlot->GetEquipmentTypeTag()) && EquipSlot->IsAvailable())
+				{
+					EquipSlotId = DesiredSlotId;
+					break;
+				}
+			}
+		}
+		break;
+	}
+	return EquipSlotId;
 }
 
 void UInventoryComponent::Server_AddStartupItems_Implementation()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
+	LOG_NETFUNCTIONCALL
+
+	const TArray<FInventoryItemProxy>& StartupInventoryItems = InventorySetupData->DefaultStartupInventory;
 	
 	StartupEquipment.Reserve(StartupInventoryItems.Num());
 		
@@ -473,11 +677,12 @@ void UInventoryComponent::Server_AddStartupItems_Implementation()
 					? FMath::RandRange(Item.MinMaxAmount.X, Item.MinMaxAmount.Y)
 					: StackableFragment->GetStackCount();
 			}
-			Server_TryAddStartupItem(ItemData->GetItemManifest(), StackCount, Item.ShouldEquipToSlot);
+			const EInventoryEquipmentSlot EquipSlotId = Item.bShouldEquip ?
+				GetValidEquipSlotId(Item.EquipmentSlot, ItemData->GetItemManifest()) : EInventoryEquipmentSlot::Invalid;
+			TryAddStartupItem(ItemData->GetItemManifest(), StackCount, EquipSlotId, StartupEquipment);
 		}
 	}
 	bStartupItemsInitialized = true;
-	Client_ReceivedStartupInventory();
 }
 
 bool UInventoryComponent::Server_AddStartupItems_Validate()
@@ -485,22 +690,13 @@ bool UInventoryComponent::Server_AddStartupItems_Validate()
 	return true;
 }
 
-// void UInventoryComponent::EquipStartupItems()
-// {
-// 	for (const auto& [ItemToEquip, EquipmentSlotTag] : StartupEquipment)
-// 	{
-// 		InventoryMenu->TryEquipItem(ItemToEquip.Get(), EquipmentSlotTag);
-// 	}
-// 	//StartupEquipment.Empty();
-// }
-
-void UInventoryComponent::ConstructInventory()
+void UInventoryComponent::ConstructInventoryMenu()
 {
-	LOG_NETFUNCTIONCALL_COMPONENT
-	
 	if (!OwningPlayerController->IsLocalController())
 		return;
 
+	LOG_NETFUNCTIONCALL
+	
 	checkf(!InventoryMenuClass.IsNull(), TEXT("Forgot to set InventoryMenuClass in [%s|%s]"),
 		*GetNameSafe(OwningPlayerController->GetClass()),
 		*GetNameSafe(GetClass())
@@ -573,8 +769,370 @@ void UInventoryComponent::ReceivedStartupItems()
 {
 	if (!bStartupItemsInitialized)
 	{
+		LOG_NETFUNCTIONCALL
+		
 		bStartupItemsInitialized = true;
-		Client_ReceivedStartupInventory();
+		Server_RequestStartupEquipment();
 	}
 }
 
+void UInventoryComponent::Server_RequestStartupEquipment_Implementation()
+{
+	LOG_NETFUNCTIONCALL
+
+	Client_EquipStartupInventory(StartupEquipment);
+}
+
+void UInventoryComponent::Client_EquipStartupInventory_Implementation(const TArray<FInventoryStartupEquipmentData>& StartupEquipmentData)
+{
+	// resend equip item events
+	for (const auto& [Item, SlotId] : StartupEquipmentData)
+	{
+		Client_EquipItem(Item.Get(), nullptr, SlotId);
+	}
+}
+
+void UInventoryComponent::ClearSelectedItem()
+{
+	HoverItemProxy.Reset();
+
+	OnHoverItemReset.Broadcast();
+
+	if (!OwningPlayerController->IsLocalController() && OwningPlayerController->HasAuthority())
+	{
+		Client_ReceivedHoverItemReset();
+	}
+}
+
+void UInventoryComponent::Client_ReceivedHoverItemReset_Implementation()
+{
+	ClearSelectedItem();
+}
+
+void UInventoryComponent::Server_FillInStacksOrConsumeHover_Implementation(UInventoryItem* Item, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!IsValid(Item) || !Item->IsStackable())
+		return;
+
+	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
+			*GetInventoryItemId(Item), *GetInventoryItemId(HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr))
+		return;
+	}
+	const int32 Remainder = InventoryStorage->FillInStacksOrConsumeHover(Item, GridIndex, HoverItemProxy->StackCount);
+	if (Remainder == 0)
+	{
+		ClearSelectedItem();
+	}
+	else
+	{
+		HoverItemProxy->StackCount = Remainder;
+		NotifyHoverItemUpdated();
+	}
+}
+
+bool UInventoryComponent::Server_FillInStacksOrConsumeHover_Validate(UInventoryItem* Item, int32 GridIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SwapStackCountWithHoverItem_Implementation(UInventoryItem* Item, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!IsValid(Item) || !Item->IsStackable())
+	{
+		UE_LOG(LogInventory, Error, TEXT("Only stackable items can swap stacks. [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
+		return;
+	}
+	
+	if (!HasHoverItem() || HoverItemProxy->InventoryItem != Item)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Only the stacks of the same item can be swapped. Expected [%s], got [%s]"),
+			*GetInventoryItemId(Item), *GetInventoryItemId(HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr))
+		return;
+	}
+
+	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, HoverItemProxy->StackCount);
+	HoverItemProxy->StackCount = StackCount;
+	NotifyHoverItemUpdated();
+}
+
+bool UInventoryComponent::Server_SwapStackCountWithHoverItem_Validate(UInventoryItem* Item, int32 GridIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SwapSelectedWitItem_Implementation(UInventoryItem* ItemOnGrid, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] index: %d"), *GetInventoryItemId(ItemOnGrid), GridIndex)
+
+	if (!IsValid(ItemOnGrid) || !HasHoverItem())
+		return;
+
+	FHoverItemProxy OldHoverItem = HoverItemProxy.GetValue();
+	UInventoryItem* HoverItem = OldHoverItem.InventoryItem.Get();
+
+	// keep the same PreviousGridIndex
+	Server_SelectItem(ItemOnGrid, GridIndex, OldHoverItem.PreviousIndex);
+	
+	AddItemAtIndex(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
+	InventoryStorage->UpdateGridSlots(HoverItem, GridIndex, OldHoverItem.bStackable, OldHoverItem.StackCount);
+}
+
+bool UInventoryComponent::Server_SwapSelectedWitItem_Validate(UInventoryItem* ItemOnGrid, int32 GridIndex)
+{
+	return true;
+}
+
+//#if UE_WITH_CHEAT_MANAGER
+void UInventoryComponent::DebugPrintStorage() const
+{
+	if (!IsValid(InventoryStorage))
+	{
+		DebugPrint(TEXT("DebugPrintStorage: Inventory Storage is null"), FColor::Red);
+		return;
+	}
+
+	TArray<UInventoryItem*> AllItems = InventoryList.GetAllItems();
+
+	// For now, each item will have its own letter A-Z. It can be changed in future
+	auto GetItemIndex = [&AllItems](const UInventoryItem* Item) -> TCHAR
+	{
+		return Item ? 'A' + AllItems.IndexOfByKey(Item) : '-';
+	};
+	checkf(AllItems.Num() < ('Z' - 'A'), TEXT("Probably we need more robust identification here"));
+	FStringBuilderBase Output;
+	Output.Append(TEXT("Items:\n"));
+	for (int32 Index = 0; Index < AllItems.Num(); Index++)
+	{
+		Output.Appendf(TEXT("%c: %s\n"), 'A' + Index, *GetInventoryItemId(AllItems[Index]));
+	}
+	Output.AppendChar('\n');
+
+	Output.Append(TEXT("Storage:\n"));
+	InventoryStorage->DebugPrintStorage(Output, GetItemIndex);
+
+	Output += TEXT("Equipment slots:\n");
+	for (const auto& EquipSlot : EquipmentSlots.GetAllItems())
+	{
+		Output.Appendf(TEXT("Slot %d (%s): (%c) %s\n"), static_cast<int32>(EquipSlot.GetSlotId()),
+			*EquipSlot.GetEquipmentTypeTag().ToString(),
+			GetItemIndex(EquipSlot.GetInventoryItem().Get()),
+			*GetInventoryItemId(EquipSlot.GetInventoryItem().Get()));
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%s"), Output.ToString());
+}
+//#endif//UE_WITH_CHEAT_MANAGER
+
+void UInventoryComponent::RemoveItemFromStorage(UInventoryItem* Item, int32 GridIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Removing item [%s] from storage index %d"), *GetInventoryItemId(Item), GridIndex)
+	checkf(GetOwner()->HasAuthority(), TEXT("This method should be run only on server"));
+
+	if (!IsValid(Item))
+		return;
+	
+	check(InventoryStorage);
+	InventoryStorage->RemoveItemFromGrid(Item, GridIndex);
+}
+
+void UInventoryComponent::Server_SelectItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 PrevIndex)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s] (index %d)"), *GetInventoryItemId(Item), GridIndex)
+
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select NULL item."))
+		return;
+	}
+	
+	if (!HasHoverItem())
+	{
+		HoverItemProxy = FHoverItemProxy();
+	}
+	HoverItemProxy->InventoryItem = Item;
+	HoverItemProxy->bStackable = Item->IsStackable();
+	
+	HoverItemProxy->StackCount = HoverItemProxy->bStackable ? GetInventoryStorage()->GetItemStackCount(Item, GridIndex) : 0;
+	if (PrevIndex != INDEX_NONE)
+	{
+		HoverItemProxy->PreviousIndex = PrevIndex;
+	}
+
+	RemoveItemFromStorage(Item, GridIndex);
+	NotifyHoverItemUpdated();
+}
+
+bool UInventoryComponent::Server_SelectItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 PrevIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SelectItemInSlot_Implementation(EInventoryEquipmentSlot SlotId)
+{
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Selecting item in slot %d"), static_cast<int32>(SlotId))
+
+	const FInventoryEquipmentSlot* EquipSlot = GetEquipmentSlot(SlotId);
+	if (!EquipSlot)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to select item in invalid slot %d"), static_cast<int32>(SlotId))
+		return;
+	}
+
+	if ( HasHoverItem() && !HoverItemProxy->bStackable)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Cannot equip stackable item [%s]"), *GetInventoryItemId(HoverItemProxy->InventoryItem.Get()))
+		return;
+	}
+
+	UInventoryItem* ItemToUnequip = EquipSlot->GetInventoryItem().Get();
+	UInventoryItem* ItemToEquip = HasHoverItem() ? HoverItemProxy->InventoryItem.Get() : nullptr;
+
+	Server_EquipItem(ItemToEquip, ItemToUnequip, SlotId);
+
+	if (ItemToUnequip)
+	{
+		if (!HasHoverItem())
+		{
+			HoverItemProxy = FHoverItemProxy();
+		}
+		HoverItemProxy->InventoryItem = ItemToUnequip;
+		NotifyHoverItemUpdated();
+	}
+	else
+	{
+		ClearSelectedItem();
+	}
+}
+
+bool UInventoryComponent::Server_SelectItemInSlot_Validate(EInventoryEquipmentSlot SlotId)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_PutSelectedItemToStorage_Implementation()
+{
+	if (!HasHoverItem())
+		return;
+	
+	FInventorySlotAvailabilityResult Result;
+	ensure(GetInventoryStorage()->HasRoomForItem(Result, HoverItemProxy->InventoryItem->GetItemManifest(), HoverItemProxy->StackCount));
+	Result.Item = HoverItemProxy->InventoryItem;
+
+	OnStackChanged.Broadcast(Result);
+
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_PutSelectedItemToStorage_Validate()
+{
+	return true;
+}
+
+void UInventoryComponent::AddItemAtIndex(UInventoryItem* Item, int32 Index, bool bStackable, int32 StackCount)
+{
+	const FInventorySlotAvailabilityResult Result = FInventorySlotAvailabilityResult::Make(Item, Index, bStackable, StackCount);
+	OnStackChanged.Broadcast(Result);
+}
+
+void UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Implementation(const int32 TargetIndex)
+{
+	LOG_NETFUNCTIONCALL
+
+	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to put NULL item to storage."))
+		return;
+	}
+
+	AddItemAtIndex(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	
+	check(InventoryStorage);
+	InventoryStorage->UpdateGridSlots(Item, TargetIndex, HoverItemProxy->bStackable, HoverItemProxy->StackCount);
+	
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_PutSelectedItemToStorageAtIndex_Validate(const int32 TargetIndex)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_DropSelectedItemOff_Implementation()
+{
+	LOG_NETFUNCTIONCALL
+	
+	UInventoryItem* Item = HasHoverItem()? HoverItemProxy->InventoryItem.Get() : nullptr;
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogInventory, Error, TEXT("Server: Trying to drop NULL item."))
+		return;
+	}
+	
+	Server_DropItem(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->StackCount);
+
+	ClearSelectedItem();
+}
+
+bool UInventoryComponent::Server_DropSelectedItemOff_Validate()
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SplitStackToHoverItem_Implementation(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	LOG_NETFUNCTIONCALL
+
+	if (!IsValid(Item) || !Item->IsStackable())
+		return;
+	
+	int32 StackCount =  GetInventoryStorage()->GetItemStackCount(Item, GridIndex);
+	if (StackCount < 2)
+	{
+		UE_LOG(LogInventory, Error, TEXT("Cannot split stack with 1 item: [%s] index: %d"), *GetInventoryItemId(Item), GridIndex)
+		ClearSelectedItem(); // just in case, to prevent next usage
+		return;
+	}
+	
+	if (!HasHoverItem())
+	{
+		HoverItemProxy.Emplace(Item, GridIndex, StackCount, Item->IsStackable());
+	}
+
+	SplitAmount = FMath::Min(SplitAmount, StackCount - 1);
+
+	HoverItemProxy->StackCount = SplitAmount;
+	GetInventoryStorage()->SetItemStackCount(Item, GridIndex, StackCount - SplitAmount);
+	NotifyHoverItemUpdated();
+}
+
+bool UInventoryComponent::Server_SplitStackToHoverItem_Validate(UInventoryItem* Item, int32 GridIndex, int32 SplitAmount)
+{
+	return true;
+}
+
+void UInventoryComponent::NotifyHoverItemUpdated()
+{
+	if (OwningPlayerController->IsLocalController())
+	{
+		OnHoverItemUpdated.Broadcast(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->bStackable, HoverItemProxy->StackCount, HoverItemProxy->PreviousIndex);
+	}
+	else if (OwningPlayerController->HasAuthority())
+	{
+		Client_ReceivedHoverItemUpdated(HoverItemProxy->InventoryItem.Get(), HoverItemProxy->bStackable, HoverItemProxy->StackCount, HoverItemProxy->PreviousIndex);
+	}
+}
+
+void UInventoryComponent::Client_ReceivedHoverItemUpdated_Implementation(UInventoryItem* InventoryItem, bool bStackable, int32 StackCount, int32 PreviousIndex)
+{
+	LOG_NETFUNCTIONCALL
+	
+	HoverItemProxy.Emplace(InventoryItem, PreviousIndex, StackCount, bStackable);
+	NotifyHoverItemUpdated();
+}

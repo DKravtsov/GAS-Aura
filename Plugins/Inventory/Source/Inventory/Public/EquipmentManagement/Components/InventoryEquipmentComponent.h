@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "InventoryGridTypes.h"
 #include "Components/ActorComponent.h"
 #include "InventoryEquipmentComponent.generated.h"
 
 class UInventoryComponent;
 class UInventoryItem;
+class AInventoryEquipActor;
 
 UCLASS(MinimalAPI, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable, HideDropdown)
 class UInventoryEquipmentComponent : public UActorComponent
@@ -20,7 +22,7 @@ class UInventoryEquipmentComponent : public UActorComponent
 	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
 
 	UPROPERTY(Transient)
-	TMap<FGameplayTag, TObjectPtr<class AInventoryEquipActor>> EquippedActors;
+	TMap<TObjectPtr<UInventoryItem>, TObjectPtr<AInventoryEquipActor>> EquippedActors;
 
 	bool bIsProxy = false;
 
@@ -33,9 +35,15 @@ public:
 
 	void InitializeOwner(APlayerController* PlayerController);
 
-	AInventoryEquipActor* FindEquippedActorByEquipmentType(const FGameplayTag& EquipmentType) const;
+	const FInventoryEquipmentSlot* FindEquipmentSlot(EInventoryEquipmentSlot SlotId) const;
+	
+	bool IsItemEquipped(const UInventoryItem* Item) const;
+	
+	const FInventoryEquipmentSlot* GetEquipmentSlotByItem(const UInventoryItem* Item) const;
 
+	//~ Begin of UActorComponent interface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	//~ End of UActorComponent interface
 	
 protected:
 
@@ -57,6 +65,7 @@ private:
 
 	AInventoryEquipActor* SpawnEquippedActor(struct FInventoryItemEquipmentFragment& EquipmentFragment, const struct FInventoryItemManifest& ItemManifest, USkeletalMeshComponent* ParentMesh);
 	void RemoveEquippedActorOfType(const FGameplayTag& EquipmentType);
+	void RemoveEquippedActor(UInventoryItem* Item);
 
 	void InitStartupEquipment();
 	void WaitForStartupEquipmentReady();

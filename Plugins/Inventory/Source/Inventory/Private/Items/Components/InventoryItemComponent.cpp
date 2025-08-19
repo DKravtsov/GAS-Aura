@@ -4,6 +4,7 @@
 #include "Items/Components/InventoryItemComponent.h"
 
 #include "Items/InventoryItemData.h"
+#include "Items/Fragments/InventoryItemFragment.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -16,6 +17,8 @@ UInventoryItemComponent::UInventoryItemComponent()
 
 void UInventoryItemComponent::PickedUp()
 {
+	checkf(GetOwner()->HasAuthority(), TEXT("PickedUp() called on non-authoritative item"));
+	
 	BP_PickedUp();
 
 	GetOwner()->Destroy();
@@ -49,14 +52,25 @@ void UInventoryItemComponent::CopyManifestFromData()
 
 void UInventoryItemComponent::BeginPlay()
 {
-	if (!bOverrideItemManifest && !ItemData.IsNull())
+	if (GetOwner()->HasAuthority())
 	{
-		ItemManifest = ItemData.LoadSynchronous()->GetItemManifest();
-	}
+		if (!bOverrideItemManifest && !ItemData.IsNull())
+		{
+			ItemManifest = ItemData.LoadSynchronous()->GetItemManifest();
+			if (StackCount > 0)
+			{
+				if (const auto StackableFragment = GetItemManifestMutable().GetFragmentOfTypeMutable<FInventoryItemStackableFragment>())
+				{
+					StackableFragment->SetStackCount(StackCount);
+				}
+				StackCount = -1; // reset to defaults
+			}
+		}
 	
-	if (!ItemManifest.PickupActorClass)
-	{
-		ItemManifest.PickupActorClass = GetOwner()->GetClass();
+		if (!ItemManifest.PickupActorClass)
+		{
+			ItemManifest.PickupActorClass = GetOwner()->GetClass();
+		}
 	}
 	Super::BeginPlay();
 }

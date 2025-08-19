@@ -7,13 +7,14 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
+#include "Store/Components/InventoryStoreComponent.h"
 #include "Widgets/Inventory/Base/InventoryWidgetBase.h"
 
-UInventoryComponent* UInventoryStatics::GetInventoryComponent(const APlayerController* PlayerController)
+UInventoryComponent* UInventoryStatics::GetInventoryComponent(const AActor* Actor)
 {
-	if (IsValid(PlayerController))
+	if (IsValid(Actor))
 	{
-		UInventoryComponent* InventoryComponent = PlayerController->FindComponentByClass<UInventoryComponent>();
+		UInventoryComponent* InventoryComponent = Actor->FindComponentByClass<UInventoryComponent>();
 		return InventoryComponent;
 	}
 	return nullptr;
@@ -34,6 +35,15 @@ UInventoryItemComponent* UInventoryStatics::GetInventoryItemComponent(const AAct
 	if (IsValid(Actor))
 	{
 		return Actor->FindComponentByClass<UInventoryItemComponent>();
+	}
+	return nullptr;
+}
+
+UInventoryStoreComponent* UInventoryStatics::GetStoreComponent(const AActor* Actor)
+{
+	if (IsValid(Actor))
+	{
+		return Actor->FindComponentByClass<UInventoryStoreComponent>();
 	}
 	return nullptr;
 }
@@ -80,7 +90,7 @@ void UInventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 	}
 }
 
-class UInventoryHoverProxy* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
+class UInventoryHoverItemWidget* UInventoryStatics::GetHoverItem(const APlayerController* PlayerController)
 {
 	if (const UInventoryComponent* InventoryComponent = GetInventoryComponent(PlayerController))
 	{
@@ -100,6 +110,21 @@ bool UInventoryStatics::CanEquipItem(const UInventoryItem* Item, const FGameplay
 		{
 			return EquipFragment->GetEquipmentType().MatchesTag(EquipmentTypeTag);
 		}
+	}
+	return false;
+}
+
+bool UInventoryStatics::CanEquipItem(const FInventoryItemManifest& ItemManifest, const FGameplayTag& EquipmentTypeTag)
+{
+	if (!ItemManifest.GetItemCategory().MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment))
+		return false;
+	
+	if (ItemManifest.GetFragmentOfType<FInventoryItemStackableFragment>())
+		return false;
+	
+	if (const auto* EquipFragment = ItemManifest.GetFragmentOfType<FInventoryItemEquipmentFragment>())
+	{
+		return EquipFragment->GetEquipmentType().MatchesTag(EquipmentTypeTag);
 	}
 	return false;
 }

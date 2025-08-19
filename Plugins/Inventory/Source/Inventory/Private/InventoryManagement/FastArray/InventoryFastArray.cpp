@@ -3,11 +3,12 @@
 
 #include "InventoryManagement/FastArray/InventoryFastArray.h"
 
-#include "Inventory.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "Items/InventoryItem.h"
 #include "Items/Components/InventoryItemComponent.h"
 #include "Items/Fragments/InventoryItemFragment.h"
+
+#include "DebugHelper.h"
 
 
 FInventoryEntry::FInventoryEntry()
@@ -30,6 +31,8 @@ TArray<UInventoryItem*> FInventoryFastArray::GetAllItems() const
 
 void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize)
 {
+	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), RemovedIndices.Num())
+
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
 	if (IsValid(InventoryComponent))
 	{
@@ -42,7 +45,7 @@ void FInventoryFastArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIn
 
 void FInventoryFastArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
 {
-	LOG_NETFUNCTIONCALL_OWNER(OwnerComponent->GetOwner())
+	LOG_NETFUNCTIONCALL_STRUCT_MSG(OwnerComponent.Get(), InventoryList, TEXT(" (num=%d)"), AddedIndices.Num())
 
 	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(OwnerComponent);
 	if (IsValid(InventoryComponent))

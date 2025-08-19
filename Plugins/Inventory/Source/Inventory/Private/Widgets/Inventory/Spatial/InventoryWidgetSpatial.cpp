@@ -3,19 +3,22 @@
 
 #include "Widgets/Inventory/Spatial/InventoryWidgetSpatial.h"
 
-#include "Inventory.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Editor/WidgetCompilerLog.h"
+#include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/InventoryItem.h"
 #include "Widgets/Inventory/GridSlot/InventoryEquippedGridSlot.h"
-#include "Widgets/Inventory/HoverProxy/InventoryHoverProxy.h"
-#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItem.h"
-#include "Widgets/Inventory/Spatial/InventoryGrid.h"
+#include "Widgets/Inventory/HoverProxy/InventoryHoverItemWidget.h"
+#include "Widgets/Inventory/SlottedItems/InventoryEquippedSlottedItemWidget.h"
+#include "Widgets/Inventory/Spatial/InventoryGridWidget.h"
 #include "Widgets/ItemDescription/InventoryItemDescription.h"
+
+#include "DebugHelper.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
 
 void UInventoryWidgetSpatial::NativeOnInitialized()
 {
@@ -31,14 +34,34 @@ void UInventoryWidgetSpatial::NativeOnInitialized()
 	
 	ShowEquipmentGrid();
 
-	WidgetTree->ForEachWidget([this](UWidget* Widget)
+	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(InventoryComponent);
+	WidgetTree->ForEachWidget([this, InventoryComponent](UWidget* Widget)
 	{
-		if (auto GridSlot = Cast<UInventoryEquippedGridSlot>(Widget))
+		if (auto EquipmentSlotWidget = Cast<UInventoryEquippedGridSlot>(Widget))
 		{
-			EquippedGridSlots.Emplace(GridSlot);
-			GridSlot->EquippedGridSlotClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedGridSlotClicked);
+			if (EquipmentSlotWidget->Bind(InventoryComponent, EquipmentSlotWidget->GetSlotId()))
+			{
+				EquippedGridSlots.Emplace(EquipmentSlotWidget);
+			    EquipmentSlotWidget->EquippedGridSlotClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedGridSlotClicked);
+			}
+			else
+			{
+				UE_LOG(LogInventory, Warning, TEXT("Equipment slot not found: %s"),
+					*UEnum::GetValueAsString(EquipmentSlotWidget->GetSlotId()));
+			}
 		}
 	});
+
+	if (GetOwningPlayer()->HasAuthority())
+	{
+		InventoryComponent->OnItemEquipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+		InventoryComponent->OnItemUnequipped.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	}
+	else
+	{
+		InventoryComponent->OnItemEquipStatusChanged.AddDynamic(this, &UInventoryWidgetSpatial::UpdateEquippedItemStatus);
+	}
 }
 
 FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -48,17 +71,6 @@ FReply UInventoryWidgetSpatial::NativeOnMouseButtonDown(const FGeometry& InGeome
 		ActiveGrid->DropHoverItemOnGround();
 	}
 	return FReply::Handled();
-}
-
-FInventorySlotAvailabilityResult UInventoryWidgetSpatial::HasRoomForItemInternal(
-	const FInventoryItemManifest& ItemManifest, const int32 StackCountOverride) const
-{
-	if (const UInventoryGrid* Grid = GetInventoryGridByCategory(ItemManifest.GetItemCategory()))
-	{
-		return Grid->HasRoomForItem(ItemManifest, StackCountOverride);
-	}
-	UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category"));
-	return FInventorySlotAvailabilityResult();
 }
 
 void UInventoryWidgetSpatial::OnInventoryHovered(UInventoryItem* Item)
@@ -135,7 +147,7 @@ bool UInventoryWidgetSpatial::HasHoverItem() const
 	return ActiveGrid->HasHoverItem();
 }
 
-UInventoryHoverProxy* UInventoryWidgetSpatial::GetHoverItem() const
+UInventoryHoverItemWidget* UInventoryWidgetSpatial::GetHoverItem() const
 {
 	return ActiveGrid.IsValid() ? ActiveGrid->GetHoverItem() : nullptr;
 }
@@ -180,60 +192,67 @@ void UInventoryWidgetSpatial::ShowCraftingGrid()
 	SetActiveGrid(InventoryGrid_Crafting, Button_Crafting);
 }
 
-bool UInventoryWidgetSpatial::TryEquipItem(UInventoryItem* ItemToEquip, const FGameplayTag& EquipmentTypeTag, bool bAlwaysEquip, UInventoryItem** PreviousEquippedItem)
+void UInventoryWidgetSpatial::UpdateEquippedItemStatus(UInventoryItem* Item)
 {
-	check(IsValid(ItemToEquip));
-	const FGameplayTag EquipmentType = EquipmentTypeTag.IsValid() ? EquipmentTypeTag :  FindItemBestEquipType(ItemToEquip);
-	if (!EquipmentType.IsValid())
-		return false;
+	if (Item == nullptr)
+		return;
+
+	LOG_NETFUNCTIONCALL_MSG(TEXT("Item [%s]"), *GetInventoryItemId(Item));
 	
-	UInventoryEquippedGridSlot* GridSlot = FindEquippedGridSlotByType(EquipmentType);
-	if (!IsValid(GridSlot))
-		return false;
-	
-	UInventoryItem* ItemToUnequip = nullptr;
-	if (!GridSlot->IsAvailable())
+	UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(InventoryComponent != nullptr);
+
+	const FInventoryEquipmentSlot* EquipmentSlot = InventoryComponent->FindEquipmentSlotByEquippedItem(Item);
+
+	// Because EquippedGridSlot is bound to Equipment slot, if there is no EquipmentSlot containing the item, there also will be no EquippedGridSlot containing it.
+	// That's why we need to search also in EquippedSlottedItem related to this slot widget.
+	static auto FindSlotWidget = [](const UInventoryWidgetSpatial* W, const UInventoryItem* TestItem)-> UInventoryEquippedGridSlot*
 	{
-		if (bAlwaysEquip)
+		const auto FoundSlotPtr = W->EquippedGridSlots.FindByPredicate([TestItem](const UInventoryEquippedGridSlot* EquippedGridSlot)
+        	{
+        		return EquippedGridSlot->GetInventoryItem() == TestItem ||
+        			(EquippedGridSlot->GetEquippedSlottedItem() && EquippedGridSlot->GetEquippedSlottedItem()->GetInventoryItem() == TestItem);
+        	});
+		return FoundSlotPtr ? FoundSlotPtr->Get() : nullptr;
+	};
+	
+	UInventoryEquippedGridSlot* EquippedItemSlotWidget = FindSlotWidget(this, Item);
+	const bool bItemEquipped = EquipmentSlot != nullptr;
+	const bool bItemShownAsEquipped = EquippedItemSlotWidget != nullptr && EquippedItemSlotWidget->GetEquippedSlottedItem() != nullptr;
+	if (bItemEquipped == bItemShownAsEquipped)
+		return;
+
+	if (bItemEquipped)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("EquipDeSync: Item [%s] is equipped in slot [%s] (id %d) but wasn't updated in UI"),
+		// 	*Item->GetItemType().ToString(), *EquipmentSlot->GetEquipmentTypeTag().ToString(), static_cast<int>(EquipmentSlot->GetSlotId()));
+
+		const float TileSize = GetTileSize();
+		if (UInventoryEquippedSlottedItemWidget* EquippedSlottedItem = EquippedItemSlotWidget->OnItemEquipped(Item, EquipmentSlot->GetEquipmentTypeTag(), TileSize))
 		{
-			ItemToUnequip = GridSlot->GetInventoryItem().Get();
-		}
-		else
-		{
-			return false;
+			EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
 		}
 	}
-	
-	const float TileSize = GetTileSize();
-	if (UInventoryEquippedSlottedItem* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentType, TileSize))
+	else
 	{
-		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
-
-		if (!GetOwningPlayer()->HasAuthority())
-		{
-			// Inform the server that we've equipped an item (potentially unequipping an item as well)
-			UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
-			check(IsValid(InventoryComponent));
-		
-			InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
-		}
-
+		UE_LOG(LogTemp, Warning, TEXT("EquipDeSync: Item [%s] was unequipped but is still displayed as equipped in slot [%s] (id %d)"),
+			*Item->GetItemType().ToString(), *EquippedItemSlotWidget->GetEquipmentTypeTag().ToString(), static_cast<int>(EquippedItemSlotWidget->GetSlotId()));
 	}
-	InventoryGrid_Equipment->RemoveItemFromGrid(ItemToEquip);
-
-	return true;
 }
 
 void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot* GridSlot, const FGameplayTag& EquipmentTypeTag)
 {
-	// Check to see if we can equip the Hover ItemAdd commentMore actions
+	LOG_NETFUNCTIONCALL_MSG(TEXT("EquipSlot [%d]; HoverItem [%s]"), static_cast<int32>(GridSlot->GetSlotId()),
+		GetHoverItem() ? *GetInventoryItemId(GetHoverItem()->GetInventoryItem()) : TEXT("None"));
+
+	// Check to see if we can equip the Hover Item
 	if (!CanEquipHoverItem(GridSlot, EquipmentTypeTag))
 		return;
 
 	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
 	const float TileSize = GetTileSize();
 	UInventoryItem* ItemToEquip = GetHoverItem()->GetInventoryItem();
-	if (UInventoryEquippedSlottedItem* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentTypeTag, TileSize))
+	if (UInventoryEquippedSlottedItemWidget* EquippedSlottedItem = GridSlot->OnItemEquipped(ItemToEquip, EquipmentTypeTag, TileSize))
 	{
 		EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
 
@@ -243,11 +262,11 @@ void UInventoryWidgetSpatial::EquippedGridSlotClicked(UInventoryEquippedGridSlot
 		UInventoryComponent* InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer());
 		check(IsValid(InventoryComponent));
 
-		InventoryComponent->EquipItem(ItemToEquip, nullptr);
+		InventoryComponent->EquipItem(ItemToEquip, nullptr, GridSlot->GetSlotId());
 	}
 }
 
-void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlottedItem* EquippedSlottedItem)
+void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem)
 {
 	// Remove the Item Description
 	UInventoryStatics::ItemUnhovered(GetOwningPlayer());
@@ -259,15 +278,21 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 	UInventoryItem* ItemToEquip = IsValid(HoverItem) ? HoverItem->GetInventoryItem() : nullptr;
 	UInventoryItem* ItemToUnequip = EquippedSlottedItem->GetInventoryItem();
 
+	LOG_NETFUNCTIONCALL_MSG(TEXT("ItemToEquip [%s]; ItemToUnequip [%s]"), *GetInventoryItemId(ItemToEquip), *GetInventoryItemId(ItemToUnequip));
+
+	// To avoid putting the hover item back to the inventory
+	ActiveGrid->ClearHoverItem();
+
+	// The equipment grid should be active to be able to put the item to the inventory, otherwise it will be lost
+	ShowEquipmentGrid();
+
 	// Get the Equipped Grid Slot holding this item
 	UInventoryEquippedGridSlot* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
+	checkf(EquippedGridSlot != nullptr, TEXT("EquippedGridSlot must exist if there is EquippedSlottedItem"));
 	
 	// Clear the equipped grid slot of this item (set its inventory item to nullptr)
 	ClearSlotOfItem(EquippedGridSlot);
 
-	// Assign previously equipped item as the hover item
-	InventoryGrid_Equipment->AssignHoverItem(ItemToUnequip);
-	
 	// Remove of the equipped slotted item from the equipped grid slot
 	RemoveEquippedSlottedItem(EquippedSlottedItem);
 	
@@ -275,7 +300,7 @@ void UInventoryWidgetSpatial::EquippedSlottedItemClicked(UInventoryEquippedSlott
 	MakeEquippedSlottedItem(EquippedSlottedItem, EquippedGridSlot, ItemToEquip);
 	
 	// Broadcast delegates for OnItemEquipped/OnItemUnequipped (from the IC)
-	BroadcastClickedDelegates(ItemToEquip, ItemToUnequip);
+	BroadcastClickedDelegates(ItemToEquip, ItemToUnequip, EquippedGridSlot->GetSlotId());
 }
 
 void UInventoryWidgetSpatial::DisableButton(UButton* Button)
@@ -286,7 +311,7 @@ void UInventoryWidgetSpatial::DisableButton(UButton* Button)
 	Button->SetIsEnabled(false);
 }
 
-void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGrid* Grid, UButton* Button)
+void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGridWidget* Grid, UButton* Button)
 {
 	if (ActiveGrid.IsValid())
 	{
@@ -297,7 +322,7 @@ void UInventoryWidgetSpatial::SetActiveGrid(UInventoryGrid* Grid, UButton* Butto
 	ActiveGrid = Grid;
 }
 
-UInventoryGrid* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const
+UInventoryGridWidget* UInventoryWidgetSpatial::GetInventoryGridByCategory(const FGameplayTag& ItemCategory) const
 {
 	if (ItemCategory.MatchesTagExact(InventoryTags::Inventory_ItemCategory_Equipment))
 		return InventoryGrid_Equipment;
@@ -333,7 +358,7 @@ bool UInventoryWidgetSpatial::CanEquipHoverItem(const UInventoryEquippedGridSlot
 	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid())
 		return false;
 
-	const UInventoryHoverProxy* HoverItem = GetHoverItem();
+	const UInventoryHoverItemWidget* HoverItem = GetHoverItem();
 	if (!IsValid(HoverItem))
 		return false;
 
@@ -358,7 +383,7 @@ void UInventoryWidgetSpatial::ClearSlotOfItem(UInventoryEquippedGridSlot* Equipp
 	}
 }
 
-void UInventoryWidgetSpatial::RemoveEquippedSlottedItem(UInventoryEquippedSlottedItem* EquippedSlottedItem)
+void UInventoryWidgetSpatial::RemoveEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* EquippedSlottedItem)
 {
 	if (IsValid(EquippedSlottedItem))
 	{
@@ -370,13 +395,13 @@ void UInventoryWidgetSpatial::RemoveEquippedSlottedItem(UInventoryEquippedSlotte
 	}
 }
 
-void UInventoryWidgetSpatial::MakeEquippedSlottedItem(const UInventoryEquippedSlottedItem* EquippedSlottedItem,
+void UInventoryWidgetSpatial::MakeEquippedSlottedItem(const UInventoryEquippedSlottedItemWidget* EquippedSlottedItem,
 	UInventoryEquippedGridSlot* EquippedGridSlot, UInventoryItem* ItemToEquip)
 {
 	if (!IsValid(EquippedGridSlot) || !IsValid(ItemToEquip))
 		return;
 
-	if (UInventoryEquippedSlottedItem* NewSlottedItem =
+	if (UInventoryEquippedSlottedItemWidget* NewSlottedItem =
 		EquippedGridSlot->OnItemEquipped(ItemToEquip, EquippedSlottedItem->GetEquipmentTypeTag(), GetTileSize()))
 	{
 		NewSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &UInventoryWidgetSpatial::EquippedSlottedItemClicked);
@@ -384,22 +409,12 @@ void UInventoryWidgetSpatial::MakeEquippedSlottedItem(const UInventoryEquippedSl
 	}
 }
 
-void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip) const
+void UInventoryWidgetSpatial::BroadcastClickedDelegates(UInventoryItem* ItemToEquip, UInventoryItem* ItemToUnequip, EInventoryEquipmentSlot SlotId) const
 {
 	if (const auto InventoryComponent = UInventoryStatics::GetInventoryComponent(GetOwningPlayer()))
 	{
-		InventoryComponent->EquipItem(ItemToEquip, ItemToUnequip);
+		InventoryComponent->Server_SelectItemInSlot(SlotId);
 	}
-}
-
-bool UInventoryWidgetSpatial::IsItemEquipped(const UInventoryItem* Item) const
-{
-	return FindSlotWithEquippedItem(Item) != nullptr;
-}
-
-bool UInventoryWidgetSpatial::CanEquipItem(const UInventoryItem* Item) const
-{
-	return FindItemBestEquipType(Item).IsValid();
 }
 
 FGameplayTag UInventoryWidgetSpatial::FindItemBestEquipType(const UInventoryItem* Item) const
@@ -417,29 +432,20 @@ FGameplayTag UInventoryWidgetSpatial::FindItemBestEquipType(const UInventoryItem
 	return FGameplayTag::EmptyTag;
 }
 
-UInventoryEquippedSlottedItem* UInventoryWidgetSpatial::FindEquippedSlottedItemFor(const UInventoryItem* Item) const
-{
-	if (const UInventoryEquippedGridSlot* EquippedSlot = FindSlotWithEquippedItem(Item))
-	{
-		return EquippedSlot->GetEquippedSlottedItem();
-	}
-	return nullptr;
-}
-
-UInventoryItem* UInventoryWidgetSpatial::GetItemInSlot(const FGameplayTag& EquipmentTypeTag) const
-{
-	if (const auto* EquippedGridSlot = FindEquippedGridSlotByType(EquipmentTypeTag))
-	{
-		return EquippedGridSlot->GetInventoryItem().Get();
-	}
-	return nullptr;
-}
-
 UInventoryEquippedGridSlot* UInventoryWidgetSpatial::FindEquippedGridSlotByType(const FGameplayTag& EquipmentTypeTag) const
 {
 	auto* EquippedGridSlotPtr = EquippedGridSlots.FindByPredicate([EquipmentTypeTag](const UInventoryEquippedGridSlot* GridSlot)
 	{
 		return GridSlot->GetEquipmentTypeTag().MatchesTagExact(EquipmentTypeTag);
+	});
+	return EquippedGridSlotPtr ? EquippedGridSlotPtr->Get() : nullptr;
+}
+
+UInventoryEquippedGridSlot* UInventoryWidgetSpatial::FindEquippedGridSlot(EInventoryEquipmentSlot SlotId) const
+{
+	auto* EquippedGridSlotPtr = EquippedGridSlots.FindByPredicate([SlotId](const UInventoryEquippedGridSlot* GridSlot)
+	{
+		return GridSlot->GetSlotId() == SlotId;
 	});
 	return EquippedGridSlotPtr ? EquippedGridSlotPtr->Get() : nullptr;
 }

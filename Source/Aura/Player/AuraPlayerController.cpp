@@ -17,11 +17,15 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Actors/MagicCircle.h"
 #include "Characters/CombatInterface.h"
+#include "Engine/DebugCameraController.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameStateBase.h"
 #include "UI/Components/DamageTextComponent.h"
 #include "GameFramework/Pawn.h"
 #include "InventoryManagement/Components/InventoryComponent.h"
+#include "InventoryManagement/Storage/InventoryStorage.h"
+#include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Player/InventoryPlayerControllerComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
@@ -407,4 +411,43 @@ void AAuraPlayerController::ClientHideMagicCircle_Implementation()
         MagicCircle->Destroy();
         MagicCircle = nullptr;
     }
+}
+
+void AAuraPlayerController::DebugPrintStorage() const
+{
+    const UWorld* World = GetWorld();
+    if (HasAuthority())
+    {
+        for (FConstPlayerControllerIterator PCIterator = World->GetPlayerControllerIterator(); PCIterator; ++PCIterator)
+        {
+            APlayerController* PC = PCIterator->Get();
+
+            // Don't use debug camera player controllers.
+            if (PC && PC->IsA(ADebugCameraController::StaticClass()))
+                continue;
+        
+            if (const UInventoryComponent* InventoryComp = UInventoryStatics::GetInventoryComponent(PC))
+            {
+                InventoryComp->DebugPrintStorage();
+            }
+        }
+    }
+    else
+    {
+        if (InventoryComponent.IsValid())
+        {
+            InventoryComponent->DebugPrintStorage();
+        }
+        Server_DebugPrintStorage();
+    }
+}
+
+void AAuraPlayerController::Server_DebugPrintStorage_Implementation() const
+{
+    UE_LOG(LogTemp, Warning, TEXT("\nSERVER:"));
+    if (InventoryComponent.IsValid())
+    {
+        InventoryComponent->DebugPrintStorage();
+    }
+    
 }

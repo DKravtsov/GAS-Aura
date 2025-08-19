@@ -8,10 +8,12 @@
 #include "Widgets/Utils/InventoryWidgetUtils.h"
 #include "InventoryStatics.generated.h"
 
+struct FInventoryItemManifest;
 class UInventoryEquipmentComponent;
 class UInventoryItemComponent;
 class UInventoryComponent;
-class UInventoryHoverProxy;
+class UInventoryHoverItemWidget;
+class UInventoryStoreComponent;
 
 /**
  * 
@@ -24,7 +26,7 @@ class UInventoryStatics : public UBlueprintFunctionLibrary
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	static INVENTORY_API UInventoryComponent* GetInventoryComponent(const APlayerController* PlayerController);
+	static INVENTORY_API UInventoryComponent* GetInventoryComponent(const AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API UInventoryEquipmentComponent* GetEquipmentComponent(const APlayerController* PlayerController);
@@ -33,10 +35,51 @@ public:
 	static INVENTORY_API UInventoryItemComponent* GetInventoryItemComponent(const AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static INVENTORY_API UInventoryStoreComponent* GetStoreComponent(const AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static INVENTORY_API FGameplayTag GetItemCategory(UInventoryItemComponent* ItemComponent);
 
 	template<typename T>
 	static void ForEach2D(TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
+		TFunctionRef<void (typename TArray<T>::ElementType&)> Callback)
+	{
+		const FIntPoint StartPos = UInventoryWidgetUtils::GetPositionFromIndex(StartIndex, GridColumns); 
+		for (int32 RowIndex = 0; RowIndex < Range2D.Y; ++RowIndex)
+		{
+			for (int32 ColIndex = 0; ColIndex < Range2D.X; ++ColIndex)
+			{
+				const FIntPoint Pos = StartPos + FIntPoint(ColIndex, RowIndex);
+				const int32 TileIndex = UInventoryWidgetUtils::GetIndexFromPosition(Pos, GridColumns);
+				if (Array.IsValidIndex(TileIndex))
+				{
+					Callback(Array[TileIndex]);
+				}
+			}
+		}
+	}
+
+	template<typename T>
+	static void ForEach2D(const TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
+		TFunctionRef<void (const typename TArray<T>::ElementType&)> Callback)
+	{
+		const FIntPoint StartPos = UInventoryWidgetUtils::GetPositionFromIndex(StartIndex, GridColumns); 
+		for (int32 RowIndex = 0; RowIndex < Range2D.Y; ++RowIndex)
+		{
+			for (int32 ColIndex = 0; ColIndex < Range2D.X; ++ColIndex)
+			{
+				const FIntPoint Pos = StartPos + FIntPoint(ColIndex, RowIndex);
+				const int32 TileIndex = UInventoryWidgetUtils::GetIndexFromPosition(Pos, GridColumns);
+				if (Array.IsValidIndex(TileIndex))
+				{
+					Callback(Array[TileIndex]);
+				}
+			}
+		}
+	}
+	
+	template<typename T>
+	static void ForEach2DWithBreak(TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
 		TFunctionRef<bool (typename TArray<T>::ElementType&)> Callback)
 	{
 		const FIntPoint StartPos = UInventoryWidgetUtils::GetPositionFromIndex(StartIndex, GridColumns); 
@@ -56,7 +99,7 @@ public:
 	}
 
 	template<typename T>
-	static void ForEach2D(const TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
+	static void ForEach2DWithBreak(const TArray<T>& Array, const int32 StartIndex, const FIntPoint& Range2D, const int32 GridColumns,
 		TFunctionRef<bool (const typename TArray<T>::ElementType&)> Callback)
 	{
 		const FIntPoint StartPos = UInventoryWidgetUtils::GetPositionFromIndex(StartIndex, GridColumns); 
@@ -82,12 +125,13 @@ public:
 	static void ItemUnhovered(APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
-	static UInventoryHoverProxy* GetHoverItem(const APlayerController* PlayerController);
+	static UInventoryHoverItemWidget* GetHoverItem(const APlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	static UInventoryWidgetBase* GetInventoryWidget(const APlayerController* PlayerController);
 
 	static bool CanEquipItem(const UInventoryItem* Item, const FGameplayTag& EquipmentTypeTag);
+	static bool CanEquipItem(const FInventoryItemManifest& ItemManifest, const FGameplayTag& EquipmentTypeTag);
 
 	static bool IsItemEquipable(const UInventoryItem* Item);
 

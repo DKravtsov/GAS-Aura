@@ -3,9 +3,10 @@
 
 #include "EquipmentManagement/ProxyMesh/InventoryProxyMeshActor.h"
 
-#include "Inventory.h"
 #include "EquipmentManagement/Components/InventoryEquipmentComponent.h"
 #include "GameFramework/Character.h"
+
+#include "DebugHelper.h"
 
 
 AInventoryProxyMeshActor::AInventoryProxyMeshActor()

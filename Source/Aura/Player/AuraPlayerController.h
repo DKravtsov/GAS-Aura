@@ -104,6 +104,14 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="inventory")
     void ToggleInventory();
+
+//#if UE_WITH_CHEAT_MANAGER
+    UFUNCTION(Exec)
+    void DebugPrintStorage() const;
+
+    UFUNCTION(Server, Unreliable)
+    void Server_DebugPrintStorage() const;
+//#endif
     
 protected:
 

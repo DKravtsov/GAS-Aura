@@ -7,6 +7,7 @@
 #include "InventoryManagement/Components/InventoryComponent.h"
 #include "InventoryManagement/Utils/InventoryStatics.h"
 #include "Items/Components/InventoryItemComponent.h"
+#include "Store/Components/InventoryStoreComponent.h"
 #include "Widgets/HUD/InventoryHUDWidget.h"
 
 UInventoryPlayerControllerComponent::UInventoryPlayerControllerComponent()
@@ -60,6 +61,13 @@ void UInventoryPlayerControllerComponent::UpdateInteractionTraceResult(AActor* I
 					HUDWidget->ShowPickupMessage(ItemComponent->GetPickupMessage());
 				}
 			}
+			else if (UInventoryStoreComponent* StoreComponent = InteractableActor->FindComponentByClass<UInventoryStoreComponent>(); IsValid(StoreComponent))
+			{
+				if (IsValid(HUDWidget))
+				{
+					HUDWidget->ShowPickupMessage(StoreComponent->GetInteractMessage());
+				}
+			}
 			const TArray<UActorComponent*> Highlightables = InteractableActor->GetComponentsByInterface(UInventoryHighlightableInterface::StaticClass());
 			for (UActorComponent* Highlightable : Highlightables)
 			{
@@ -104,6 +112,15 @@ void UInventoryPlayerControllerComponent::PrimaryInteract()
 	if (const auto ItemComponent = UInventoryStatics::GetInventoryItemComponent(CurrentInteractableActor.Get()))
 	{
 		InventoryComponent->TryAddItem(ItemComponent);
+		if (IsValid(HUDWidget))
+		{
+			HUDWidget->HidePickupMessage();
+		}
+	}
+	else if (auto StoreComponent = UInventoryStatics::GetStoreComponent(CurrentInteractableActor.Get()))
+	{
+		InventoryComponent->ToggleInventoryMenu();
+		StoreComponent->ToggleInventoryMenu();
 		if (IsValid(HUDWidget))
 		{
 			HUDWidget->HidePickupMessage();

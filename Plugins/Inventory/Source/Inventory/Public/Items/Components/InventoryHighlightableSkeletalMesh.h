@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI)
+UCLASS(MinimalAPI, meta=(BlueprintSpawnableComponent))
 class UInventoryHighlightableSkeletalMesh : public USkeletalMeshComponent, public IInventoryHighlightableInterface
 {
 	GENERATED_BODY()

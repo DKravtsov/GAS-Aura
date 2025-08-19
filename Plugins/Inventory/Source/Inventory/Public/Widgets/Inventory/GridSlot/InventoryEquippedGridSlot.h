@@ -4,16 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "InventoryGridSlot.h"
+#include "InventoryGridSlotWidget.h"
+#include "InventoryGridTypes.h"
 #include "InventoryEquippedGridSlot.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, UInventoryEquippedGridSlot*, GridSlot, const FGameplayTag&, EquipmentTypeTag);
+class UInventoryComponent;
+struct FInventoryEquipmentSlot;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClickedSignature, UInventoryEquippedGridSlot*, GridSlot,
+                                             const FGameplayTag&, EquipmentTypeTag);
 
 /**
  * 
  */
 UCLASS()
-class UInventoryEquippedGridSlot : public UInventoryGridSlot
+class UInventoryEquippedGridSlot : public UInventoryGridSlotWidgetBase
 {
 	GENERATED_BODY()
 public:
@@ -22,8 +27,8 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category="Inventory", meta=(Categories="GameItems.Equipment"))
-	FGameplayTag EquipmentTypeTag;
+	UPROPERTY(EditAnywhere, Category="Inventory")
+	EInventoryEquipmentSlot EquipmentSlotId = EInventoryEquipmentSlot::Invalid;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UOverlay> Overlay_Root;
@@ -32,15 +37,19 @@ private:
 	TObjectPtr<UImage> Image_GrayedOutIcon;
 
 	UPROPERTY(EditAnywhere, Category="Inventory")
-	TSubclassOf<class UInventoryEquippedSlottedItem> EquippedSlottedItemClass;
+	TSubclassOf<class UInventoryEquippedSlottedItemWidget> EquippedSlottedItemClass;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UInventoryEquippedSlottedItem> EquippedSlottedItem;
+	TObjectPtr<UInventoryEquippedSlottedItemWidget> EquippedSlottedItem;
 
-	bool bPendingEquipping = false;
+	TWeakObjectPtr<UInventoryComponent> InventoryComponent;
+
 	TFunction<void ()> PendingEquippingFunction;
+	bool bPendingEquipping = false;
 	
 public:
+
+	bool Bind(UInventoryComponent* InInventoryComponent, EInventoryEquipmentSlot SlotId);
 
 	//~ Begin of UUserWidget interface
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
@@ -48,16 +57,24 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	//~ End of UUserWidget interface
 
-	const FGameplayTag& GetEquipmentTypeTag() const { return EquipmentTypeTag; }
+	EInventoryEquipmentSlot GetSlotId() const { return EquipmentSlotId; }
+	
+	const FGameplayTag& GetEquipmentTypeTag() const;
 
 	UFUNCTION(BlueprintCallable, Category="Inventory")
 	void SetGrayedIconBrush(const FSlateBrush& Brush);
 
-	UInventoryEquippedSlottedItem* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
+	bool IsAvailable() const;
 
-	UInventoryEquippedSlottedItem* GetEquippedSlottedItem() const { return EquippedSlottedItem; }
-	void SetEquippedSlottedItem(UInventoryEquippedSlottedItem* Item) {EquippedSlottedItem = Item;}
+	TWeakObjectPtr<UInventoryItem> GetInventoryItem() const;
+	UInventoryEquippedSlottedItemWidget* OnItemEquipped(UInventoryItem* Item, const FGameplayTag& Tag, float TileSize);
+
+	UInventoryEquippedSlottedItemWidget* GetEquippedSlottedItem() const { return EquippedSlottedItem; }
+	void SetEquippedSlottedItem(UInventoryEquippedSlottedItemWidget* Item) {EquippedSlottedItem = Item;}
 	void ClearEquippedSlot();
 
 	void UpdateIfPending();
+
+private:
+	const FInventoryEquipmentSlot* GetBoundEquipmentSlot() const;
 };
